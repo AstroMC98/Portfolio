@@ -109,7 +109,7 @@ async function loadSnippet(filePath, language) {
   }
 
   try {
-    const resp = await fetch(`/snippets/${filePath}`);
+    const resp = await fetch(`snippets/${filePath}`);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const code = await resp.text();
 
