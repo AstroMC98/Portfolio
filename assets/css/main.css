@@ -1,0 +1,189 @@
+/* =============================================================
+   main.css — Design tokens, reset, layout, typography
+   ============================================================= */
+
+/* ── Design Tokens ─────────────────────────────────────────── */
+:root {
+  /* Colour palette */
+  --bg-base:        #0f1117;
+  --bg-card:        #1a1d27;
+  --bg-card-hover:  #1f2235;
+  --bg-surface:     #252836;
+  --bg-code:        #0d1020;
+
+  --accent:         #6366f1;   /* indigo */
+  --accent-light:   #818cf8;
+  --accent-dim:     rgba(99, 102, 241, 0.15);
+
+  --text-primary:   #f0f2f8;
+  --text-secondary: #9ca3af;
+  --text-muted:     #6b7280;
+  --text-code:      #e2e8f0;
+
+  --border:         rgba(255, 255, 255, 0.08);
+  --border-accent:  rgba(99, 102, 241, 0.4);
+
+  /* Tech badge colours */
+  --badge-llm:      #6366f1;
+  --badge-backend:  #22c55e;
+  --badge-frontend: #06b6d4;
+  --badge-cloud:    #3b82f6;
+  --badge-data:     #f59e0b;
+  --badge-mlops:    #f43f5e;
+
+  /* Layout */
+  --max-width:      1200px;
+  --section-pad:    6rem 2rem;
+  --card-radius:    14px;
+  --nav-height:     64px;
+
+  /* Transitions */
+  --ease-out:       cubic-bezier(0.16, 1, 0.3, 1);
+  --transition:     0.25s var(--ease-out);
+}
+
+/* ── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--nav-height);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: var(--accent-light);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+a:hover { color: var(--text-primary); }
+
+ul { list-style: none; }
+
+/* ── Layout Utilities ───────────────────────────────────────── */
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+section { padding: var(--section-pad); }
+
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent-light);
+  margin-bottom: 0.75rem;
+}
+
+.section-heading {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.section-sub {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  max-width: 56ch;
+  margin-bottom: 3rem;
+}
+
+/* ── Typography ─────────────────────────────────────────────── */
+h1, h2, h3, h4 {
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+code, pre, .mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+/* ── Divider ────────────────────────────────────────────────── */
+.section-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  margin: 0;
+}
+
+/* ── Buttons ────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: none;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--accent-light);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.35);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover {
+  color: var(--text-primary);
+  border-color: var(--border-accent);
+  background: var(--accent-dim);
+}
+
+.btn-snippet {
+  background: var(--accent-dim);
+  color: var(--accent-light);
+  border: 1px solid var(--border-accent);
+  font-size: 0.8rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+}
+.btn-snippet:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ── Responsive Breakpoints ─────────────────────────────────── */
+@media (max-width: 768px) {
+  :root { --section-pad: 4rem 1.25rem; }
+  .section-heading { font-size: 1.75rem; }
+}

@@ -1,0 +1,135 @@
+/* =============================================================
+   animations.css — Scroll-reveal via IntersectionObserver
+   All animated elements start with .reveal class (hidden state).
+   JS adds .revealed when element enters viewport.
+   ============================================================= */
+
+/* ── Reveal base state ──────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered children — parent triggers, children delay */
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-stagger.revealed > *:nth-child(1)  { transition-delay: 0.00s; }
+.reveal-stagger.revealed > *:nth-child(2)  { transition-delay: 0.06s; }
+.reveal-stagger.revealed > *:nth-child(3)  { transition-delay: 0.12s; }
+.reveal-stagger.revealed > *:nth-child(4)  { transition-delay: 0.18s; }
+.reveal-stagger.revealed > *:nth-child(5)  { transition-delay: 0.24s; }
+.reveal-stagger.revealed > *:nth-child(6)  { transition-delay: 0.30s; }
+.reveal-stagger.revealed > *:nth-child(7)  { transition-delay: 0.36s; }
+.reveal-stagger.revealed > *:nth-child(8)  { transition-delay: 0.42s; }
+.reveal-stagger.revealed > *:nth-child(9)  { transition-delay: 0.48s; }
+
+.reveal-stagger.revealed > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Slide from left */
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-32px);
+  transition:
+    opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-left.revealed {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Slide from right */
+.reveal-right {
+  opacity: 0;
+  transform: translateX(32px);
+  transition:
+    opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-right.revealed {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Fade only (no movement) */
+.reveal-fade {
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+.reveal-fade.revealed { opacity: 1; }
+
+/* ── Hero entrance — plays immediately on load ──────────────── */
+.hero__eyebrow  { animation: fadeUp 0.5s 0.1s both; }
+.hero__title    { animation: fadeUp 0.55s 0.2s both; }
+.hero__desc     { animation: fadeUp 0.55s 0.35s both; }
+.hero__actions  { animation: fadeUp 0.55s 0.5s both; }
+.hero__scroll   { animation: fadeUp 0.55s 0.7s both; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Gradient background pulse on hero ──────────────────────── */
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── Accent glow pulse (used on avatar border) ───────────────── */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+  50%       { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.15); }
+}
+
+.about__avatar,
+.about__avatar-placeholder {
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+/* ── Reduce motion support ───────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-stagger > *,
+  .reveal-left,
+  .reveal-right,
+  .reveal-fade {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .hero__eyebrow,
+  .hero__title,
+  .hero__desc,
+  .hero__actions,
+  .hero__scroll {
+    animation: none;
+    opacity: 1;
+  }
+
+  .about__avatar,
+  .about__avatar-placeholder {
+    animation: none;
+  }
+
+  .hero__scroll { animation: none; }
+}

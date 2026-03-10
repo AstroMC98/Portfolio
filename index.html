@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Marc Castro — Tech Consultant & Lead AI Engineer. 9 production ML/AI projects across LLMs, RAG systems, MLOps, and data pipelines. Based in the Philippines." />
+  <title>Marc Castro — Tech Consultant &amp; Lead AI Engineer</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- highlight.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js" defer></script>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/animations.css" />
+
+  <style>
+    /* ── Experience Timeline ───────────────────────────────────── */
+    #experience { background: var(--bg-card); }
+
+    .timeline {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 6px;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 0 1.5rem;
+      padding-bottom: 2.5rem;
+      position: relative;
+    }
+
+    .timeline-item:last-child { padding-bottom: 0; }
+
+    .timeline-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg-card);
+      margin-top: 6px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    .timeline-dot--current {
+      background: var(--accent-light);
+      animation: glowPulse 2.5s ease-in-out infinite;
+    }
+
+    .timeline-content {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 1.25rem 1.5rem;
+      transition: border-color var(--transition);
+    }
+
+    .timeline-content:hover { border-color: var(--border-accent); }
+
+    .timeline-role {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent-light);
+      margin-bottom: 0.15rem;
+    }
+
+    .timeline-org {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .timeline-period {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+      margin-bottom: 0.85rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .timeline-bullets {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .timeline-bullets li {
+      font-size: 0.845rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      padding-left: 1.1rem;
+      position: relative;
+    }
+
+    .timeline-bullets li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-size: 0.72rem;
+    }
+
+    @media (max-width: 640px) {
+      .timeline::before { left: 7px; }
+      .timeline-dot { width: 8px; height: 8px; margin-top: 8px; }
+      .timeline-item { gap: 0 1rem; }
+    }
+
+    /* ── Education ──────────────────────────────────────────────── */
+    .edu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .edu-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 1.5rem;
+      transition: border-color var(--transition), transform var(--transition);
+    }
+
+    .edu-card:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+    }
+
+    .edu-degree {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--accent-light);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.35rem;
+    }
+
+    .edu-school {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.2rem;
+    }
+
+    .edu-period {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Achievements ───────────────────────────────────────────── */
+    #achievements { background: var(--bg-card); }
+
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .achievements-grid { grid-template-columns: 1fr; }
+    }
+
+    .achievement-group__title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-light);
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1rem;
+    }
+
+    .hackathon-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .hackathon-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      transition: border-color var(--transition);
+    }
+
+    .hackathon-item:hover { border-color: var(--border-accent); }
+
+    .hackathon-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .hackathon-badge--champion { background: rgba(245,158,11,0.15); color: #fcd34d; }
+    .hackathon-badge--second   { background: rgba(156,163,175,0.15); color: #d1d5db; }
+    .hackathon-badge--third    { background: rgba(180,120,60,0.15);  color: #d4a574; }
+
+    .hackathon-name {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+
+    .hackathon-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+      line-height: 1.5;
+    }
+
+    .pub-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .pub-item {
+      padding: 0.9rem 1.1rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      transition: border-color var(--transition);
+    }
+
+    .pub-item:hover { border-color: var(--border-accent); }
+
+    .pub-item a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--accent-light);
+      display: block;
+      margin-top: 0.35rem;
+    }
+
+    /* ── Speaking / Public Engagements ─────────────────────────── */
+    .speaking-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .speaking-group {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      overflow: hidden;
+      transition: border-color var(--transition), transform var(--transition);
+    }
+
+    .speaking-group:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+    }
+
+    .speaking-group__header {
+      padding: 0.75rem 1.25rem;
+      background: var(--accent-dim);
+      border-bottom: 1px solid var(--border-accent);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent-light);
+    }
+
+    .speaking-items { padding: 0.75rem 1.25rem; display: flex; flex-direction: column; gap: 0.85rem; }
+
+    .speaking-item__title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.35;
+    }
+
+    .speaking-item__org {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .speaking-item__period {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 0.1rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     NAVIGATION
+═══════════════════════════════════════════════════════════ -->
+<nav class="nav" role="navigation" aria-label="Main navigation">
+  <div class="nav__inner">
+    <a class="nav__logo" href="#hero">Marc<span>.</span>AI</a>
+
+    <ul class="nav__links" role="list">
+      <li><a href="#about"       data-section="about">About</a></li>
+      <li><a href="#experience"  data-section="experience">Experience</a></li>
+      <li><a href="#skills"      data-section="skills">Skills</a></li>
+      <li><a href="#projects"    data-section="projects">Projects</a></li>
+      <li><a href="#achievements" data-section="achievements">Awards</a></li>
+      <li><a href="#contact"     data-section="contact">Contact</a></li>
+      <li>
+        <a href="assets/resume.pdf" target="_blank" rel="noopener"
+           class="btn btn-primary" style="padding:0.45rem 1rem;font-size:0.8rem">
+          Resume ↗
+        </a>
+      </li>
+    </ul>
+
+    <button class="nav__hamburger" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════════════════ -->
+<section class="hero" id="hero">
+  <div class="hero__inner">
+    <div class="hero__eyebrow">
+      <span>●</span> Open to opportunities
+    </div>
+
+    <h1 class="hero__title">
+      Marc Castro<br />
+      <span class="highlight">Tech Consultant</span> &amp;<br />
+      Lead AI Engineer
+    </h1>
+
+    <p class="hero__desc">
+      I design and ship enterprise AI systems — from LLM-powered document pipelines
+      and production RAG platforms to MLOps frameworks and data analytics dashboards.
+      MS Data Science · Published researcher · 4× hackathon medalist.
+    </p>
+
+    <div class="hero__actions">
+      <a href="#projects"  class="btn btn-primary">View Projects</a>
+      <a href="#experience" class="btn btn-ghost">My Experience</a>
+    </div>
+  </div>
+
+  <div class="hero__scroll" aria-hidden="true">scroll</div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     ABOUT
+═══════════════════════════════════════════════════════════ -->
+<section id="about">
+  <div class="container">
+    <div class="about__grid">
+
+      <div class="about__avatar-wrap reveal-left">
+        <div class="about__avatar-placeholder" aria-label="Marc Castro">👤</div>
+      </div>
+
+      <div class="reveal-right">
+        <p class="section-label">About me</p>
+        <h2 class="section-heading">Researcher turned<br />production AI engineer</h2>
+
+        <div class="about__text">
+          <p>
+            I started as a research associate at the Philippine Genome Center, co-authoring
+            papers on SARS-CoV-2 genomic surveillance and building data pipelines for
+            national genomic analysis. That foundation in rigorous, reproducible science
+            shaped how I approach engineering problems today.
+          </p>
+          <p>
+            From there I moved into industry — data science at AIA (Asia-Pacific's largest
+            insurance group), then managing AI initiatives at TDCX AI in Singapore, and now
+            leading enterprise LLM development at Intelligent AI Solutions, a UK-based
+            consultancy. Along the way I've won 4 national and international hackathons,
+            trained corporate and government teams on AI, and consulted for a Philippine
+            Science High School on data-driven student outcomes.
+          </p>
+          <p>
+            I'm most energised by the gap between "it works in a notebook" and "it runs
+            reliably at scale" — async pipelines, evaluation frameworks, rate limiting,
+            drift detection, and the architectural decisions that make AI systems
+            maintainable in production.
+          </p>
+        </div>
+
+        <div class="about__stats reveal-stagger" style="margin-top:2rem">
+          <div class="stat">
+            <span class="stat__num">5+</span>
+            <span class="stat__label">Years in AI/DS</span>
+          </div>
+          <div class="stat">
+            <span class="stat__num">9</span>
+            <span class="stat__label">Shipped projects</span>
+          </div>
+          <div class="stat">
+            <span class="stat__num">4×</span>
+            <span class="stat__label">Hackathon wins</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     EXPERIENCE
+═══════════════════════════════════════════════════════════ -->
+<section id="experience">
+  <div class="container">
+    <p class="section-label reveal">Work history</p>
+    <h2 class="section-heading reveal">Experience</h2>
+    <p class="section-sub reveal">
+      From genomics research to enterprise LLMs — a career built on turning
+      complex data problems into reliable systems.
+    </p>
+
+    <div class="timeline">
+
+      <!-- 1 -->
+      <div class="timeline-item reveal">
+        <div class="timeline-dot timeline-dot--current"></div>
+        <div class="timeline-content">
+          <p class="timeline-role">Lead AI Engineer · Tech Consultant</p>
+          <p class="timeline-org">Intelligent AI Solutions — UK-based Enterprise AI Consultancy</p>
+          <p class="timeline-period">Sep 2024 → Present</p>
+          <ul class="timeline-bullets">
+            <li>
+              Led end-to-end development of enterprise LLM solutions: a media monitoring
+              system for large-scale bias detection, and a RAG knowledge management system
+              for a global travel agency — driving operational efficiency and data-driven
+              decision making.
+            </li>
+            <li>
+              Spearheaded AI research and production deployment: advanced RAG architectures,
+              fine-tuning methodologies, scalable LLM implementations, agentic chatbot
+              solutions, and automated workflow systems across multiple industries.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 2 -->
+      <div class="timeline-item reveal">
+        <div class="timeline-dot timeline-dot--current"></div>
+        <div class="timeline-content">
+          <p class="timeline-role">Senior Data Science Consultant</p>
+          <p class="timeline-org">PSHS – Knowledge Innovation Division</p>
+          <p class="timeline-period">Sep 2024 → Present</p>
+          <ul class="timeline-bullets">
+            <li>
+              Spearheading data science initiatives for the Philippine Science High School —
+              student performance management and data-driven curriculum enhancement for
+              targeted academic interventions.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 3 -->
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <p class="timeline-role">Data Science Instructor &amp; Mentor</p>
+          <p class="timeline-org">CIIT &amp; Eskwelabs</p>
+          <p class="timeline-period">Nov 2023 → Present</p>
+          <ul class="timeline-bullets">
+            <li>
+              Instructor and mentor for workshops, bootcamps, hackathons, and trainings
+              focused on AI, No-Code AI, and Data Science — clients include government
+              organisations, corporate executives, and professionals from diverse backgrounds.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 4 -->
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <p class="timeline-role">Global Data Science Manager</p>
+          <p class="timeline-org">TDCX AI — Singapore</p>
+          <p class="timeline-period">Aug 2023 → Sep 2024</p>
+          <ul class="timeline-bullets">
+            <li>
+              Developed a Forecasting Model streamlining Workforce Management tasks by
+              integrating predictive analytics and simulation capabilities in a user-friendly
+              interface.
+            </li>
+            <li>
+              Built an LLM-powered web application generating realistic simulation scenarios
+              for agent training — reduced time to proficiency by at least 20% and delivered
+              near-real-life customer conversation experiences during onboarding.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 5 -->
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <p class="timeline-role">Data Scientist</p>
+          <p class="timeline-org">AIA Digital+ — Asia-Pacific</p>
+          <p class="timeline-period">Aug 2022 → Aug 2023</p>
+          <ul class="timeline-bullets">
+            <li>
+              Designed and implemented an end-to-end data pipeline for Next Best Action (NBA)
+              campaigns — reduced required FTE for NBA model development by up to 95%.
+            </li>
+            <li>
+              Developed a comprehensive Fraud Detection solution to automate claim request
+              approvals — projected 25% reduction in processing times, enhancing operational
+              efficiency and customer satisfaction.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 6 -->
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <p class="timeline-role">Senior Research Associate — Analytics &amp; Visualization</p>
+          <p class="timeline-org">Philippine Genome Center</p>
+          <p class="timeline-period">Sep 2020 → Mar 2021</p>
+          <ul class="timeline-bullets">
+            <li>
+              Reduced reporting times for genomic analysis of SARS-CoV-2 samples through
+              custom data pipelines and analytical modules.
+            </li>
+            <li>
+              Co-authored multiple peer-reviewed papers on emerging SARS-CoV-2 variants
+              within the Philippines, published in international journals.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     EDUCATION
+═══════════════════════════════════════════════════════════ -->
+<section id="education">
+  <div class="container">
+    <p class="section-label reveal">Academic background</p>
+    <h2 class="section-heading reveal">Education</h2>
+
+    <div class="edu-grid reveal-stagger">
+
+      <div class="edu-card">
+        <p class="edu-degree">Master of Science in Data Science</p>
+        <p class="edu-school">Asian Institute of Management</p>
+        <p class="edu-period">Mar 2021 – Jun 2022 · Graduated 2022</p>
+      </div>
+
+      <div class="edu-card">
+        <p class="edu-degree">BS Applied Physics — Instrumentation</p>
+        <p class="edu-school">University of the Philippines – Diliman</p>
+        <p class="edu-period">Aug 2015 – Jun 2020 · Graduated 2020</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SKILLS
+═══════════════════════════════════════════════════════════ -->
+<section id="skills" style="background: var(--bg-card)">
+  <div class="container">
+    <p class="section-label reveal">Technical skills</p>
+    <h2 class="section-heading reveal">Tools &amp; technologies</h2>
+    <p class="section-sub reveal">Full-stack ML — from model integration to deployment infrastructure.</p>
+
+    <div class="skills__grid reveal-stagger">
+
+      <div class="skill-group">
+        <p class="skill-group__title">LLMs &amp; AI APIs</p>
+        <div class="skill-group__items">
+          <span class="skill-pill">OpenAI GPT-4o</span>
+          <span class="skill-pill">Anthropic Claude</span>
+          <span class="skill-pill">Gemini 3.0 Flash</span>
+          <span class="skill-pill">Azure OpenAI</span>
+          <span class="skill-pill">Ollama (local)</span>
+          <span class="skill-pill">Cohere Rerank</span>
+          <span class="skill-pill">Fine-tuning</span>
+        </div>
+      </div>
+
+      <div class="skill-group">
+        <p class="skill-group__title">Retrieval &amp; Vector DBs</p>
+        <div class="skill-group__items">
+          <span class="skill-pill">ChromaDB</span>
+          <span class="skill-pill">Azure AI Search</span>
+          <span class="skill-pill">Semantic search</span>
+          <span class="skill-pill">Hybrid retrieval</span>
+          <span class="skill-pill">Embedding caching</span>
+          <span class="skill-pill">RAG architectures</span>
+        </div>
+      </div>
+
+      <div class="skill-group">
+        <p class="skill-group__title">Backend &amp; APIs</p>
+        <div class="skill-group__items">
+          <span class="skill-pill">Python 3.12</span>
+          <span class="skill-pill">FastAPI</span>
+          <span class="skill-pill">Quart (async)</span>
+          <span class="skill-pill">asyncio</span>
+          <span class="skill-pill">Pydantic</span>
+          <span class="skill-pill">Laravel</span>
+          <span class="skill-pill">n8n</span>
+        </div>
+      </div>
+
+      <div class="skill-group">
+        <p class="skill-group__title">MLOps &amp; Pipelines</p>
+        <div class="skill-group__items">
+          <span class="skill-pill">DVC</span>
+          <span class="skill-pill">MLflow</span>
+          <span class="skill-pill">Papermill</span>
+          <span class="skill-pill">Evidently AI</span>
+          <span class="skill-pill">Docker</span>
+          <span class="skill-pill">CI/CD</span>
+        </div>
+      </div>
+
+      <div class="skill-group">
+        <p class="skill-group__title">Cloud &amp; Infrastructure</p>
+        <div class="skill-group__items">
+          <span class="skill-pill">Azure Container Apps</span>
+          <span class="skill-pill">Azure AD / RBAC</span>
+          <span class="skill-pill">CosmosDB</span>
+          <span class="skill-pill">Bicep IaC</span>
+          <span class="skill-pill">GCP / Vertex AI</span>
+        </div>
+      </div>
+
+      <div class="skill-group">
+        <p class="skill-group__title">Data &amp; Analytics</p>
+        <div class="skill-group__items">
+          <span class="skill-pill">Pandas / NumPy</span>
+          <span class="skill-pill">scikit-learn</span>
+          <span class="skill-pill">NetworkX</span>
+          <span class="skill-pill">Streamlit</span>
+          <span class="skill-pill">Jupyter</span>
+          <span class="skill-pill">SQL</span>
+          <span class="skill-pill">Forecasting</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PROJECTS
+═══════════════════════════════════════════════════════════ -->
+<section id="projects">
+  <div class="container">
+    <p class="section-label reveal">Selected work</p>
+    <h2 class="section-heading reveal">9 production ML/AI projects</h2>
+    <p class="section-sub reveal">
+      Each project is a private codebase. The snippets below show curated architectural
+      patterns — click any <strong>&lt;/&gt;</strong> button to view highlighted code.
+    </p>
+
+    <div class="projects__grid" id="projects-grid"></div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     ACHIEVEMENTS
+═══════════════════════════════════════════════════════════ -->
+<section id="achievements">
+  <div class="container">
+    <p class="section-label reveal">Recognition</p>
+    <h2 class="section-heading reveal">Awards &amp; Publications</h2>
+
+    <div class="achievements-grid">
+
+      <!-- Hackathons -->
+      <div class="reveal-left">
+        <p class="achievement-group__title">&#x1F3C6; Hackathon Record</p>
+        <div class="hackathon-list">
+
+          <div class="hackathon-item">
+            <span class="hackathon-badge hackathon-badge--champion">&#x1F947; Champion</span>
+            <p class="hackathon-name">[NATL.] ICSC Hack-A-Street 2025</p>
+            <p class="hackathon-desc">
+              Won a 2-day offline hackathon against 13 data-savvy teams across the Philippines.
+              Built a gravity-based model to identify optimal bike rack locations — same
+              approach retailers use for franchise site selection.
+            </p>
+          </div>
+
+          <div class="hackathon-item">
+            <span class="hackathon-badge hackathon-badge--champion">&#x1F947; Champion</span>
+            <p class="hackathon-name">[NATL.] DOH-DAP Hack4Health 2024</p>
+            <p class="hackathon-desc">
+              Emerged champion in a 3-day face-to-face hackathon against 100+ teams.
+              Developed an all-in-one fraud detection platform merging DOH and DAP
+              technological capabilities.
+            </p>
+          </div>
+
+          <div class="hackathon-item">
+            <span class="hackathon-badge hackathon-badge--second">&#x1F948; 2nd Place</span>
+            <p class="hackathon-name">[INTL.] UN Big Data Hackathon 2023 — Youth Track</p>
+            <p class="hackathon-desc">
+              Placed 2nd among 122 teams worldwide. Created a solution addressing UN SDG
+              goals. Also awarded <strong style="color:var(--accent-light)">Best Youth Team
+              in the Asian region</strong>.
+            </p>
+          </div>
+
+          <div class="hackathon-item">
+            <span class="hackathon-badge hackathon-badge--third">&#x1F949; 3rd Place</span>
+            <p class="hackathon-name">[NATL.] USHER Hackathon 2022</p>
+            <p class="hackathon-desc">
+              Awarded 3rd place for developing an ML pipeline interpreting early warning
+              signals of building damage.
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Publications -->
+      <div class="reveal-right">
+        <p class="achievement-group__title">&#x1F4D6; Peer-Reviewed Publications</p>
+        <div class="pub-list">
+
+          <div class="pub-item">
+            Detection and genome sequencing of SARS-CoV-2 belonging to the B.1.1.7 lineage
+            in the Philippines.
+            <a href="https://doi.org/10.1128/MRA.00219-21" target="_blank" rel="noopener">
+              doi: 10.1128/MRA.00219-21 ↗
+            </a>
+          </div>
+
+          <div class="pub-item">
+            Genome sequencing and analysis of an emergent SARS-CoV-2 variant characterised
+            by multiple spike protein mutations from Central Visayas, Philippines.
+            <a href="https://doi.org/10.1101/2021.03.03.21252812" target="_blank" rel="noopener">
+              doi: 10.1101/2021.03.03.21252812 ↗
+            </a>
+          </div>
+
+          <div class="pub-item">
+            A directed minimum connected dominating set for protein-protein interaction
+            networks.
+            <a href="#" rel="noopener">
+              isbn: 9780367814656
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SPEAKING / PUBLIC ENGAGEMENTS
+═══════════════════════════════════════════════════════════ -->
+<section id="speaking">
+  <div class="container">
+    <p class="section-label reveal">Public engagements</p>
+    <h2 class="section-heading reveal">Speaking &amp; Training</h2>
+    <p class="section-sub reveal">
+      Delivering AI education to government agencies, universities, and corporate teams
+      across the Philippines and Southeast Asia.
+    </p>
+
+    <div class="speaking-grid reveal-stagger">
+
+      <div class="speaking-group">
+        <div class="speaking-group__header">&#x1F3DB; Government</div>
+        <div class="speaking-items">
+          <div>
+            <p class="speaking-item__title">AI Technology Government Trainings</p>
+            <p class="speaking-item__org">Department of Information &amp; Communication Technology · ICT Literacy and Competency Development Bureau</p>
+            <p class="speaking-item__period">Aug 2025 · Nov 2025</p>
+          </div>
+          <div>
+            <p class="speaking-item__title">BANT.AI: Revolutionising Fraud Detection with Unified Health Data</p>
+            <p class="speaking-item__org">Department of Health · 20th National Health Research Forum for Action</p>
+            <p class="speaking-item__period">Oct 2024</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="speaking-group">
+        <div class="speaking-group__header">&#x1F393; Universities &amp; Colleges</div>
+        <div class="speaking-items">
+          <div>
+            <p class="speaking-item__title">The Art of Data Storytelling and Data Visualization</p>
+            <p class="speaking-item__org">University of Santo Tomas — Dept. of Computer Science · HORAIZON</p>
+            <p class="speaking-item__period">Mar 2023</p>
+          </div>
+          <div>
+            <p class="speaking-item__title">Breaking Bias in AI</p>
+            <p class="speaking-item__org">Far Eastern University Institute of Technology · FEU Tech ACM</p>
+            <p class="speaking-item__period">Jun 2023</p>
+          </div>
+          <div>
+            <p class="speaking-item__title">Breaking into Tech Consulting Within 5 Years</p>
+            <p class="speaking-item__org">Asian Institute of Management · ICT Literacy and Competency Development Bureau</p>
+            <p class="speaking-item__period">Mar 2025</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="speaking-group">
+        <div class="speaking-group__header">&#x1F3E2; Corporate Trainings</div>
+        <div class="speaking-items">
+          <div>
+            <p class="speaking-item__title">Generative AI &amp; Low Code for Corporate Teams</p>
+            <p class="speaking-item__org">Ayala Group — Various organisations from the Ayala Group of Companies</p>
+            <p class="speaking-item__period">Jun 2025 – Sep 2025</p>
+          </div>
+          <div>
+            <p class="speaking-item__title">N8N: Automation Tools for E-Commerce</p>
+            <p class="speaking-item__org">Carousell Singapore · IT, Marketing &amp; HR teams</p>
+            <p class="speaking-item__period">Aug 2025</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     CONTACT
+═══════════════════════════════════════════════════════════ -->
+<section id="contact" style="background: var(--bg-card)">
+  <div class="container">
+    <div class="contact__grid">
+
+      <div class="reveal-left">
+        <p class="section-label">Get in touch</p>
+        <h2 class="section-heading">Let's build something together</h2>
+        <p style="color:var(--text-secondary);font-size:0.95rem;line-height:1.7;margin-top:1rem">
+          I'm open to senior ML engineering roles, technical consulting engagements,
+          speaking invitations, and research collaborations in LLMs, RAG architectures,
+          and production AI systems.
+        </p>
+      </div>
+
+      <div class="contact__links reveal-right">
+
+        <a href="https://github.com/AstroMC98" target="_blank" rel="noopener" class="contact-link">
+          <span class="contact-link__icon">&#x1F4BB;</span>
+          <span class="contact-link__text">
+            <span class="contact-link__label">GitHub</span>
+            <span class="contact-link__value">github.com/AstroMC98</span>
+          </span>
+        </a>
+
+        <a href="https://linkedin.com/in/nipmcastro" target="_blank" rel="noopener" class="contact-link">
+          <span class="contact-link__icon">&#x1F517;</span>
+          <span class="contact-link__text">
+            <span class="contact-link__label">LinkedIn</span>
+            <span class="contact-link__value">linkedin.com/in/nipmcastro</span>
+          </span>
+        </a>
+
+        <a href="mailto:mcastro.dsci@gmail.com" class="contact-link">
+          <span class="contact-link__icon">&#x2709;&#xFE0F;</span>
+          <span class="contact-link__text">
+            <span class="contact-link__label">Email</span>
+            <span class="contact-link__value">mcastro.dsci@gmail.com</span>
+          </span>
+        </a>
+
+        <a href="assets/resume.pdf" target="_blank" rel="noopener" class="contact-link">
+          <span class="contact-link__icon">&#x1F4C4;</span>
+          <span class="contact-link__text">
+            <span class="contact-link__label">Resume</span>
+            <span class="contact-link__value">Download PDF</span>
+          </span>
+        </a>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <p>Marc Castro · Built with vanilla HTML/CSS/JS · Hosted on GitHub Pages</p>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════════
+     SNIPPET MODAL
+═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="modal__header">
+      <div>
+        <h2 class="modal__title" id="modal-title">Code Snippet</h2>
+        <p class="modal__subtitle" id="modal-subtitle"></p>
+      </div>
+      <button class="modal__close" id="modal-close" aria-label="Close snippet viewer">&#215;</button>
+    </div>
+    <div class="modal__tabs" id="modal-tabs" role="tablist"></div>
+    <div class="modal__body" id="modal-body">
+      <div class="modal__loading">
+        <div class="spinner"></div>
+        Loading…
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Scripts ──────────────────────────────────────────────── -->
+<script src="assets/js/data/projects.js"></script>
+<script src="assets/js/main.js"></script>
+<script src="assets/js/projects.js"></script>
+<script src="assets/js/snippet-viewer.js"></script>
+
+</body>
+</html>

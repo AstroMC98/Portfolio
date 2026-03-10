@@ -1,0 +1,54 @@
+# ============================================================
+# PRIVATE PROJECT CODEBASES — NEVER COMMIT THESE DIRECTORIES
+# Leading / anchors each rule to the repo root only,
+# preventing case-insensitive Windows matches inside subdirs.
+# ============================================================
+/D2LT-Enhanced-main/
+/DAIso/
+/WFGPT-Prod-main/
+/LLMOps_Platform-main/
+/Elevenow-Agents-master/
+/Elevenow-RAG-master/
+/CFMM-Papermill-Daily-main/
+/STEM-Monitoring-and-Analytics-main/
+/Triage-Demonstration-main/
+
+# Environment and secrets
+*.env
+.env
+.env.*
+*.key
+*.pem
+secrets/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Node / frontend artifacts
+node_modules/
+.npm
+*.log
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temp / local files
+*.tmp
+*.bak
+.cache/
