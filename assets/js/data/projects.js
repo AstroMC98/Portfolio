@@ -128,6 +128,7 @@ const PROJECTS = [
     snippets: [
       { label: "Chat Approach", file: "wfgpt-prod/chat_approach.py" },
       { label: "RBAC Middleware", file: "wfgpt-prod/rbac_middleware.py" },
+      { label: "Approach Registry", file: "wfgpt-prod/approach_registry.py" },
     ],
     details: {
       overview: "WFGPT is a production enterprise RAG chat platform deployed on Azure Container Apps. It implements a pluggable 'approach' pattern where retrieval strategies (semantic, vector, hybrid) are interchangeable modules registered at startup. Azure AI Search handles multi-strategy retrieval while an async Quart backend orchestrates query rewriting, retrieval, and GPT-4o answer generation via tool calling. GPT-4V extends the system to image-heavy documents. Azure AD integration enforces RBAC, and per-user credit limits are enforced via an async decorator that blocks requests when monthly quotas are exceeded.",
@@ -172,6 +173,7 @@ const PROJECTS = [
       "Standardises AI quality benchmarks across teams and eliminates redeployment cycles for evaluation iteration — making it safe to compare models before committing to production upgrades.",
     snippets: [
       { label: "Agentic Evaluator", file: "llmops-platform/agentic_evaluator.py" },
+      { label: "Ensemble Scorer", file: "llmops-platform/ensemble_scorer.py" },
       { label: "Drift Detector", file: "llmops-platform/drift_detector.py" },
     ],
     details: {
@@ -215,6 +217,7 @@ const PROJECTS = [
       "Reduces average handle time in contact centres by surfacing resolution paths in real time — enabling agents to resolve complex cases faster without additional training.",
     snippets: [
       { label: "Journey Tracker", file: "elevenow-agents/journey_tracker.py" },
+      { label: "Scorecard Generator", file: "elevenow-agents/scorecard_generator.py" },
     ],
     details: {
       overview: "The Agent Copilot is a FastAPI service that integrates into a contact centre's real-time conversation stream. It exposes seven specialised endpoints, each targeting a distinct moment in the customer service journey — from opening stage identification through to outcome forecasting. Prompts are loaded from Markdown files at startup so domain teams can update guidance without touching application code. An async LLM client with exponential backoff handles GPT-4o-mini 429 and 5xx errors transparently, ensuring reliability under burst traffic.",
@@ -256,7 +259,10 @@ const PROJECTS = [
     ],
     impact:
       "Cuts redundant retrieval API costs by ~40% via intelligent RAG-skip logic — while maintaining answer quality through two-stage retrieval on queries that genuinely need new context.",
-    snippets: [{ label: "Hybrid RAG", file: "elevenow-rag/hybrid_rag.py" }],
+    snippets: [
+      { label: "Hybrid RAG", file: "elevenow-rag/hybrid_rag.py" },
+      { label: "Session Manager", file: "elevenow-rag/session_manager.py" },
+    ],
     details: {
       overview: "This RAG chatbot implements a two-stage retrieval funnel: ChromaDB returns 25 candidate chunks which are reranked by Cohere to the top 5 with explicit relevance scores. Before any retrieval, a lightweight LLM check decides whether the conversation history already contains a sufficient answer — skipping the retrieval pipeline entirely when it does. A query reformulation step resolves pronouns and implicit references from prior turns before searching. An MD5-keyed pickle cache prevents duplicate embedding API calls for repeated queries.",
       architecture: [
