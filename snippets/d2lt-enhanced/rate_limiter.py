@@ -12,6 +12,17 @@ WHY IT'S INTERESTING:
   60 seconds wide, so the effective rate converges to the RPM limit even
   under bursty load. The asyncio.Lock ensures the critical section is
   atomic — no two coroutines can both observe "under limit" simultaneously.
+
+NOVELTY:
+  Most async LLM wrappers use fixed sleep intervals between retries. This
+  implementation uses a sliding-window deque (not a token bucket with timer
+  refill) so the effective rate converges to exactly RPM over any 60-second
+  window — even under bursty parallel workloads across multiple worker pools.
+  The asyncio.Lock ensures the critical read-modify-write on the deque is
+  atomic across all coroutines sharing one limiter instance. The alternative
+  (a simple asyncio.Semaphore) would bound concurrency but not rate — a
+  semaphore with N=10 allows 10 simultaneous requests with no per-minute cap,
+  which is the wrong primitive for API rate-limit enforcement.
 """
 
 import asyncio

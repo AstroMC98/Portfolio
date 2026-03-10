@@ -12,6 +12,18 @@ WHY IT'S INTERESTING:
   iterate on notebooks locally, and the same file runs in production
   with injected parameters — no code duplication, full reproducibility,
   and output notebooks serve as execution audit logs.
+
+NOVELTY:
+  The common alternative — converting notebooks to Python scripts for
+  production — loses the cell-by-cell execution state that makes debugging
+  failures tractable. Papermill's output notebooks preserve intermediate
+  cell outputs, making it straightforward to identify which analysis step
+  failed and why, without adding explicit checkpointing code. The dual
+  execution mode (sequential for debugging, multiprocessing.Pool for daily
+  production runs) is surfaced via a single parameter rather than two code
+  paths, preventing the classic problem where the "fast path" and "debug path"
+  diverge over time. Category isolation means one failing analysis doesn't
+  block the others — each notebook process is fully independent.
 """
 
 from __future__ import annotations

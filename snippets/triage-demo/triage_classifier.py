@@ -12,6 +12,19 @@ WHY IT'S INTERESTING:
   robust way to extract structured data from LLMs — it's resilient to
   preamble text and works across models. The reference ID derived from
   hashing the input ensures idempotent lookups without a database.
+
+NOVELTY:
+  XML-tagged output parsing remains relevant even with modern JSON-mode
+  because it degrades more gracefully: if the model produces extra reasoning
+  text before the tags (common in zero-shot prompts), the regex extractor
+  still finds the payload, whereas JSON-mode fails on any non-JSON prefix.
+  The MD5-based reference ID (hashed from case description + timestamp) gives
+  idempotent audit trail entries without requiring a sequence counter or
+  database auto-increment — critical for a stateless prototype that writes
+  only to a flat CSV. The design explicitly separates interpretation (what is
+  this case?) from triage (what priority?) into distinct XML tags, matching
+  the two-question mental model used by human triage reviewers and making it
+  straightforward to evaluate each output dimension independently.
 """
 
 from __future__ import annotations

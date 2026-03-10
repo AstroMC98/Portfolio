@@ -13,6 +13,18 @@ WHY IT'S INTERESTING:
   the model to explicitly reason about each criterion before committing
   to a score, producing more reliable and auditable evaluations.
   This is the evaluator pattern used in the LLMOps platform's ensemble.
+
+NOVELTY:
+  The key distinction from a simple "rate this response" prompt is the
+  separation of critique from scoring into explicit pipeline stages. Most
+  LLM evaluation libraries (RAGAS, DeepEval) issue a single prompt that
+  asks for both reasoning and a numeric score simultaneously — the model
+  anchors on a score early and rationalises it backwards. This implementation
+  completes a full critique pass first (producing per-criterion failure modes),
+  then passes the critique as context to a scoring call. The two-call overhead
+  is offset by measurably higher inter-rater agreement in ensemble scoring,
+  because each judge is working from an explicit reasoning chain rather than
+  implicit pattern matching.
 """
 
 from __future__ import annotations

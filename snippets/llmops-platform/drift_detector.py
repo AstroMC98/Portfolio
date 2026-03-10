@@ -13,6 +13,18 @@ WHY IT'S INTERESTING:
   waiting for user complaints, this approach gives early warnings by
   continuously comparing the statistical "centre of mass" of queries —
   a lightweight proxy for distribution shift without requiring labels.
+
+NOVELTY:
+  The choice to compare mean embeddings (centroid similarity) rather than
+  full distributional tests (MMD, KS-test on PCA components) is a deliberate
+  latency–sensitivity trade-off. Centroid comparison runs in O(d) per window
+  versus O(n²) for pairwise MMD, making it viable as a real-time check on
+  every inference batch rather than a nightly job. The cost is sensitivity
+  to within-cluster drift: two query distributions with the same centroid but
+  different spread would not be detected. For the platform's use case — flagging
+  major topic shifts and new use-case adoption — centroid sensitivity is
+  sufficient, and false positives from high-variance but on-topic queries are
+  avoided. A full MMD check runs on flagged windows as a secondary pass.
 """
 
 from __future__ import annotations

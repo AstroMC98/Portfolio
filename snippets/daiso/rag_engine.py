@@ -11,6 +11,17 @@ WHY IT'S INTERESTING:
   dependency for a local equivalent — enabling deployment in air-gapped
   or data-sensitive environments (healthcare, legal, finance) without
   changing the retrieval or generation logic.
+
+NOVELTY:
+  The non-trivial engineering decision is preserving the same retrieval and
+  generation interface whether backed by Ollama or a cloud LLM. A naive
+  implementation hard-codes the inference call; this abstraction means the
+  same RAG logic runs offline (Ollama/Gemma 2 via CUDA or Metal) or online
+  without branching in the retrieval pipeline. The DVC-tracked ingestion
+  layer — often omitted in RAG demos — is what makes the system reproducible:
+  any team member can recreate the exact vector index from a versioned dataset
+  snapshot, which is essential for regulated environments that require
+  auditable knowledge bases.
 """
 
 from dataclasses import dataclass

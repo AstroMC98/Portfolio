@@ -12,6 +12,17 @@ WHY IT'S INTERESTING:
   the wrapped function's arguments (either positional or keyword),
   making it composable with any authenticated endpoint without requiring
   changes to the endpoint's signature.
+
+NOVELTY:
+  The typical approach to credit enforcement is a middleware layer that
+  intercepts all requests, or manual checks at the top of each endpoint
+  function. Both create coupling between the enforcement logic and the
+  endpoint code. The decorator pattern here is composable: adding credit
+  enforcement to a new endpoint is a one-line annotation change. The
+  implementation resolves auth_claims from either positional or keyword
+  arguments using inspect.signature(), which is the non-obvious part —
+  it makes the decorator work regardless of how the caller passes the
+  claims, preventing silent failures if endpoint signatures evolve.
 """
 
 import logging

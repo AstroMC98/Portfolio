@@ -12,6 +12,19 @@ WHY IT'S INTERESTING:
   documents wastes tokens and latency. By asking a cheap LLM call whether
   conversation history already contains the answer, the system avoids
   redundant retrieval — reducing cost by ~40% in multi-turn sessions.
+
+NOVELTY:
+  Two-stage retrieval (vector search → cross-encoder reranking) is well
+  understood in literature, but the RAG-skip decision layer on top is less
+  common in production implementations. The skip decision uses a smaller,
+  faster model (not the generation model) so the overhead of the skip check
+  is lower than the saved retrieval cost on cache-hit queries. The 25→5
+  funnel ratio was tuned empirically: fewer than 25 candidates produces
+  reranker precision loss on long-tail queries; more than 25 increases
+  reranker latency beyond the point where two-stage beats single-stage.
+  The MD5-keyed pickle cache for embeddings is intentionally simple — a
+  Redis layer would add ops complexity for a system where the document
+  corpus changes infrequently.
 """
 
 from __future__ import annotations

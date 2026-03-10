@@ -31,6 +31,8 @@ const PROJECTS = [
       "Token-bucket rate limiter with sliding window — prevents 429s under load",
       "Real-time rich progress UI with live cost tracking across workers",
     ],
+    impact:
+      "Reduces manual document processing FTE by automating extraction from complex multi-page forms — cutting turnaround from hours to minutes at 10–30× throughput.",
     snippets: [
       { label: "Rate Limiter", file: "d2lt-enhanced/rate_limiter.py" },
       { label: "Async Pipeline", file: "d2lt-enhanced/async_pipeline.py" },
@@ -58,6 +60,8 @@ const PROJECTS = [
       "MLflow experiment tracking with metric comparison across model versions",
       "Evidently AI monitors embedding drift and query distribution shifts",
     ],
+    impact:
+      "Enables AI adoption in regulated industries (legal, healthcare, finance) where data cannot leave the premises — eliminating cloud API costs and compliance risk simultaneously.",
     snippets: [{ label: "RAG Engine", file: "daiso/rag_engine.py" }],
   },
   {
@@ -83,6 +87,8 @@ const PROJECTS = [
       "Vision-augmented retrieval combines text chunks with GPT-4V image understanding",
       "Prompt management via .prompty files — swap prompts without code changes",
     ],
+    impact:
+      "Gives enterprise knowledge workers instant, cited answers from internal document libraries — reducing time-to-answer and cutting support ticket volume for information requests.",
     snippets: [
       { label: "Chat Approach", file: "wfgpt-prod/chat_approach.py" },
       { label: "RBAC Middleware", file: "wfgpt-prod/rbac_middleware.py" },
@@ -108,6 +114,8 @@ const PROJECTS = [
       "Ensemble scoring combines multiple judges with confidence weighting",
       "Dataset versioning via DVC enables reproducible evaluation benchmarks",
     ],
+    impact:
+      "Standardises AI quality benchmarks across teams and eliminates redeployment cycles for evaluation iteration — making it safe to compare models before committing to production upgrades.",
     snippets: [
       { label: "Agentic Evaluator", file: "llmops-platform/agentic_evaluator.py" },
       { label: "Drift Detector", file: "llmops-platform/drift_detector.py" },
@@ -131,6 +139,8 @@ const PROJECTS = [
       "Markdown-rendered prompts loaded from the filesystem at startup",
       "Projected resolution forecasting from partial conversation transcripts",
     ],
+    impact:
+      "Reduces average handle time in contact centres by surfacing resolution paths in real time — enabling agents to resolve complex cases faster without additional training.",
     snippets: [
       { label: "Journey Tracker", file: "elevenow-agents/journey_tracker.py" },
     ],
@@ -154,6 +164,8 @@ const PROJECTS = [
       "Query reformulation resolves pronoun references and implicit follow-ups",
       "MD5-keyed pickle cache eliminates duplicate embedding API calls",
     ],
+    impact:
+      "Cuts redundant retrieval API costs by ~40% via intelligent RAG-skip logic — while maintaining answer quality through two-stage retrieval on queries that genuinely need new context.",
     snippets: [{ label: "Hybrid RAG", file: "elevenow-rag/hybrid_rag.py" }],
   },
   {
@@ -174,6 +186,8 @@ const PROJECTS = [
       "Parallel execution via multiprocessing.Pool for independent category runs",
       "Fully reproducible: output notebooks capture all execution state",
     ],
+    impact:
+      "Eliminates daily manual reporting effort across multiple analyst teams — delivering consistent, reproducible media analysis outputs on a fully automated schedule.",
     snippets: [
       { label: "Pipeline Runner", file: "cfmm-papermill/pipeline_runner.py" },
     ],
@@ -197,6 +211,8 @@ const PROJECTS = [
       "Network science reveals skill co-occurrence clusters and central competencies",
       "Curriculum gap scoring compares academic offerings against market demand",
     ],
+    impact:
+      "Provides academic institutions with real labour market evidence for curriculum decisions — replacing anecdotal program planning with quantified skill-gap data.",
     snippets: [
       { label: "Skill Gap Analysis", file: "stem-monitoring/skill_gap_analysis.py" },
     ],
@@ -219,6 +235,8 @@ const PROJECTS = [
       "Multi-turn session state management with Streamlit session_state",
       "Configurable prompts via external prompt modules for easy adaptation",
     ],
+    impact:
+      "Standardises triage decisions and creates a full audit trail for compliance — enabling consistent, 24/7 AI-assisted case routing without human reviewer bottlenecks.",
     snippets: [
       { label: "Triage Classifier", file: "triage-demo/triage_classifier.py" },
     ],

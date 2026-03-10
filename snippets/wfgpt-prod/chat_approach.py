@@ -13,6 +13,18 @@ WHY IT'S INTERESTING:
   By first asking the LLM to produce a search query, then feeding search
   results back as context, the system achieves much higher answer accuracy
   than naive "embed question → retrieve → answer" pipelines.
+
+NOVELTY:
+  The architectural decision to use OpenAI tool calling (function calling)
+  rather than prompt-engineered JSON extraction is significant: tool calls
+  guarantee schema-valid output even when the model is uncertain, eliminating
+  the fragile regex/JSON-parse layer that breaks in ~5% of naively prompted
+  calls. The multi-retrieval strategy (semantic, vector, hybrid) is managed
+  at the query-rewrite stage rather than post-retrieval fusion — meaning
+  the model selects the optimal strategy per query rather than always running
+  all three and merging results, which keeps latency and cost controlled.
+  The .prompty file pattern externalises prompt engineering from application
+  code, enabling non-engineers to iterate on prompts without deployments.
 """
 
 import logging

@@ -11,6 +11,17 @@ WHY IT'S INTERESTING:
   (fan-out to N workers), then asyncio.gather() for page/region parallelism
   within each worker. return_exceptions=True at each gather ensures one
   failed region never crashes the entire document.
+
+NOVELTY:
+  Combining two different async parallelism primitives at different pipeline
+  levels is the key design decision here. asyncio.Queue + workers (fan-out
+  pattern) is chosen at the batch level because documents arrive at variable
+  rates and work should be load-balanced dynamically across a fixed worker
+  pool. asyncio.gather() is chosen for page/region parallelism because the
+  set of subtasks is known upfront and bounded. Using gather() at the outer
+  level too would create an unbounded task explosion under large batch sizes.
+  The dual-pattern approach bounds memory and concurrency without sacrificing
+  throughput.
 """
 
 import asyncio

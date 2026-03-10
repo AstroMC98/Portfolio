@@ -37,6 +37,12 @@ function buildCard(project) {
 
       <p class="card__desc">${escHtml(project.description)}</p>
 
+      ${project.impact ? `
+      <div class="card__impact">
+        <span class="card__impact-label">Business Impact</span>
+        <p class="card__impact-text">${escHtml(project.impact)}</p>
+      </div>` : ''}
+
       <div class="card__tech">${techBadges}</div>
 
       <ul class="card__highlights">${highlights}</ul>
