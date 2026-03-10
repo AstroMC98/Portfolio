@@ -28,6 +28,10 @@ function buildCard(project) {
     )
     .join('');
 
+  const detailButton = project.details
+    ? `<button class="btn btn-detail" onclick="openDetailModal('${project.id}')">&#x25C8; Know More</button>`
+    : '';
+
   return `
     <article class="project-card reveal" id="card-${project.id}">
       <div class="card__header">
@@ -47,7 +51,7 @@ function buildCard(project) {
 
       <ul class="card__highlights">${highlights}</ul>
 
-      <div class="card__actions">${snippetButtons}</div>
+      <div class="card__actions">${detailButton}${snippetButtons}</div>
     </article>
   `;
 }

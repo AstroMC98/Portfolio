@@ -700,3 +700,101 @@
 
 /* ── Active nav indicator via IntersectionObserver ─────────── */
 .nav__links a[data-section].active { color: var(--text-primary); }
+
+/* ── Project Detail Modal ───────────────────────────────────── */
+.modal--detail { max-width: 680px; }
+
+.detail__section {
+  padding: 1.5rem 1.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.detail__section:last-child { border-bottom: none; }
+
+.detail__section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent-light);
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.detail__overview {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+}
+
+.detail__arch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.detail__arch-item {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 0.75rem;
+  align-items: baseline;
+}
+
+.detail__arch-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+}
+
+.detail__arch-desc {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.detail__benefits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.detail__benefit {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  padding-left: 1.25rem;
+  position: relative;
+  line-height: 1.5;
+}
+
+.detail__benefit::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #4ade80;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* ── "Know More" button ─────────────────────────────────────── */
+.btn-detail {
+  background: transparent;
+  color: var(--accent-light);
+  border: 1px solid var(--border-accent);
+  font-size: 0.8rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--transition), color var(--transition);
+}
+
+.btn-detail:hover {
+  background: var(--accent-dim);
+  color: var(--text-primary);
+}
+
+@media (max-width: 640px) {
+  .detail__arch-item { grid-template-columns: 1fr; gap: 0.2rem; }
+}
