@@ -52,3 +52,4 @@ desktop.ini
 *.tmp
 *.bak
 .cache/
+.superpowers/
