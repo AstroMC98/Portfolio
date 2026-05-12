@@ -39,6 +39,11 @@
         </div>`)
       .join('');
 
+    const flowSteps = (d.architecture || [])
+      .slice(0, 5)
+      .map((a) => `<span class="detail__flow-step">${esc(a.name)}</span>`)
+      .join('');
+
     const benefitItems = (d.benefits || [])
       .map((b) => `<li class="detail__benefit">${esc(b)}</li>`)
       .join('');
@@ -47,6 +52,10 @@
       <div class="detail__section">
         <span class="detail__section-label">How It Works</span>
         <p class="detail__overview">${esc(d.overview)}</p>
+      </div>
+      <div class="detail__section">
+        <span class="detail__section-label">System Flow</span>
+        <div class="detail__flow">${flowSteps}</div>
       </div>
       <div class="detail__section">
         <span class="detail__section-label">Architecture</span>

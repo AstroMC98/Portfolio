@@ -15,7 +15,7 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..800&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <!-- highlight.js -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="assets/css/main.css" />
   <link rel="stylesheet" href="assets/css/components.css" />
   <link rel="stylesheet" href="assets/css/animations.css" />
+  <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet" />
 
   <style>
     /* ── Experience Timeline ───────────────────────────────────── */
@@ -340,10 +341,10 @@
 
     <ul class="nav__links" role="list">
       <li><a href="#about"       data-section="about">About</a></li>
+      <li><a href="#services"    data-section="services">Services</a></li>
       <li><a href="#experience"  data-section="experience">Experience</a></li>
-      <li><a href="#skills"      data-section="skills">Skills</a></li>
-      <li><a href="#projects"    data-section="projects">Projects</a></li>
-      <li><a href="#achievements" data-section="achievements">Awards</a></li>
+      <li><a href="#projects"    data-section="projects">Case Studies</a></li>
+      <li><a href="#proof"       data-section="proof">Proof</a></li>
       <li><a href="#contact"     data-section="contact">Contact</a></li>
       <li>
         <a href="assets/resume.pdf" target="_blank" rel="noopener"
@@ -369,24 +370,131 @@
     </div>
 
     <h1 class="hero__title">
-      Marc Castro<br />
-      <span class="highlight">Tech Consultant</span> &amp;<br />
-      Lead AI Engineer
+      Marc Castro builds AI systems that survive production.
     </h1>
 
     <p class="hero__desc">
-      I design and ship enterprise AI systems — from LLM-powered document pipelines
-      and production RAG platforms to MLOps frameworks and data analytics dashboards. <br>
-      MS Data Science · Published researcher · 4× hackathon medalist.
+      Tech consultant and lead AI engineer for enterprise RAG, agentic workflows,
+      document intelligence, and LLMOps platforms. I help teams move from promising
+      prototypes to governed, observable systems with business impact.
+    </p>
+
+    <p class="hero__cred">
+      MS Data Science. Published researcher. Trusted by teams across AIA, Ayala Group,
+      PSHS, and UK enterprise AI programs.
     </p>
 
     <div class="hero__actions">
-      <a href="#projects"  class="btn btn-primary">View Projects</a>
-      <a href="#experience" class="btn btn-ghost">My Experience</a>
+      <a href="https://calendly.com/mcastro-dsci/30min" target="_blank" rel="noopener" class="btn btn-primary">Book a strategy call</a>
+      <a href="#projects" class="btn btn-ghost">Study the work</a>
     </div>
   </div>
 
   <div class="hero__scroll" aria-hidden="true">scroll</div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SERVICES
+═══════════════════════════════════════════════════════════ -->
+<section id="services" style="background: var(--bg-card)">
+  <div class="container">
+    <p class="section-label reveal">How I can help</p>
+    <h2 class="section-heading reveal">Consulting Services</h2>
+    <p class="section-sub reveal">
+      Engagements designed for business outcomes: faster operations, lower manual effort,
+      and production-grade AI systems that your team can actually maintain.
+    </p>
+
+    <div class="services-grid reveal-stagger">
+      <article class="service-card">
+        <p class="service-card__kicker">Service 01</p>
+        <h3 class="service-card__title">Enterprise RAG and LLM Integration</h3>
+        <p class="service-card__desc">
+          Build secure, citation-grounded assistants over internal documents using hybrid retrieval,
+          access controls, and production deployment patterns.
+        </p>
+        <ul class="service-card__list">
+          <li>Knowledge chat over proprietary data</li>
+          <li>Hybrid retrieval with evaluation loops</li>
+          <li>Role-based access and governance controls</li>
+        </ul>
+      </article>
+
+      <article class="service-card">
+        <p class="service-card__kicker">Service 02</p>
+        <h3 class="service-card__title">Agentic Workflows and Automation</h3>
+        <p class="service-card__desc">
+          Replace repetitive operations with AI-assisted workflows using Python, n8n, and API-first
+          orchestration that connects directly into your current stack.
+        </p>
+        <ul class="service-card__list">
+          <li>Back-office and support automation</li>
+          <li>Multi-step agent pipelines with guardrails</li>
+          <li>KPI-focused rollout and iteration</li>
+        </ul>
+      </article>
+
+      <article class="service-card">
+        <p class="service-card__kicker">Service 03</p>
+        <h3 class="service-card__title">Corporate AI Enablement and Training</h3>
+        <p class="service-card__desc">
+          Upskill leaders and teams to adopt GenAI responsibly through hands-on workshops,
+          role-based playbooks, and practical implementation roadmaps.
+        </p>
+        <ul class="service-card__list">
+          <li>Executive and team-level AI workshops</li>
+          <li>Department-specific AI use case mapping</li>
+          <li>Adoption plans aligned with risk and compliance</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PROOF
+═══════════════════════════════════════════════════════════ -->
+<section id="proof">
+  <div class="container">
+    <p class="section-label reveal">Social proof</p>
+    <h2 class="section-heading reveal">Trusted by teams in enterprise, government, and education</h2>
+
+    <div class="trusted-by reveal-stagger">
+      <span class="trusted-pill">Intelligent AI Solutions (UK)</span>
+      <span class="trusted-pill">AIA Group</span>
+      <span class="trusted-pill">Ayala Group</span>
+      <span class="trusted-pill">Department of Health</span>
+      <span class="trusted-pill">Department of ICT</span>
+      <span class="trusted-pill">Philippine Science High School System</span>
+      <span class="trusted-pill">TDCX AI Singapore</span>
+      <span class="trusted-pill">Philippine Genome Center</span>
+    </div>
+
+    <div class="testimonials-grid reveal-stagger">
+      <article class="testimonial-card">
+        <p class="testimonial-card__quote">
+          Complex RAG requirements translated into production-ready systems that internal teams can adopt quickly.
+        </p>
+        <p class="testimonial-card__meta">Engagement theme: Enterprise delivery and adoption</p>
+      </article>
+      <article class="testimonial-card">
+        <p class="testimonial-card__quote">
+          Automation work that reduces manual workload while maintaining strong technical governance.
+        </p>
+        <p class="testimonial-card__meta">Engagement theme: Operations efficiency</p>
+      </article>
+      <article class="testimonial-card">
+        <p class="testimonial-card__quote">
+          AI training designed to move teams from theory to practical implementation in day-to-day workflows.
+        </p>
+        <p class="testimonial-card__meta">Engagement theme: Team enablement</p>
+      </article>
+    </div>
+  </div>
 </section>
 
 <div class="section-divider"></div>
@@ -775,13 +883,12 @@
 ═══════════════════════════════════════════════════════════ -->
 <section id="projects">
   <div class="container">
-    <p class="section-label reveal">Curated Works</p>
-    <h2 class="section-heading reveal">9 production ML/AI projects</h2>
+    <p class="section-label reveal">Selected case studies</p>
+    <h2 class="section-heading reveal">9 production AI systems with measurable business outcomes</h2>
     <p class="section-sub reveal">
-      Each project below is a bespoke enterprise solution. Since these involve proprietary IP,
-      I’ve shared curated logic fragments that showcase my custom engineering—solving for things
-      like drift and high-throughput orchestration. These snippets highlight the 'why' behind the architecture.
-      I am happy to discuss the broader technical challenges of these projects in a 1-on-1 setting.
+      Each case study highlights business impact first, then the architecture behind the result.
+      The examples include high-level system flow and selected technical fragments for teams who want
+      implementation depth.
     </p>
 
     <div class="projects__grid" id="projects-grid"></div>
@@ -966,13 +1073,20 @@
     <div class="contact__grid">
 
       <div class="reveal-left">
-        <p class="section-label">Get in touch</p>
-        <h2 class="section-heading">Let's build something together</h2>
-        <p style="color:var(--text-secondary);font-size:0.95rem;line-height:1.7;margin-top:1rem">
-          I'm open to senior ML engineering roles, technical consulting engagements,
-          speaking invitations, and research collaborations in LLMs, RAG architectures,
-          and production AI systems.
+        <p class="section-label">Book a call</p>
+        <h2 class="section-heading">Let's scope your AI use case</h2>
+        <p class="contact-copy">
+          Need help designing or shipping an AI system? Start with a free 15-minute discovery call.
+          We will identify your highest-value use case, map feasibility, and define the fastest path to production.
         </p>
+        <div class="contact__booking">
+          <a href="https://calendly.com/mcastro-dsci/30min" target="_blank" rel="noopener" class="btn btn-primary">
+            Book a 30-Minute AI Strategy Call
+          </a>
+          <p class="contact-copy contact-copy--small">
+            Prefer email first? Reach me directly at <a href="mailto:mcastro.dsci@gmail.com">mcastro.dsci@gmail.com</a>.
+          </p>
+        </div>
       </div>
 
       <div class="contact__links reveal-right">
@@ -1028,7 +1142,7 @@
   <div class="modal">
     <div class="modal__header">
       <div>
-        <h2 class="modal__title" id="modal-title">Code Snippet</h2>
+        <h2 class="modal__title" id="modal-title">Technical Snippet</h2>
         <p class="modal__subtitle" id="modal-subtitle"></p>
       </div>
       <button class="modal__close" id="modal-close" aria-label="Close snippet viewer">&#215;</button>
@@ -1063,6 +1177,19 @@
 <script src="assets/js/projects.js"></script>
 <script src="assets/js/snippet-viewer.js"></script>
 <script src="assets/js/project-detail.js"></script>
+<script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
+<script>
+  window.addEventListener('load', function () {
+    if (!window.Calendly) return;
+    window.Calendly.initBadgeWidget({
+      url: 'https://calendly.com/mcastro-dsci/30min',
+      text: 'Book a strategy call',
+      color: '#172027',
+      textColor: '#ffffff',
+      branding: true
+    });
+  });
+</script>
 
 </body>
 </html>

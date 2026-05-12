@@ -7,10 +7,10 @@ function renderProjects() {
   const grid = document.getElementById('projects-grid');
   if (!grid || typeof PROJECTS === 'undefined') return;
 
-  grid.innerHTML = PROJECTS.map((p) => buildCard(p)).join('');
+  grid.innerHTML = PROJECTS.map((p, index) => buildCard(p, index)).join('');
 }
 
-function buildCard(project) {
+function buildCard(project, index) {
   const techBadges = project.tech
     .map((t) => `<span class="badge badge--${t.cat}">${t.cat === 'llm' ? '✦ ' : ''}${t.label}</span>`)
     .join('');
@@ -19,11 +19,16 @@ function buildCard(project) {
     .map((h) => `<li>${h}</li>`)
     .join('');
 
+  const flow = (project.details?.architecture || [])
+    .slice(0, 4)
+    .map((item) => `<span class="card__flow-step">${escHtml(item.name)}</span>`)
+    .join('');
+
   const snippetButtons = (project.snippets || [])
     .map(
       (s) =>
         `<button class="btn btn-snippet" onclick="openSnippetModal('${project.id}','${s.file}','${escHtml(s.label)}')">
-          &#x3C;/&#x3E; ${s.label}
+          &#x3C;/&#x3E; View ${s.label}
         </button>`
     )
     .join('');
@@ -34,6 +39,7 @@ function buildCard(project) {
 
   return `
     <article class="project-card reveal" id="card-${project.id}">
+      <span class="card__index">${String(index + 1).padStart(2, '0')}</span>
       <div class="card__header">
         <h3 class="card__title">${escHtml(project.title)}</h3>
         <p class="card__subtitle">${escHtml(project.subtitle)}</p>
@@ -45,6 +51,11 @@ function buildCard(project) {
       <div class="card__impact">
         <span class="card__impact-label">Business Impact</span>
         <p class="card__impact-text">${escHtml(project.impact)}</p>
+      </div>` : ''}
+
+      ${flow ? `
+      <div class="card__flow">
+        ${flow}
       </div>` : ''}
 
       <div class="card__tech">${techBadges}</div>
