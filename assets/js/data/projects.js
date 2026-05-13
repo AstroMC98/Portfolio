@@ -15,6 +15,7 @@ const PROJECTS = [
     id: "d2lt-enhanced",
     title: "Document Intelligence Pipeline",
     subtitle: "Vision-LLM · 4-Phase Async Architecture",
+    status: "Production",
     description:
       "Converts complex multi-page insurance-style PDFs to semantic HTML using a 4-phase pipeline: Architect (layout analysis) → Specialist (adaptive extraction) → Builder (HTML assembly) → Verifier (quality checks). Achieves 10–30× speedup through three levels of async parallelism.",
     tech: [
@@ -242,6 +243,7 @@ const PROJECTS = [
     id: "daiso",
     title: "Privacy-First Local RAG",
     subtitle: "Offline LLM Inference · Full MLOps Stack",
+    status: "Production",
     description:
       "Desktop RAG application built for organisations where data must not leave the premises. Runs entirely offline with Ollama local inference (Gemma 2), ChromaDB for vector retrieval, and a complete MLOps stack for experiment tracking, dataset versioning, and drift monitoring.",
     tech: [
@@ -375,6 +377,7 @@ const PROJECTS = [
     id: "wfgpt-prod",
     title: "Enterprise RAG Chat Platform",
     subtitle: "Azure OpenAI · Multi-Strategy Retrieval · RBAC",
+    status: "Production",
     description:
       "Production-grade RAG chat deployed on Azure Container Apps. Supports multiple retrieval strategies (semantic, vector, hybrid) with GPT-4V vision support for image-heavy documents, role-based access control, and per-user monthly credit limit enforcement.",
     tech: [
@@ -669,6 +672,7 @@ const PROJECTS = [
     id: "llmops-platform",
     title: "LLMOps Evaluation Platform",
     subtitle: "Agentic Evaluators · Ensemble Scoring · Experiment Tracking",
+    status: "Production",
     description:
       "End-to-end LLMOps platform for managing, running, and comparing AI evaluation workflows. Combines a Laravel API backend for config/auth with a Python FastAPI execution engine. Evaluators are pluggable Python modules; configs live in the database for zero-redeploy iteration.",
     tech: [
@@ -959,6 +963,7 @@ const PROJECTS = [
     id: "elevenow-agents",
     title: "Customer Service Agent Copilot",
     subtitle: "7-Endpoint Conversation API · GPT-4o-mini",
+    status: "Production",
     description:
       "FastAPI backend that acts as a real-time copilot for customer service agents. Analyzes live conversations to identify journey stages, map resolution paths, generate scorecards, and forecast projected resolutions — all via structured JSON responses from GPT-4o-mini.",
     tech: [
@@ -1151,6 +1156,7 @@ const PROJECTS = [
     id: "elevenow-rag",
     title: "Hybrid RAG with Conversation Intelligence",
     subtitle: "Two-Stage Retrieval · Cohere Reranking · RAG Skip Logic",
+    status: "Production",
     description:
       "Advanced RAG chatbot implementing two-stage retrieval (ChromaDB vector search → Cohere reranker), intelligent RAG skip (avoids redundant retrievals on follow-up questions), query reformulation from conversation context, and token-bounded conversation history management.",
     tech: [
@@ -1356,6 +1362,7 @@ const PROJECTS = [
     id: "cfmm-papermill",
     title: "Automated Media Analysis Pipeline",
     subtitle: "Parameterised Notebook Execution · Parallel Orchestration",
+    status: "Production",
     description:
       "Orchestrates daily automated analysis across multiple media content categories using Papermill for parameterised Jupyter notebook execution. Each analysis category runs as an independently parameterised notebook, supporting both sequential and parallel execution modes.",
     tech: [
@@ -1482,6 +1489,7 @@ const PROJECTS = [
     id: "stem-monitoring",
     title: "Labor Market Skill Gap Dashboard",
     subtitle: "NLP · Curriculum Analytics · Interactive Streamlit",
+    status: "Production",
     description:
       "Multi-page Streamlit analytics dashboard examining emerging skill gaps in a national labor market. Applies NLP to job vacancy data to identify high-demand skills, evaluate curriculum alignment, map emerging job roles, and surface co-occurrence networks across skill clusters.",
     tech: [
@@ -1599,6 +1607,7 @@ const PROJECTS = [
     id: "triage-demo",
     title: "AI-Powered Triage System",
     subtitle: "Claude · XML-Tagged Structured Output · Audit Trail",
+    status: "Prototype",
     description:
       "Streamlit prototype demonstrating AI-powered case triage. Claude processes unstructured case descriptions and returns structured interpretations + priority decisions using XML-tagged output. All decisions are logged with reference IDs and timestamps for audit trails.",
     tech: [

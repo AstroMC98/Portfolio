@@ -24,15 +24,6 @@ function buildCard(project, index) {
     .map((item) => `<span class="card__flow-step">${escHtml(item.name)}</span>`)
     .join('');
 
-  const snippetButtons = (project.snippets || [])
-    .map(
-      (s) =>
-        `<button class="btn btn-snippet" onclick="openSnippetModal('${project.id}','${s.file}','${escHtml(s.label)}')">
-          &#x3C;/&#x3E; View ${s.label}
-        </button>`
-    )
-    .join('');
-
   const detailButton = project.details
     ? `<button class="btn btn-detail" onclick="openDetailModal('${project.id}')">&#x25C8; Know More</button>`
     : '';
@@ -41,7 +32,12 @@ function buildCard(project, index) {
     <article class="project-card reveal" id="card-${project.id}">
       <span class="card__index">${String(index + 1).padStart(2, '0')}</span>
       <div class="card__header">
-        <h3 class="card__title">${escHtml(project.title)}</h3>
+        <div class="card__title-row">
+          <h3 class="card__title">${escHtml(project.title)}</h3>
+          ${project.status ? `<span class="card__status card__status--${escHtml(project.status.toLowerCase())}">
+            ${project.status === 'Prototype' ? '◎' : '●'} ${escHtml(project.status)}
+          </span>` : ''}
+        </div>
         <p class="card__subtitle">${escHtml(project.subtitle)}</p>
       </div>
 
@@ -62,7 +58,7 @@ function buildCard(project, index) {
 
       <ul class="card__highlights">${highlights}</ul>
 
-      <div class="card__actions">${detailButton}${snippetButtons}</div>
+      <div class="card__actions">${detailButton}</div>
     </article>
   `;
 }
