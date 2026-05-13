@@ -662,6 +662,32 @@
   line-height: 1.55;
 }
 
+.card__impact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.card__impact-list li {
+  position: relative;
+  padding-left: 1.1rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.card__impact-list li::before {
+  content: '\2192';
+  position: absolute;
+  left: 0;
+  color: #6366f1;
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
 .card__flow {
   display: flex;
   flex-wrap: wrap;
@@ -2018,4 +2044,30 @@ pre.snip-pre.classic .hl {
   color: #818cf8;
   font-weight: 600;
   letter-spacing: 0.02em;
+}
+
+/* === Executive Note Callout === */
+.snip-exec-note {
+  margin: 0;
+  padding: 0.85rem 1.25rem 0.85rem 1rem;
+  border-left: 3px solid #6366f1;
+  background: rgba(99, 102, 241, 0.06);
+  border-bottom: 1px solid var(--border);
+}
+
+.snip-exec-label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #818cf8;
+  margin-bottom: 0.4rem;
+}
+
+.snip-exec-body {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin: 0;
 }

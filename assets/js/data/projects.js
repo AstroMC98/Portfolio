@@ -32,11 +32,15 @@ const PROJECTS = [
       "Token-bucket rate limiter with sliding window — prevents 429s under load",
       "Real-time rich progress UI with live cost tracking across workers",
     ],
-    impact:
-      "10-30x document throughput | reduced turnaround from hours to minutes | applied to complex multi-page document workflows across pilot operations.",
+    impact: [
+      '10-30x document throughput',
+      'reduced turnaround from hours to minutes',
+      'applied to complex multi-page document workflows across pilot operations.',
+    ],
     snippets: [
       {
         label: "Reliability Under Burst Traffic",
+        executiveNote: "This component controls how many document-processing requests run simultaneously — preventing system overload during peak periods and ensuring consistent throughput without manual throttling.",
         file: "d2lt-enhanced/rate_limiter.py",
         type: "code",
         process: {
@@ -133,6 +137,7 @@ const PROJECTS = [
       },
       {
         label: "Throughput Architecture",
+        executiveNote: "Instead of processing documents one at a time, this design parallelizes work so multiple documents flow through the pipeline simultaneously — multiplying throughput without proportional cost increases.",
         file: "d2lt-enhanced/async_pipeline.py",
         type: "code",
         process: {
@@ -269,11 +274,15 @@ const PROJECTS = [
       "MLflow experiment tracking with metric comparison across model versions",
       "Evidently AI monitors embedding drift and query distribution shifts",
     ],
-    impact:
-      "zero data egress for sensitive workflows | reduced external LLM API spend | enabled AI use in regulated environments with offline deployment constraints.",
+    impact: [
+      'zero data egress for sensitive workflows',
+      'reduced external LLM API spend',
+      'enabled AI use in regulated environments with offline deployment constraints.',
+    ],
     snippets: [
       {
         label: "Semantic Knowledge Foundation",
+        executiveNote: "This is the knowledge retrieval engine — it finds the most relevant information from private documents using conceptual understanding rather than keyword matching, enabling accurate AI responses without sending data to external servers.",
         file: "daiso/rag_engine.py",
         type: "code",
         process: {
@@ -411,11 +420,15 @@ const PROJECTS = [
       "Vision-augmented retrieval combines text chunks with GPT-4V image understanding",
       "Prompt management via .prompty files — swap prompts without code changes",
     ],
-    impact:
-      "faster internal knowledge resolution | reduced repetitive support inquiries | governed access and spend controls for enterprise-scale rollout.",
+    impact: [
+      'faster internal knowledge resolution',
+      'reduced repetitive support inquiries',
+      'governed access and spend controls for enterprise-scale rollout.',
+    ],
     snippets: [
       {
         label: "Retrieval Quality Pipeline",
+        executiveNote: "This manages how the AI finds and ranks relevant internal knowledge before answering — ensuring responses draw from authoritative sources rather than generating plausible-sounding but incorrect answers.",
         file: "wfgpt-prod/chat_approach.py",
         type: "code",
         process: {
@@ -710,11 +723,15 @@ const PROJECTS = [
       "Ensemble scoring combines multiple judges with confidence weighting",
       "Dataset versioning via DVC enables reproducible evaluation benchmarks",
     ],
-    impact:
-      "faster model evaluation cycles | reduced manual review dependency | safer model upgrade decisions through standardized scoring and drift monitoring.",
+    impact: [
+      'faster model evaluation cycles',
+      'reduced manual review dependency',
+      'safer model upgrade decisions through standardized scoring and drift monitoring.',
+    ],
     snippets: [
       {
         label: "Systematic Quality Validation",
+        executiveNote: "This is the quality-control system for AI outputs — it runs automated checks across multiple criteria before any model upgrade is approved, replacing ad-hoc manual reviews with a consistent, repeatable scoring framework.",
         file: "llmops-platform/agentic_evaluator.py",
         type: "process",
         challenge: {
@@ -812,6 +829,7 @@ const PROJECTS = [
       },
       {
         label: "Consensus-Based Quality Assessment",
+        executiveNote: "This cross-checks AI model quality by running the same evaluation through multiple independent judges — disagreement between judges flags uncertainty, preventing overconfident scores from masking real problems.",
         file: "llmops-platform/ensemble_scorer.py",
         type: "code",
         challenge: {
@@ -1006,11 +1024,15 @@ const PROJECTS = [
       "Markdown-rendered prompts loaded from the filesystem at startup",
       "Projected resolution forecasting from partial conversation transcripts",
     ],
-    impact:
-      "lower average handle time through real-time guidance | improved coaching consistency across agents | resilient API behavior under burst traffic.",
+    impact: [
+      'lower average handle time through real-time guidance',
+      'improved coaching consistency across agents',
+      'resilient API behavior under burst traffic.',
+    ],
     snippets: [
       {
         label: "Reliable Real-Time Guidance",
+        executiveNote: "This tracks where each customer conversation is in real time — so the AI copilot always surfaces the right guidance at the right moment, even when messages arrive out of order or connections are briefly interrupted.",
         file: "elevenow-agents/journey_tracker.py",
         type: "code",
         challenge: {
@@ -1087,6 +1109,7 @@ const PROJECTS = [
       },
       {
         label: "Actionable Coaching Scorecards",
+        executiveNote: "This generates structured coaching reports for each customer interaction — translating raw conversation data into specific, measurable feedback that supervisors can act on without listening to full call recordings.",
         file: "elevenow-agents/scorecard_generator.py",
         type: "code",
         challenge: {
@@ -1207,11 +1230,15 @@ const PROJECTS = [
       "Query reformulation resolves pronoun references and implicit follow-ups",
       "MD5-keyed pickle cache eliminates duplicate embedding API calls",
     ],
-    impact:
-      "~40% retrieval cost reduction | preserved response quality with two-stage retrieval | improved follow-up handling in multi-turn conversations.",
+    impact: [
+      '~40% retrieval cost reduction',
+      'preserved response quality with two-stage retrieval',
+      'improved follow-up handling in multi-turn conversations.',
+    ],
     snippets: [
       {
         label: "Cost-Aware Retrieval Strategy",
+        executiveNote: "This decides when to run a full knowledge search versus using recent conversation context — avoiding unnecessary retrieval on follow-up questions, which cuts operational costs while keeping response quality high.",
         file: "elevenow-rag/hybrid_rag.py",
         type: "code",
         process: {
@@ -1299,6 +1326,7 @@ const PROJECTS = [
       },
       {
         label: "Secure Session and Context Management",
+        executiveNote: "This maintains the memory of each customer conversation securely — giving the AI context from earlier in the session without retaining sensitive details beyond their useful lifespan.",
         file: "elevenow-rag/session_manager.py",
         type: "code",
         challenge: {
@@ -1419,11 +1447,15 @@ const PROJECTS = [
       "Parallel execution via multiprocessing.Pool for independent category runs",
       "Fully reproducible: output notebooks capture all execution state",
     ],
-    impact:
-      "replaced daily manual notebook runs with automated reporting | improved reproducibility of outputs | reduced analyst overhead for routine analysis tasks.",
+    impact: [
+      'replaced daily manual notebook runs with automated reporting',
+      'improved reproducibility of outputs',
+      'reduced analyst overhead for routine analysis tasks.',
+    ],
     snippets: [
       {
         label: "Automated Daily Reporting Engine",
+        executiveNote: "This is the automated report factory — it runs the full analysis pipeline across all media categories on a schedule, producing consistent, reproducible reports without any manual intervention from analysts.",
         file: "cfmm-papermill/pipeline_runner.py",
         type: "code",
         process: {
@@ -1554,11 +1586,15 @@ const PROJECTS = [
       "Network science reveals skill co-occurrence clusters and central competencies",
       "Curriculum gap scoring compares academic offerings against market demand",
     ],
-    impact:
-      "evidence-based curriculum planning from labor market signals | reduced reliance on anecdotal program decisions | improved visibility of high-priority skill gaps.",
+    impact: [
+      'evidence-based curriculum planning from labor market signals',
+      'reduced reliance on anecdotal program decisions',
+      'improved visibility of high-priority skill gaps.',
+    ],
     snippets: [
       {
         label: "Market-Aligned Skill Intelligence",
+        executiveNote: "This translates raw job market data into ranked skill priorities — identifying which capabilities employers actually need most versus what merely appears most frequently, giving curriculum planners a defensible evidence base.",
         file: "stem-monitoring/skill_gap_analysis.py",
         type: "code",
         challenge: {
@@ -1678,11 +1714,15 @@ const PROJECTS = [
       "Multi-turn session state management with Streamlit session_state",
       "Configurable prompts via external prompt modules for easy adaptation",
     ],
-    impact:
-      "standardized triage interpretation with full decision logging | reduced parsing brittleness in structured outputs | prototype validation for compliance-first routing workflows.",
+    impact: [
+      'standardized triage interpretation with full decision logging',
+      'reduced parsing brittleness in structured outputs',
+      'prototype validation for compliance-first routing workflows.',
+    ],
     snippets: [
       {
         label: "Robust Structured Parsing",
+        executiveNote: "This ensures the AI always returns decisions in a structured, machine-readable format — using strict parsing with fallback recovery so even imperfectly formatted AI outputs can be reliably processed downstream.",
         file: "triage-demo/triage_classifier.py",
         type: "code",
         process: {

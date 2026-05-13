@@ -46,7 +46,10 @@ function buildCard(project, index) {
       ${project.impact ? `
       <div class="card__impact">
         <span class="card__impact-label">Business Impact</span>
-        <p class="card__impact-text">${escHtml(project.impact)}</p>
+        ${Array.isArray(project.impact)
+          ? `<ul class="card__impact-list">${project.impact.map(item => `<li>${escHtml(item)}</li>`).join('')}</ul>`
+          : `<p class="card__impact-text">${escHtml(project.impact)}</p>`
+        }
       </div>` : ''}
 
       ${flow ? `

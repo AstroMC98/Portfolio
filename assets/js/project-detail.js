@@ -228,6 +228,14 @@
     var classic = snippet.classic || {};
     var impact  = snippet.impact || {};
 
+    var execNoteHTML = '';
+    if (snippet.executiveNote) {
+      execNoteHTML = '<div class="snip-exec-note">'
+        + '<span class="snip-exec-label">In Plain Terms</span>'
+        + '<p class="snip-exec-body">' + esc(snippet.executiveNote) + '</p>'
+        + '</div>';
+    }
+
     // Challenge block
     var compareHTML = '';
     if (comp.classic || comp.impl) {
@@ -310,7 +318,7 @@
       + '<div class="snip-stats-grid">' + statsHTML + '</div>'
       + '</div>';
 
-    return challengeHTML + stepsHTML + codeHTML + impactHTML;
+    return execNoteHTML + challengeHTML + stepsHTML + codeHTML + impactHTML;
   }
 
   function renderCol(cls, label, col) {
