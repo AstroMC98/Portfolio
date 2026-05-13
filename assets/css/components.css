@@ -558,6 +558,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.5rem;
+  padding-right: 3rem;
 }
 
 .card__status {
@@ -811,6 +812,10 @@
 
 .modal-overlay.open .modal {
   transform: translateY(0) scale(1);
+}
+
+.modal--detail {
+  max-width: 680px;
 }
 
 .modal__header {
