@@ -13,46 +13,6 @@
 
   var _implCache = {};  // filePath → hljs-highlighted HTML
 
-  // ── Audience toggle ──────────────────────────────────────────────────────
-
-  var audienceMode = 'technical';
-
-  function applyAudienceMode(mode) {
-    audienceMode = mode;
-    var tabsWrap = document.getElementById('detail-modal-tabs');
-    var tabs     = tabsWrap ? tabsWrap.querySelectorAll('.modal__tab') : [];
-
-    if (mode === 'executive') {
-      // Force overview tab active if a snippet tab is currently active
-      var activeTab = tabsWrap && tabsWrap.querySelector('.modal__tab.active');
-      if (activeTab && activeTab.dataset.tab !== 'overview') {
-        activeTab.click();
-      }
-      if (tabsWrap) {
-        tabsWrap.style.display = 'none';
-        tabsWrap.setAttribute('aria-hidden', 'true');
-      }
-      tabs.forEach(function (tab) { tab.tabIndex = -1; });
-    } else {
-      if (tabsWrap) {
-        tabsWrap.style.display = '';
-        tabsWrap.removeAttribute('aria-hidden');
-      }
-      tabs.forEach(function (tab) { tab.tabIndex = 0; });
-    }
-
-    document.querySelectorAll('.modal__audience-btn').forEach(function (btn) {
-      var isActive = btn.dataset.mode === mode;
-      btn.classList.toggle('modal__audience-btn--active', isActive);
-      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
-  }
-
-  // Wire toggle buttons once at module load
-  document.querySelectorAll('.modal__audience-btn').forEach(function (btn) {
-    btn.onclick = function () { applyAudienceMode(btn.dataset.mode); };
-  });
-
   // ── Public entry point ───────────────────────────────────────────────────
 
   window.openDetailModal = function (projectId) {
@@ -429,7 +389,7 @@
       if (cb) cb(panel.querySelector('pre.snip-pre'));
       return;
     }
-    fetch('/snippets/' + filePath)
+    fetch('snippets/' + filePath)
       .then(function (r) { return r.ok ? r.text() : Promise.reject(r.status); })
       .then(function (text) {
         var highlighted;
@@ -510,8 +470,6 @@
     overlay.classList.remove('open');
     document.body.style.overflow = '';
 
-    // Reset audience toggle to Technical on every close
-    applyAudienceMode('technical');
   }
 
   closeBtn.addEventListener('click', close);
