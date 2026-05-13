@@ -56,7 +56,7 @@
     // Show overview by default
     bodyEl.innerHTML = renderOverview(project.details);
 
-    tabsEl.addEventListener('click', function (e) {
+    tabsEl.onclick = function (e) {
       var btn = e.target.closest('.modal__tab');
       if (!btn) return;
       tabsEl.querySelectorAll('.modal__tab').forEach(function (b) { b.classList.remove('active'); });
@@ -70,7 +70,7 @@
         var snippet = snippets.find(function (s) { return s.file === tabId; });
         if (snippet) mountSnippetTab(project, snippet);
       }
-    });
+    };
   }
 
   // ── Overview tab ─────────────────────────────────────────────────────────
