@@ -35,7 +35,7 @@ const PROJECTS = [
       "10-30x document throughput | reduced turnaround from hours to minutes | applied to complex multi-page document workflows across pilot operations.",
     snippets: [
       {
-        label: "Rate Limiter",
+        label: "Reliability Under Burst Traffic",
         file: "d2lt-enhanced/rate_limiter.py",
         type: "code",
         process: {
@@ -131,7 +131,7 @@ const PROJECTS = [
         ]
       },
       {
-        label: "Async Pipeline",
+        label: "Throughput Architecture",
         file: "d2lt-enhanced/async_pipeline.py",
         type: "code",
         process: {
@@ -264,7 +264,7 @@ const PROJECTS = [
       "zero data egress for sensitive workflows | reduced external LLM API spend | enabled AI use in regulated environments with offline deployment constraints.",
     snippets: [
       {
-        label: "RAG Engine",
+        label: "Semantic Knowledge Foundation",
         file: "daiso/rag_engine.py",
         type: "code",
         process: {
@@ -398,7 +398,7 @@ const PROJECTS = [
       "faster internal knowledge resolution | reduced repetitive support inquiries | governed access and spend controls for enterprise-scale rollout.",
     snippets: [
       {
-        label: "Chat Approach",
+        label: "Retrieval Quality Pipeline",
         file: "wfgpt-prod/chat_approach.py",
         type: "code",
         process: {
@@ -485,7 +485,7 @@ const PROJECTS = [
         ]
       },
       {
-        label: "RBAC Middleware",
+        label: "Governance and Spend Controls",
         file: "wfgpt-prod/rbac_middleware.py",
         type: "code",
         process: {
@@ -571,7 +571,7 @@ const PROJECTS = [
         ]
       },
       {
-        label: "Approach Registry",
+        label: "Scalable Retrieval Strategy Design",
         file: "wfgpt-prod/approach_registry.py",
         type: "code",
         challenge: {
@@ -689,7 +689,7 @@ const PROJECTS = [
       "faster model evaluation cycles | reduced manual review dependency | safer model upgrade decisions through standardized scoring and drift monitoring.",
     snippets: [
       {
-        label: "Agentic Evaluator",
+        label: "Systematic Quality Validation",
         file: "llmops-platform/agentic_evaluator.py",
         type: "process",
         challenge: {
@@ -786,7 +786,7 @@ const PROJECTS = [
         ]
       },
       {
-        label: "Ensemble Scorer",
+        label: "Consensus-Based Quality Assessment",
         file: "llmops-platform/ensemble_scorer.py",
         type: "code",
         challenge: {
@@ -861,7 +861,7 @@ const PROJECTS = [
         ]
       },
       {
-        label: "Drift Detector",
+        label: "Quality Degradation Detection",
         file: "llmops-platform/drift_detector.py",
         type: "code",
         challenge: {
@@ -977,7 +977,7 @@ const PROJECTS = [
       "lower average handle time through real-time guidance | improved coaching consistency across agents | resilient API behavior under burst traffic.",
     snippets: [
       {
-        label: "Journey Tracker",
+        label: "Reliable Real-Time Guidance",
         file: "elevenow-agents/journey_tracker.py",
         type: "code",
         challenge: {
@@ -1053,7 +1053,7 @@ const PROJECTS = [
         ]
       },
       {
-        label: "Scorecard Generator",
+        label: "Actionable Coaching Scorecards",
         file: "elevenow-agents/scorecard_generator.py",
         type: "code",
         challenge: {
@@ -1170,7 +1170,7 @@ const PROJECTS = [
       "~40% retrieval cost reduction | preserved response quality with two-stage retrieval | improved follow-up handling in multi-turn conversations.",
     snippets: [
       {
-        label: "Hybrid RAG",
+        label: "Cost-Aware Retrieval Strategy",
         file: "elevenow-rag/hybrid_rag.py",
         type: "code",
         process: {
@@ -1257,7 +1257,7 @@ const PROJECTS = [
         ]
       },
       {
-        label: "Session Manager",
+        label: "Secure Session and Context Management",
         file: "elevenow-rag/session_manager.py",
         type: "code",
         challenge: {
@@ -1374,7 +1374,7 @@ const PROJECTS = [
       "replaced daily manual notebook runs with automated reporting | improved reproducibility of outputs | reduced analyst overhead for routine analysis tasks.",
     snippets: [
       {
-        label: "Pipeline Runner",
+        label: "Automated Daily Reporting Engine",
         file: "cfmm-papermill/pipeline_runner.py",
         type: "code",
         process: {
@@ -1501,7 +1501,7 @@ const PROJECTS = [
       "evidence-based curriculum planning from labor market signals | reduced reliance on anecdotal program decisions | improved visibility of high-priority skill gaps.",
     snippets: [
       {
-        label: "Skill Gap Analysis",
+        label: "Market-Aligned Skill Intelligence",
         file: "stem-monitoring/skill_gap_analysis.py",
         type: "code",
         challenge: {
@@ -1617,7 +1617,7 @@ const PROJECTS = [
       "standardized triage interpretation with full decision logging | reduced parsing brittleness in structured outputs | prototype validation for compliance-first routing workflows.",
     snippets: [
       {
-        label: "Triage Classifier",
+        label: "Robust Structured Parsing",
         file: "triage-demo/triage_classifier.py",
         type: "code",
         process: {
