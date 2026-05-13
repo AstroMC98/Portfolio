@@ -856,6 +856,33 @@
   background: var(--bg-surface);
 }
 
+.modal__audience-toggle {
+  display: flex;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 99px;
+  padding: 0.2rem;
+  gap: 0.1rem;
+  flex-shrink: 0;
+}
+
+.modal__audience-btn {
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.modal__audience-btn--active {
+  background: #6366f1;
+  color: #fff;
+}
+
 .modal__tabs {
   display: flex;
   gap: 0;
