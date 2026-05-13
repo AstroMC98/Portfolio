@@ -129,6 +129,14 @@ section:nth-of-type(even) {
   margin-bottom: 3rem;
 }
 
+.section-disclaimer {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  max-width: 56ch;
+  margin-bottom: 2rem;
+  margin-top: -1.5rem;
+}
+
 /* ── Typography ─────────────────────────────────────────────── */
 h1, h2, h3, h4 {
   font-weight: 700;
