@@ -1006,6 +1006,10 @@
   line-height: 1.55;
 }
 
+.detail__pov-status { font-weight: 600; }
+.detail__pov-status--production { color: #10b981; }
+.detail__pov-status--prototype  { color: #f59e0b; }
+
 .detail__benefits-list {
   display: flex;
   flex-direction: column;

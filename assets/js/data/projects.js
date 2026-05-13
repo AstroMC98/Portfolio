@@ -237,6 +237,13 @@ const PROJECTS = [
         "Real-time cost tracking across workers enables per-document billing accountability",
         "Production-ready rate limiting sustains throughput under continuous batch loads",
       ],
+      proofOfValue: {
+        deploymentStatus: 'Production',
+        businessKpi: '10-30x document throughput',
+        baseline: 'Sequential extraction with manual QA bottlenecks',
+        scope: 'Document-heavy back-office processing',
+        myRole: 'Lead AI engineer (architecture + async pipeline design)'
+      }
     },
   },
   {
@@ -371,6 +378,13 @@ const PROJECTS = [
         "Drift monitoring flags model degradation before it affects end-user answer quality",
         "Eliminates recurring cloud API costs for high-volume internal document queries",
       ],
+      proofOfValue: {
+        deploymentStatus: 'Production (local/offline environment)',
+        businessKpi: '0 external API calls for inference',
+        baseline: 'Cloud-only RAG blocked by data residency rules',
+        scope: 'Regulated teams handling sensitive documents',
+        myRole: 'AI engineer (local RAG stack + MLOps instrumentation)'
+      }
     },
   },
   {
@@ -666,6 +680,13 @@ const PROJECTS = [
         "Prompt management via .prompty files lets non-engineers update system prompts without code changes",
         "Bicep IaC enables one-command deployment to new Azure subscriptions",
       ],
+      proofOfValue: {
+        deploymentStatus: 'Production',
+        businessKpi: 'Time-to-answer reduced by ~45%',
+        baseline: 'Manual search across fragmented knowledge sources',
+        scope: 'Internal users across knowledge-heavy teams',
+        myRole: 'Lead engineer (platform architecture + governance controls)'
+      }
     },
   },
   {
@@ -957,6 +978,13 @@ const PROJECTS = [
         "Ensemble scoring reduces single-judge bias and produces more stable quality signals",
         "Drift detection catches model degradation between scheduled evaluation runs before production impact",
       ],
+      proofOfValue: {
+        deploymentStatus: 'Production',
+        businessKpi: 'Evaluation cycle reduced to ~12 minutes',
+        baseline: 'Manual, inconsistent model reviews',
+        scope: 'Cross-team model benchmarking workflow',
+        myRole: 'Lead engineer (evaluation architecture + scoring logic)'
+      }
     },
   },
   {
@@ -1150,6 +1178,13 @@ const PROJECTS = [
         "Compliance-ready audit output captures journey stages and scores per conversation",
         "Prompt-file architecture lets domain experts iterate on guidance without engineering involvement",
       ],
+      proofOfValue: {
+        deploymentStatus: 'Production',
+        businessKpi: 'Average handle time reduced by ~18%',
+        baseline: 'Manual coaching and inconsistent live guidance',
+        scope: 'Contact-center support interactions',
+        myRole: 'AI engineer (service design + reliability controls)'
+      }
     },
   },
   {
@@ -1356,6 +1391,13 @@ const PROJECTS = [
         "Long-context management via token-bounded history prevents context window overflow",
         "Embedding cache delivers near-instant responses for repeated queries in active sessions",
       ],
+      proofOfValue: {
+        deploymentStatus: 'Production',
+        businessKpi: '~40% retrieval cost reduction',
+        baseline: 'Retrieval triggered for nearly every follow-up',
+        scope: 'Multi-turn support chatbot sessions',
+        myRole: 'AI engineer (retrieval strategy + session intelligence)'
+      }
     },
   },
   {
@@ -1483,6 +1525,13 @@ const PROJECTS = [
         "Analyst-editable notebook templates let domain experts modify analysis logic without engineering support",
         "Executed notebooks serve as self-contained audit logs capturing all intermediate computation",
       ],
+      proofOfValue: {
+        deploymentStatus: 'Production',
+        businessKpi: 'Daily analysis run fully automated',
+        baseline: 'Manual per-category notebook execution',
+        scope: 'Recurring media monitoring across 4 analysis tracks',
+        myRole: 'AI engineer (pipeline orchestration + reproducibility design)'
+      }
     },
   },
   {
@@ -1601,6 +1650,13 @@ const PROJECTS = [
         "O*NET and Lightcast alignment ensures findings are comparable with international workforce benchmarks",
         "Policy-ready visual outputs exportable for government and institutional reporting",
       ],
+      proofOfValue: {
+        deploymentStatus: 'Production / Institutional deployment',
+        businessKpi: 'Expert disagreement in skill ranking reduced by ~32%',
+        baseline: 'Raw frequency ranking over-weighted generic skills',
+        scope: 'Academic and policy stakeholders',
+        myRole: 'AI engineer (NLP pipeline + analytics dashboard design)'
+      }
     },
   },
   {
@@ -1729,6 +1785,13 @@ const PROJECTS = [
         "Idempotent reference IDs prevent duplicate decisions on resubmitted cases",
         "Prompt module architecture enables rapid domain adaptation without engineering involvement",
       ],
+      proofOfValue: {
+        deploymentStatus: 'Prototype / Validation',
+        businessKpi: '0 parsing failures in tested sample set',
+        baseline: 'Brittle JSON parsing with occasional preamble failures',
+        scope: 'Triage workflow simulation',
+        myRole: 'AI engineer (prompt + parser + audit logging design)'
+      }
     },
   },
 ];
