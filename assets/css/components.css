@@ -1150,8 +1150,8 @@
   margin: 0 auto;
   padding: var(--section-pad);
   display: grid;
-  grid-template-columns: 1fr min(40vw, 460px);
-  gap: 3rem;
+  grid-template-columns: 1fr 46%;
+  gap: 0;
   align-items: center;
   position: relative;
   z-index: 1;
@@ -1161,26 +1161,21 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  padding-right: 2rem;
+  position: relative;
+  z-index: 1;
 }
 
-.hero__photo {
-  aspect-ratio: 3 / 4;
-  width: 100%;
-  max-width: 460px;
-  overflow: hidden;
-  border-radius: var(--card-radius);
-  flex-shrink: 0;
-  align-self: stretch;
-  max-height: 80svh;
-}
-
-.hero__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
-  display: block;
-  filter: grayscale(10%) contrast(1.03);
+/* Lottie — in grid right column, slightly oversized so it floats
+   past its boundary. z-index: 0 keeps it behind the text column. */
+.hero__diagram {
+  position: relative;
+  width: 118%;
+  aspect-ratio: 1 / 1;
+  z-index: 0;
+  pointer-events: none;
+  justify-self: end;
+  filter: saturate(0.88);
 }
 
 .hero__eyebrow {
@@ -1560,8 +1555,10 @@
 
 @media (max-width: 980px) {
   .hero__inner {
-    grid-template-columns: 1fr min(36vw, 340px);
-    gap: 2rem;
+    grid-template-columns: 1fr 42%;
+  }
+  .hero__diagram {
+    width: 110%;
   }
 }
 
@@ -1576,16 +1573,16 @@
 
   .hero__inner {
     grid-template-columns: 1fr;
-    gap: 2rem;
     padding-top: calc(var(--nav-height) + 2rem);
     padding-bottom: 3rem;
   }
 
-  .hero__photo {
-    aspect-ratio: 4 / 3;
-    max-width: 100%;
-    max-height: 55vw;
-    order: -1;
+  .hero__text {
+    padding-right: 0;
+  }
+
+  .hero__diagram {
+    display: none;
   }
 
   .hero__title {

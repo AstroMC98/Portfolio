@@ -500,9 +500,7 @@
       </div>
     </div>
 
-    <div class="hero__photo">
-      <img src="assets/images/myphoto.jpg" alt="Marc Castro" class="hero__img" />
-    </div>
+    <div class="hero__diagram" id="hero-diagram" aria-hidden="true"></div>
 
   </div>
 
@@ -1195,6 +1193,17 @@
       textColor: '#ffffff',
       branding: true
     });
+  });
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script>
+  lottie.loadAnimation({
+    container: document.getElementById('hero-diagram'),
+    renderer: 'svg',
+    loop: true,
+    autoplay: true,
+    path: 'assets/Isometric data analysis branded.json'
   });
 </script>
 
