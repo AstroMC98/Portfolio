@@ -32,12 +32,22 @@ const PROJECTS = [
       "Real-time rich progress UI with live cost tracking across workers",
     ],
     impact:
-      "Reduces manual document processing FTE by automating extraction from complex multi-page forms — cutting turnaround from hours to minutes at 10–30× throughput.",
+      "10-30x document throughput | reduced turnaround from hours to minutes | applied to complex multi-page document workflows across pilot operations.",
     snippets: [
       {
         label: "Rate Limiter",
         file: "d2lt-enhanced/rate_limiter.py",
         type: "code",
+        process: {
+          title: "Token Bucket — Sliding Window",
+          steps: [
+            { label: "Request arrives → acquire asyncio.Lock",   note: "Lock prevents concurrent state mutation" },
+            { label: "Expire stale entries from deque",          note: "Pop timestamps older than the window boundary" },
+            { label: "Check capacity: len(deque) < max_calls?",  note: "Read and decide atomically — no race window" },
+            { label: "Append timestamp and release Lock",        note: "Or sleep until earliest entry expires + 100ms buffer" },
+          ],
+          guarantee: "TOCTOU-safe · burst-proof · O(1) per call"
+        },
         challenge: {
           eyebrow: "Async Systems \xB7 Rate Limiting",
           headline: "Async services don’t fail at peak — they fail during burst recovery.",
@@ -124,6 +134,16 @@ const PROJECTS = [
         label: "Async Pipeline",
         file: "d2lt-enhanced/async_pipeline.py",
         type: "code",
+        process: {
+          title: "Fan-Out Pipeline — 3-Level Concurrency",
+          steps: [
+            { label: "Enqueue all PDF paths → worker pool",    note: "asyncio.Queue + create_task() per worker" },
+            { label: "Per PDF: asyncio.gather() all pages",    note: "All page coroutines fire simultaneously" },
+            { label: "Per page: acquire Semaphore → regions",  note: "max_pages cap prevents rate-limit exhaustion" },
+            { label: "Collect results, filter exceptions",     note: "return_exceptions=True — failures don't abort siblings" },
+          ],
+          guarantee: "120 sequential calls → full concurrency at every level"
+        },
         challenge: {
           eyebrow: "Async Systems \xB7 Pipeline Architecture",
           headline: "Adding async doesn’t add concurrency — you have to fan out explicitly at every level.",
@@ -241,12 +261,22 @@ const PROJECTS = [
       "Evidently AI monitors embedding drift and query distribution shifts",
     ],
     impact:
-      "Enables AI adoption in regulated industries (legal, healthcare, finance) where data cannot leave the premises — eliminating cloud API costs and compliance risk simultaneously.",
+      "zero data egress for sensitive workflows | reduced external LLM API spend | enabled AI use in regulated environments with offline deployment constraints.",
     snippets: [
       {
         label: "RAG Engine",
         file: "daiso/rag_engine.py",
         type: "code",
+        process: {
+          title: "Fully Local RAG — Zero Egress",
+          steps: [
+            { label: "Embed documents with Ollama (nomic-embed-text)", note: "No API key, no cloud egress, no per-call cost" },
+            { label: "Persist vectors to ChromaDB on local disk",       note: "Cosine similarity index survives process restarts" },
+            { label: "Query: embed → cosine similarity search",         note: "Same model at ingestion and query time" },
+            { label: "Generate answer with local Gemma 2 (ollama.chat)",note: "CUDA/Metal bring latency close to cloud APIs" },
+          ],
+          guarantee: "Zero data egress · compliant with healthcare / finance data residency"
+        },
         challenge: {
           eyebrow: "Local ML \xB7 Regulated Environments",
           headline: "Every cloud API call is a data residency violation in regulated industries.",
@@ -365,12 +395,21 @@ const PROJECTS = [
       "Prompt management via .prompty files — swap prompts without code changes",
     ],
     impact:
-      "Gives enterprise knowledge workers instant, cited answers from internal document libraries — reducing time-to-answer and cutting support ticket volume for information requests.",
+      "faster internal knowledge resolution | reduced repetitive support inquiries | governed access and spend controls for enterprise-scale rollout.",
     snippets: [
       {
         label: "Chat Approach",
         file: "wfgpt-prod/chat_approach.py",
         type: "code",
+        process: {
+          title: "Three-Step RAG Chat Pipeline",
+          steps: [
+            { label: "Rewrite query via LLM tool call",              note: "Tool calling returns schema-valid args — no JSON parse failures" },
+            { label: "Retrieve context from Azure Cognitive Search",  note: "Rewritten query improves recall on pronoun-heavy follow-ups" },
+            { label: "Generate answer with retrieved context",        note: "System prompt + sources + conversation history assembled" },
+          ],
+          guarantee: "Query rewrite + tool calling eliminates ~5% JSON parse failures"
+        },
         challenge: {
           eyebrow: "Enterprise RAG \xB7 Query Reliability",
           headline: "Raw user messages make poor search queries — and prompt-embedded JSON breaks on preamble.",
@@ -449,6 +488,16 @@ const PROJECTS = [
         label: "RBAC Middleware",
         file: "wfgpt-prod/rbac_middleware.py",
         type: "code",
+        process: {
+          title: "Decorator-Based Credit Enforcement",
+          steps: [
+            { label: "Request hits decorated endpoint",               note: "@wraps preserves Flask route __name__ for routing" },
+            { label: "Extract auth_claims from args or kwargs",       note: "inspect-based extraction — call-signature agnostic" },
+            { label: "check_user_credits(auth_claims) → role manager",note: "Single enforcement point shared by all endpoints" },
+            { label: "Insufficient → 429 / unavailable → fail-open", note: "Infra failure logs warning but never blocks users" },
+          ],
+          guarantee: "One decorator enforces policy everywhere — no copy-paste drift"
+        },
         challenge: {
           eyebrow: "Backend Patterns \xB7 Access Control",
           headline: "Inline credit checks scatter enforcement logic across every endpoint — and they diverge.",
@@ -637,7 +686,7 @@ const PROJECTS = [
       "Dataset versioning via DVC enables reproducible evaluation benchmarks",
     ],
     impact:
-      "Standardises AI quality benchmarks across teams and eliminates redeployment cycles for evaluation iteration — making it safe to compare models before committing to production upgrades.",
+      "faster model evaluation cycles | reduced manual review dependency | safer model upgrade decisions through standardized scoring and drift monitoring.",
     snippets: [
       {
         label: "Agentic Evaluator",
@@ -925,7 +974,7 @@ const PROJECTS = [
       "Projected resolution forecasting from partial conversation transcripts",
     ],
     impact:
-      "Reduces average handle time in contact centres by surfacing resolution paths in real time — enabling agents to resolve complex cases faster without additional training.",
+      "lower average handle time through real-time guidance | improved coaching consistency across agents | resilient API behavior under burst traffic.",
     snippets: [
       {
         label: "Journey Tracker",
@@ -1118,12 +1167,22 @@ const PROJECTS = [
       "MD5-keyed pickle cache eliminates duplicate embedding API calls",
     ],
     impact:
-      "Cuts redundant retrieval API costs by ~40% via intelligent RAG-skip logic — while maintaining answer quality through two-stage retrieval on queries that genuinely need new context.",
+      "~40% retrieval cost reduction | preserved response quality with two-stage retrieval | improved follow-up handling in multi-turn conversations.",
     snippets: [
       {
         label: "Hybrid RAG",
         file: "elevenow-rag/hybrid_rag.py",
         type: "code",
+        process: {
+          title: "Cost-Aware Conversational RAG",
+          steps: [
+            { label: "Reformulate query as standalone question",  note: "Resolves pronouns across last 6 conversation turns" },
+            { label: "RAG-skip gate: can history answer this?",   note: "LLM decision with last 10 turns — skips ~40% of retrievals" },
+            { label: "Retrieve 25 candidates from ChromaDB",      note: "Larger pool feeds reranker with more recall signal" },
+            { label: "Rerank to top 5 via Cohere cross-encoder",  note: "25→5 ratio tuned empirically for latency break-even" },
+          ],
+          guarantee: "~40% retrieval cost reduction in multi-turn sessions"
+        },
         challenge: {
           eyebrow: "RAG Pipelines \xB7 Cost Optimisation",
           headline: "Multi-turn sessions re-retrieve documents already in conversation history on every follow-up.",
@@ -1312,12 +1371,22 @@ const PROJECTS = [
       "Fully reproducible: output notebooks capture all execution state",
     ],
     impact:
-      "Eliminates daily manual reporting effort across multiple analyst teams — delivering consistent, reproducible media analysis outputs on a fully automated schedule.",
+      "replaced daily manual notebook runs with automated reporting | improved reproducibility of outputs | reduced analyst overhead for routine analysis tasks.",
     snippets: [
       {
         label: "Pipeline Runner",
         file: "cfmm-papermill/pipeline_runner.py",
         type: "code",
+        process: {
+          title: "Papermill — Parameterised Notebook Execution",
+          steps: [
+            { label: "Build params dict (date, category, paths)",    note: "Injected at tagged cell — template notebook unchanged" },
+            { label: "pm.execute_notebook() → timestamped output",   note: "Output notebook preserves all intermediate cell states" },
+            { label: "Dispatch all categories via Pool.starmap()",   note: "Each notebook process is independent — failures are isolated" },
+            { label: "Archive output notebooks as audit records",     note: "Every run is reproducible and inspectable at the cell level" },
+          ],
+          guarantee: "Cell-by-cell failure state preserved · parallel-safe · reproducible"
+        },
         challenge: {
           eyebrow: "MLOps \xB7 Notebook Automation",
           headline: "Converting notebooks to scripts for production loses the cell-by-cell state that makes failures debuggable.",
@@ -1429,7 +1498,7 @@ const PROJECTS = [
       "Curriculum gap scoring compares academic offerings against market demand",
     ],
     impact:
-      "Provides academic institutions with real labour market evidence for curriculum decisions — replacing anecdotal program planning with quantified skill-gap data.",
+      "evidence-based curriculum planning from labor market signals | reduced reliance on anecdotal program decisions | improved visibility of high-priority skill gaps.",
     snippets: [
       {
         label: "Skill Gap Analysis",
@@ -1545,12 +1614,22 @@ const PROJECTS = [
       "Configurable prompts via external prompt modules for easy adaptation",
     ],
     impact:
-      "Standardises triage decisions and creates a full audit trail for compliance — enabling consistent, 24/7 AI-assisted case routing without human reviewer bottlenecks.",
+      "standardized triage interpretation with full decision logging | reduced parsing brittleness in structured outputs | prototype validation for compliance-first routing workflows.",
     snippets: [
       {
         label: "Triage Classifier",
         file: "triage-demo/triage_classifier.py",
         type: "code",
+        process: {
+          title: "XML-Tagged LLM Output Pipeline",
+          steps: [
+            { label: "Prompt: wrap fields in <interpretation> + <triage> tags", note: "Tags survive reasoning preamble before the opening brace" },
+            { label: "LLM returns free-form text with embedded tags",            note: "Model may add reasoning before tags — that is fine" },
+            { label: "re.search() extracts tag contents with DOTALL",            note: "Multi-line safe; returns None on no match (no throw)" },
+            { label: "MD5 hash of case text → 8-digit reference ID",            note: "Deterministic: same case always returns same ID" },
+          ],
+          guarantee: "JSON parse failures → 0 · fully idempotent · audit-ready"
+        },
         challenge: {
           eyebrow: "LLM Output \xB7 Structured Parsing",
           headline: "JSON-mode fails when the model adds a reasoning preamble — XML tags degrade gracefully.",
