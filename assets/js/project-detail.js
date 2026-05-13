@@ -19,7 +19,6 @@
 
   function applyAudienceMode(mode) {
     audienceMode = mode;
-    var modalEl  = overlay.querySelector('.modal--detail');
     var tabsWrap = document.getElementById('detail-modal-tabs');
     var tabs     = tabsWrap ? tabsWrap.querySelectorAll('.modal__tab') : [];
 
@@ -512,18 +511,7 @@
     document.body.style.overflow = '';
 
     // Reset audience toggle to Technical on every close
-    audienceMode = 'technical';
-    var tabsWrap = document.getElementById('detail-modal-tabs');
-    if (tabsWrap) {
-      tabsWrap.style.display = '';
-      tabsWrap.removeAttribute('aria-hidden');
-      tabsWrap.querySelectorAll('.modal__tab').forEach(function (tab) { tab.tabIndex = 0; });
-    }
-    document.querySelectorAll('.modal__audience-btn').forEach(function (btn) {
-      var isTech = btn.dataset.mode === 'technical';
-      btn.classList.toggle('modal__audience-btn--active', isTech);
-      btn.setAttribute('aria-pressed', isTech ? 'true' : 'false');
-    });
+    applyAudienceMode('technical');
   }
 
   closeBtn.addEventListener('click', close);
