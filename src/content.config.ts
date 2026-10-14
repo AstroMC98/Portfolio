@@ -13,6 +13,8 @@ const blog = defineCollection({
     title: z.string(),
     dek: z.string(),
     date: z.coerce.date(),
+    /** Last substantive revision; shown as "Updated …" next to the publish date. */
+    updated: z.coerce.date().optional(),
     tags: z.array(z.string()).default([]),
     kicker: z.string().optional(),
     /** Cover motif for the generative cover art (see PostCover.astro). */

@@ -30,7 +30,8 @@ const scheduled = !isLive(post);
       <nav class="crumbs mono" aria-label="Breadcrumb"><a href="/blog/">← Writing</a></nav>
       <div class="post-hero__meta mono">
         {d.kicker && <span class="post-hero__kicker">{d.kicker}</span>}
-        <span>{fmtDate(d.date)}</span>
+        <span><time datetime={d.date.toISOString().slice(0, 10)}>{fmtDate(d.date)}</time></span>
+        {d.updated && <span>Updated <time datetime={d.updated.toISOString().slice(0, 10)}>{fmtDate(d.updated)}</time></span>}
         <span>{readingMinutes(post)} min read</span>
         {scheduled && <span class="badge-sched">{d.draft ? 'Draft' : needsReview(post) ? 'Needs review' : 'Scheduled'} · not public yet</span>}
       </div>
