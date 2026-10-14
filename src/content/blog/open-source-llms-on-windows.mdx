@@ -1,0 +1,534 @@
+---
+title: "Open-Weight LLMs on Windows: When a Quantized Local Model Is a Credible Production Choice"
+dek: "For privacy-bound and cost-sensitive work, a well-quantized open-weight model on an ordinary Windows machine is now a serious option. The model you download matters less than the bits you store it in and the memory budget you fit it into. Here is the evidence, the arithmetic and the setup."
+date: 2026-09-13
+updated: 2026-10-14
+kicker: How-to
+motif: chip
+tags: [Local LLMs, How-to, Engineering]
+thesis: "For privacy-bound or cost-sensitive workloads, a well-quantized open-weight model on ordinary Windows hardware is now a credible production option — and success depends less on which model you pick than on the quantization and memory budget you fit it into."
+takeaways:
+  - "Local inference wins on residency, offline operation and predictable cost — not on raw price. At October 2026 list prices, a $429 GPU only pays for itself after roughly 24,000 Opus-class queries or about 950,000 Haiku-class ones (author’s estimate)."
+  - "Quantization is nearly free down to about 5 bits, a small tax at 4, and a cliff below 3: on Llama-3-8B, Q4_K_M adds 0.18 perplexity; Q2_K adds 3.52."
+  - "Modern models are more fragile than older ones. The same quant types cost Llama 3 roughly three to four times the perplexity they cost LLaMA-1, so the old “bigger model at 2 bits” trick no longer holds."
+  - "The working rule: run the largest model that fits in VRAM at 4–5 bits with your real context length — never below ~3.5 bits without measuring."
+  - "Budget memory as weights plus KV cache plus buffers. At 128K context, a 70B model’s KV cache (~43 GB) is as large as its 4-bit weights."
+  - "Production is mostly not about the model: authenticate the endpoint, keep it off the public internet, pin model file hashes, set context and concurrency deliberately, and read the licence."
+sources:
+  - label: "llama.cpp — tools/quantize/README.md (bits per weight, sizes, throughput)"
+    url: "https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md"
+  - label: "llama.cpp — tools/quantize/quantize.cpp (perplexity deltas per quant type)"
+    url: "https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/quantize.cpp"
+  - label: "llama.cpp PR #1684 — k-quants (design, LLaMA-1 7B/13B perplexity, sizes and timings)"
+    url: "https://github.com/ggml-org/llama.cpp/pull/1684"
+  - label: "llama.cpp PR #4773 — 2-bit i-quants (IQ2_XXS, E8 lattice codebook)"
+    url: "https://github.com/ggml-org/llama.cpp/pull/4773"
+  - label: "llama.cpp PR #4861 — Importance matrix calculation"
+    url: "https://github.com/ggml-org/llama.cpp/pull/4861"
+  - label: "llama.cpp — tools/imatrix/README.md"
+    url: "https://github.com/ggml-org/llama.cpp/blob/master/tools/imatrix/README.md"
+  - label: "llama.cpp — README (install, backends, llama cli / llama serve)"
+    url: "https://github.com/ggml-org/llama.cpp"
+  - label: "llama.cpp — tools/server/README.md (OpenAI-compatible server, flags)"
+    url: "https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md"
+  - label: "Ollama — Windows documentation"
+    url: "https://docs.ollama.com/windows"
+  - label: "Ollama — GPU support"
+    url: "https://docs.ollama.com/gpu"
+  - label: "Ollama — FAQ (context length, concurrency, KV cache quantization, network binding)"
+    url: "https://docs.ollama.com/faq"
+  - label: "Ollama — OpenAI compatibility"
+    url: "https://docs.ollama.com/api/openai-compatibility"
+  - label: "LM Studio — System requirements"
+    url: "https://lmstudio.ai/docs/app/system-requirements"
+  - label: "LM Studio — OpenAI compatibility endpoints"
+    url: "https://lmstudio.ai/docs/developer/openai-compat"
+  - label: "LM Studio — “LM Studio is free for use at work” (8 Jul 2025)"
+    url: "https://lmstudio.ai/blog/free-for-work"
+  - label: "Hugging Face — bartowski/Meta-Llama-3.1-8B-Instruct-GGUF"
+    url: "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF"
+  - label: "Hugging Face — bartowski/Llama-3.3-70B-Instruct-GGUF"
+    url: "https://huggingface.co/bartowski/Llama-3.3-70B-Instruct-GGUF"
+  - label: "Hugging Face — Llama 3.1 8B Instruct config (layers, KV heads, head dim)"
+    url: "https://huggingface.co/unsloth/Meta-Llama-3.1-8B-Instruct/blob/main/config.json"
+  - label: "Hugging Face — Llama 3.3 70B Instruct config (layers, KV heads, head dim)"
+    url: "https://huggingface.co/unsloth/Llama-3.3-70B-Instruct/blob/main/config.json"
+  - label: "Google Developers Blog — Gemma 3 QAT models (18 Apr 2025)"
+    url: "https://developers.googleblog.com/en/gemma-3-quantized-aware-trained-state-of-the-art-ai-to-consumer-gpus/"
+  - label: "Hugging Face — openai/gpt-oss-20b model card"
+    url: "https://huggingface.co/openai/gpt-oss-20b"
+  - label: "Huang et al. — An empirical study of LLaMA3 quantization (arXiv:2404.14047)"
+    url: "https://arxiv.org/abs/2404.14047"
+  - label: "Liu et al. — Quantization Hurts Reasoning? (arXiv:2504.04823)"
+    url: "https://arxiv.org/abs/2504.04823"
+  - label: "Cisco — Detecting Exposed LLM Servers: A Shodan Case Study on Ollama (1 Sep 2025)"
+    url: "https://blogs.cisco.com/security/detecting-exposed-llm-servers-shodan-case-study-on-ollama"
+  - label: "Cisco Talos — TALOS-2024-1916 / CVE-2024-23605 (GGUF parsing heap overflow)"
+    url: "https://www.talosintelligence.com/vulnerability_reports/TALOS-2024-1916"
+  - label: "Meta — Llama 3.1 Community License"
+    url: "https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/LICENSE"
+  - label: "Anthropic — Models overview (pricing)"
+    url: "https://platform.claude.com/docs/en/about-claude/models/overview"
+  - label: "Google — Gemini API models (pricing)"
+    url: "https://ai.google.dev/gemini-api/docs/models"
+  - label: "PCGamesN — RTX 5060 Ti price and release date (secondary)"
+    url: "https://www.pcgamesn.com/nvidia/geforce-rtx-5060-ti-guide"
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Lines from '../../components/blog/Lines.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">One of the production systems I have built never talks to the internet. It is a retrieval-augmented assistant for an organisation whose documents are not allowed to leave the building, so every embedding and every answer comes from an open-weight model running on the same machine as the user. When people ask whether that is a toy, my answer is no — but only because of a decision most tutorials treat as a footnote: how the model is quantized, and whether it actually fits in memory with the context the job needs.</p>
+
+The argument of this article is simple. For workloads bound by privacy, data residency, offline operation or predictable cost, a well-quantized open-weight model on ordinary Windows hardware is now a credible production option. Not for everything, and not because local is cheaper — it usually is not. It is credible because three things have matured at once: quantization formats that lose almost nothing at 4–5 bits, runtimes that install with one command and expose an OpenAI-compatible API, and open-weight models released under permissive licences, sometimes already quantized by the vendor. The corollary is the part people get wrong: success depends less on which model you pick than on the quantization and memory budget you fit it into.
+
+Here is the route. I start with why local inference matters now and what the honest economics look like. I then lay out the evidence on quantization — size, quality and speed — including a result that overturns a popular rule of thumb. I offer a decision framework, then go deep on four dimensions: how quantization actually works, the memory arithmetic, hardware tiers on Windows, and runtimes and serving. I close with cases, counterpoints, implications by role, a 90-day plan and the limits of what this evidence can tell you.
+
+## Context: why this matters now
+
+There are four legitimate reasons to run a model locally, and only one of them is cost.
+
+**Residency and privacy.** In regulated settings — health, legal, finance, government — sending document text to a third-party API is often a compliance question before it is an engineering one. A local model removes the question: no egress, no processor agreement, no cross-border transfer. **Offline and edge operation.** Field teams, ships, clinics with poor connectivity and air-gapped networks cannot depend on an API at all. **Latency and control.** A local model has no rate limits, no surprise deprecations and no queue you do not own. **Cost** at very high, steady volume — but this is the weakest of the four, and I want to be precise about why.
+
+The supply side has shifted decisively. Vendors now ship models designed to be quantized. Google released quantization-aware-trained (QAT) versions of Gemma 3 in April 2025, cutting the weights of the 27B model from 54 GB to 14.1 GB so that it runs on a single 24 GB RTX 3090 ([Google](https://developers.googleblog.com/en/gemma-3-quantized-aware-trained-state-of-the-art-ai-to-consumer-gpus/)). OpenAI’s gpt-oss models were post-trained with MXFP4 quantization of their mixture-of-experts weights; the 20B model (21B parameters, 3.6B active) is stated to run within 16 GB of memory, under Apache-2.0 ([model card](https://huggingface.co/openai/gpt-oss-20b)). The 2026 open-weight field — Qwen, Gemma 4 with official QAT q4_0 GGUFs, Mistral Small 4, DeepSeek, gpt-oss — is large and mostly permissively licensed.
+
+<Exhibit
+  n={1}
+  title="Vendors now ship models built to be quantized: Google’s 4-bit Gemma 3 27B fits a single 24 GB gaming card"
+  sub="VRAM to load weights, Gemma 3 at int4 (QAT); BF16 shown for comparison (GB)"
+  source="Google Developers Blog, 18 Apr 2025"
+  sourceUrl="https://developers.googleblog.com/en/gemma-3-quantized-aware-trained-state-of-the-art-ai-to-consumer-gpus/"
+  note="Weights only, as Google notes: the KV cache for your context length comes on top. Google names the RTX 3090 (24 GB) for 27B and an RTX 4060 Laptop GPU (8 GB) for 12B."
+  table={[["Model", "BF16 (GB)", "int4 QAT (GB)"], ["Gemma 3 27B", 54, 14.1], ["Gemma 3 12B", 24, 6.6], ["Gemma 3 4B", 8, 2.6], ["Gemma 3 1B", 2, 0.5]]}
+>
+  <Bars unit=" GB" max={54} data={[
+    { label: "Gemma 3 27B", sub: "BF16: 54 GB", value: 14.1, display: "14.1 GB", hl: true },
+    { label: "Gemma 3 12B", sub: "BF16: 24 GB", value: 6.6, display: "6.6 GB" },
+    { label: "Gemma 3 4B", sub: "BF16: 8 GB", value: 2.6, display: "2.6 GB" },
+    { label: "Gemma 3 1B", sub: "BF16: 2 GB", value: 0.5, display: "0.5 GB" },
+  ]} />
+</Exhibit>
+
+Now the economics, honestly. Small hosted models have become extraordinarily cheap. At October 2026 list prices, Claude Haiku 5.5 costs $0.10 per million input tokens and $0.50 per million output tokens ([Anthropic](https://platform.claude.com/docs/en/about-claude/models/overview)); Gemini 3.5 Flash-Lite is $0.30 and $2.50 ([Google](https://ai.google.dev/gemini-api/docs/models)). Take a typical retrieval-augmented query — about 3,000 tokens of prompt and retrieved context, 300 tokens of answer — and a 16 GB RTX 5060 Ti, which launched at $429 ([PCGamesN](https://www.pcgamesn.com/nvidia/geforce-rtx-5060-ti-guide)). Exhibit 2 shows how many queries it takes before the card has paid for itself in avoided API spend.
+
+<Exhibit
+  n={2}
+  title="On price alone, local rarely wins: a $429 GPU needs ~950,000 queries to beat a Haiku-class API"
+  sub="Queries needed for avoided API spend to equal a $429 GPU (thousands); 3,000 input + 300 output tokens per query"
+  source="Author’s estimate from list prices (Anthropic, Google; Oct 2026) and RTX 5060 Ti 16 GB launch price (PCGamesN)"
+  sourceUrl="https://platform.claude.com/docs/en/about-claude/models/overview"
+  note="Author’s estimate. Ignores electricity, the rest of the PC, engineering time and — most importantly — the quality gap: a local 8B model is not equivalent to Opus. The point is the order of magnitude, not the exact figure."
+  table={[["API (input / output per 1M tokens)", "Cost per query", "Queries to $429"], ["Claude Opus 5.5 ($4 / $20)", "$0.0180", "~23,800"], ["Claude Sonnet 5.5 ($2 / $10)", "$0.0090", "~47,700"], ["Gemini 3.5 Flash-Lite ($0.30 / $2.50)", "$0.00165", "~260,000"], ["Claude Haiku 5.5 ($0.10 / $0.50)", "$0.00045", "~953,000"]]}
+>
+  <Bars unit="K" data={[
+    { label: "vs Opus 5.5", value: 23.8, display: "~24K" },
+    { label: "vs Sonnet 5.5", value: 47.7, display: "~48K" },
+    { label: "vs Gemini 3.5 Flash-Lite", value: 260, display: "~260K" },
+    { label: "vs Haiku 5.5", value: 953, display: "~953K", hl: true },
+  ]} />
+</Exhibit>
+
+Read Exhibit 2 carefully, because it cuts both ways. Against frontier-priced models, a modest GPU pays back within tens of thousands of queries — a few months for a busy internal tool. Against the cheapest hosted tier, it takes close to a million. So the cost case for local is narrow: high, steady volume on tasks where a small model is good enough. The stronger case is almost always the first three reasons — residency, offline, control — where the hosted option is not on the table at all. If you are choosing local to save money on a low-volume workload with no data constraints, you are probably making a mistake.
+
+## The evidence: what quantization costs and what it buys
+
+Quantization stores a model’s weights in fewer bits than the 16 used at full precision. The format you will meet on Windows is **GGUF**, the file format of llama.cpp and of the tools built on that ecosystem. Three questions decide whether a quantized model is fit for production: how much smaller it gets, how much quality it loses, and how much faster it runs.
+
+### Size: a 4-bit quant is under a third of full precision
+
+llama.cpp’s quantize README publishes the effective bits per weight (bpw) of each type, measured on Llama-3.1-8B ([README](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md)). Effective bpw is always a little above the nominal figure because each block of weights also stores scales.
+
+<Exhibit
+  n={3}
+  title="Q4_K_M keeps an 8B model at under a third of its full-precision size"
+  sub="Effective bits per weight by GGUF quantization type, measured on Llama-3.1-8B"
+  source="llama.cpp, tools/quantize/README.md"
+  sourceUrl="https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md"
+  table={[["Type", "Bits per weight", "Size (GiB)"], ["F16", "16.00", "14.96"], ["Q8_0", "8.50", "7.95"], ["Q6_K", "6.56", "6.14"], ["Q5_K_M", "5.70", "5.33"], ["Q4_K_M", "4.89", "4.58"], ["IQ4_XS", "4.46", "4.17"], ["Q3_K_M", "4.00", "3.74"], ["Q2_K", "3.16", "2.95"], ["IQ2_XS", "2.59", "2.42"]]}
+>
+  <Bars unit=" bpw" data={[
+    { label: "F16 (full precision)", value: 16.0, display: "16.0" },
+    { label: "Q8_0", value: 8.50, display: "8.50" },
+    { label: "Q6_K", value: 6.56, display: "6.56" },
+    { label: "Q5_K_M", value: 5.70, display: "5.70" },
+    { label: "Q4_K_M", sub: "the usual starting point", value: 4.89, display: "4.89", hl: true },
+    { label: "IQ4_XS", value: 4.46, display: "4.46" },
+    { label: "Q3_K_M", value: 4.00, display: "4.00" },
+    { label: "Q2_K", value: 3.16, display: "3.16" },
+    { label: "IQ2_XS", value: 2.59, display: "2.59" },
+  ]} />
+</Exhibit>
+
+### Quality: almost free to 5 bits, a small tax at 4, a cliff below 3
+
+The standard quality measure is the increase in perplexity — roughly, how surprised the model is by held-out text — relative to full precision. llama.cpp’s `quantize.cpp` records these deltas for Llama-3-8B ([source](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/quantize.cpp)). The curve is the whole story.
+
+<Exhibit
+  n={4}
+  title="Quality loss is negligible until about 4 bits, then falls off a cliff"
+  sub="Increase in perplexity vs FP16 on Llama-3-8B (lower is better)"
+  source="llama.cpp, tools/quantize/quantize.cpp"
+  sourceUrl="https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/quantize.cpp"
+  table={[["Type", "+ perplexity"], ["Q8_0", "+0.0026"], ["Q6_K", "+0.0217"], ["Q5_K_M", "+0.0569"], ["Q5_K_S", "+0.1049"], ["Q4_K_M", "+0.1754"], ["Q4_K_S", "+0.2689"], ["Q4_0", "+0.4685"], ["Q3_K_L", "+0.5562"], ["Q3_K_M", "+0.6569"], ["Q3_K_S", "+1.6321"], ["Q2_K", "+3.5199"]]}
+>
+  <Bars data={[
+    { label: "Q8_0", value: 0.0026, display: "+0.003" },
+    { label: "Q6_K", value: 0.0217, display: "+0.02" },
+    { label: "Q5_K_M", value: 0.0569, display: "+0.06" },
+    { label: "Q4_K_M", value: 0.1754, display: "+0.18", hl: true },
+    { label: "Q4_0", value: 0.4685, display: "+0.47" },
+    { label: "Q3_K_M", value: 0.6569, display: "+0.66" },
+    { label: "Q3_K_S", value: 1.6321, display: "+1.63", neg: true },
+    { label: "Q2_K", value: 3.5199, display: "+3.52", neg: true },
+  ]} />
+</Exhibit>
+
+Two details matter. First, the “K” types beat the older plain types at similar size: Q4_K_M adds 0.18 perplexity while Q4_0 adds 0.47, for a file that is only marginally larger. Second, the gap between Q3_K_M (+0.66) and Q3_K_S (+1.63) shows that the mix of precisions across tensors matters as much as the headline bit count — a point I return to in the deep dive.
+
+### Size versus bits: the old rule, and why it broke
+
+For years the community rule of thumb was: at a fixed memory budget, take the bigger model at fewer bits. The original k-quants pull request, which introduced the Q2_K–Q6_K family in June 2023, contains the data behind that rule ([PR #1684](https://github.com/ggml-org/llama.cpp/pull/1684)). On LLaMA-1, every 13B quant — even Q2_K at 5.13 GB — had lower perplexity than the 7B model at full precision (13.0 GB).
+
+<Exhibit
+  n={5}
+  title="On LLaMA-1, every 13B quant beat the 7B model at full precision — even at 2 bits"
+  sub="Perplexity by quantization type, LLaMA-1 7B vs 13B (lower is better)"
+  source="llama.cpp PR #1684 (k-quants), June 2023"
+  sourceUrl="https://github.com/ggml-org/llama.cpp/pull/1684"
+  note="File sizes from the same table: 7B F16 13.0 GB, 7B Q6_K 5.15 GB; 13B Q2_K 5.13 GB, 13B Q4_K_M 7.32 GB. At about 5 GB, 13B Q2_K (5.85) beat 7B Q6_K (5.91)."
+  table={[["Type", "7B", "13B"], ["Q2_K", 6.7764, 5.8545], ["Q3_K_M", 6.1503, 5.4498], ["Q4_K_M", 5.9601, 5.3002], ["Q5_K_M", 5.9208, 5.2638], ["Q6_K", 5.9110, 5.2568], ["F16", 5.9066, 5.2543]]}
+>
+  <Lines yMin={5} yMax={7} series={[
+    { name: "LLaMA-1 7B", points: [{ x: "Q2_K", y: 6.7764 }, { x: "Q3_K_M", y: 6.1503 }, { x: "Q4_K_M", y: 5.9601 }, { x: "Q5_K_M", y: 5.9208 }, { x: "Q6_K", y: 5.9110 }, { x: "F16", y: 5.9066 }] },
+    { name: "LLaMA-1 13B", hl: true, points: [{ x: "Q2_K", y: 5.8545 }, { x: "Q3_K_M", y: 5.4498 }, { x: "Q4_K_M", y: 5.3002 }, { x: "Q5_K_M", y: 5.2638 }, { x: "Q6_K", y: 5.2568 }, { x: "F16", y: 5.2543 }] },
+  ]} />
+</Exhibit>
+
+That rule does not transfer cleanly to modern models. Compare the perplexity penalties for the same quant types on LLaMA-1 7B (from PR #1684) and on Llama-3-8B (from `quantize.cpp`). Llama 3 pays roughly three to four times as much at every level, and at Q2_K the penalty jumps from 0.87 to 3.52. An academic study of Llama 3 quantization reached the same qualitative conclusion: “non-negligible degradation”, “particularly under ultra-low bit widths” ([Huang et al.](https://arxiv.org/abs/2404.14047)). The usual explanation — which I offer as a hypothesis, not a finding — is that models trained on far more tokens pack more information into each weight, leaving less redundancy for quantization to discard.
+
+<Exhibit
+  n={6}
+  title="The same quant costs Llama 3 roughly three to four times the quality it cost LLaMA-1"
+  sub="Increase in perplexity vs full precision, by quant type and model"
+  source="llama.cpp PR #1684 (LLaMA-1 7B, computed from published perplexities); llama.cpp quantize.cpp (Llama-3-8B)"
+  sourceUrl="https://github.com/ggml-org/llama.cpp/pull/1684"
+  note="Directional comparison only: different tokenizers, evaluation runs and llama.cpp versions. Perplexities are not comparable across models in absolute terms; the deltas give a rough sense of fragility."
+  table={[["Type", "LLaMA-1 7B", "Llama-3-8B"], ["Q4_K_M", "+0.054", "+0.175"], ["Q3_K_M", "+0.244", "+0.657"], ["Q2_K", "+0.870", "+3.520"]]}
+>
+  <Bars data={[
+    { label: "Q4_K_M · LLaMA-1 7B", value: 0.054, display: "+0.05" },
+    { label: "Q4_K_M · Llama-3-8B", value: 0.175, display: "+0.18", hl: true },
+    { label: "Q3_K_M · LLaMA-1 7B", value: 0.244, display: "+0.24" },
+    { label: "Q3_K_M · Llama-3-8B", value: 0.657, display: "+0.66", hl: true },
+    { label: "Q2_K · LLaMA-1 7B", value: 0.870, display: "+0.87" },
+    { label: "Q2_K · Llama-3-8B", value: 3.520, display: "+3.52", neg: true },
+  ]} />
+</Exhibit>
+
+The practical consequence is a revised rule: **the largest model that fits at 4–5 bits, never below about 3.5 bits without measuring on your own task.** “Bigger at 2 bits” was good advice for 2023 models; for 2025–2026 models it is a gamble.
+
+### Speed: smaller weights, faster tokens
+
+Generating each token requires reading essentially every weight from memory once, so on consumer hardware generation speed is largely limited by memory bandwidth. Fewer bytes per weight means more tokens per second. In llama.cpp’s current README, Llama-3.1-8B generated 71.9 tokens per second at Q4_K_M against 29.2 at F16 — about 2.5 times faster — on hardware the README does not specify. The k-quants PR gives a hardware breakdown for the 7B model (Exhibit 7).
+
+<Exhibit
+  n={7}
+  title="Quantizing to Q4_K_M roughly tripled generation speed on CPU and nearly quadrupled it on GPU"
+  sub="Text generation, LLaMA-1 7B, tokens per second (converted from published ms per token)"
+  source="llama.cpp PR #1684 (k-quants), June 2023"
+  sourceUrl="https://github.com/ggml-org/llama.cpp/pull/1684"
+  note="2023 llama.cpp build; current builds and models are faster in absolute terms. Ryzen figures use 4 threads; M2 Max uses 8. The ratio, not the absolute number, is the point."
+  table={[["Hardware", "F16 (ms/tok)", "Q4_K_M (ms/tok)", "Q4_K_M (t/s)"], ["RTX 4080", 60, 16.0, 62.5], ["Apple M2 Max (8 threads)", 111, 40, 25.0], ["Ryzen 9 7950X (4 threads)", 214, 71, 14.1]]}
+>
+  <Bars unit=" t/s" data={[
+    { label: "RTX 4080 · Q4_K_M", value: 62.5, display: "62.5 t/s", hl: true },
+    { label: "RTX 4080 · F16", value: 16.7, display: "16.7 t/s" },
+    { label: "M2 Max · Q4_K_M", value: 25.0, display: "25.0 t/s" },
+    { label: "M2 Max · F16", value: 9.0, display: "9.0 t/s" },
+    { label: "Ryzen 7950X · Q4_K_M", value: 14.1, display: "14.1 t/s" },
+    { label: "Ryzen 7950X · F16", value: 4.7, display: "4.7 t/s" },
+  ]} />
+</Exhibit>
+
+Speed is a quality attribute in production. A model that streams at 60 tokens per second feels instant; one at 5 tokens per second makes a 300-token answer take a minute, and users abandon it. That is why the CPU rows matter: a 7B model at Q4_K_M on a desktop CPU is usable for a single user, while the same model at F16 is not.
+
+## A framework: fit first, then choose
+
+Most local-LLM projects I see start with “which model is best?” and end with a model that does not fit, spills into system RAM and crawls. I reverse the order. The decision stack below starts from the workload and the memory budget, and only then picks a model.
+
+<Exhibit n={8} title="Decide in this order: eligibility, budget, quant floor, then the biggest model that fits" sub="The local-LLM decision stack — Author’s framework">
+  <Flow steps={[
+    { title: "Eligibility", text: "Is there a residency, offline, control or high-volume reason? If not, use a hosted API." },
+    { title: "Memory budget", text: "VRAM (or RAM) minus KV cache for your real context and concurrency, minus ~1 GB of buffers." },
+    { title: "Quant floor", text: "Q4_K_M or IQ4_XS as default; Q5_K_M–Q6_K if it fits; below ~3.5 bpw only with evidence.", hl: true },
+    { title: "Largest model that fits", text: "Pick the strongest licence-compatible model whose file fits the remaining budget." },
+    { title: "Runtime and serving", text: "Ollama, LM Studio or llama.cpp behind an authenticated OpenAI-compatible endpoint." },
+    { title: "Evaluate on your task", text: "50–100 real questions, scored against the hosted baseline. Perplexity is not your metric." },
+  ]} />
+</Exhibit>
+
+The framework encodes the thesis. Steps two and three — the memory budget and the quant floor — determine what is possible before any model is named. Step six is the guard rail: perplexity is a useful proxy for comparing quants of one model, but it says little about whether a model can follow your instructions, cite your documents or refuse when it does not know.
+
+## Deep dive 1: how quantization actually works
+
+It helps to know what the letters mean, because they predict behaviour.
+
+**Block-wise quantization.** GGUF quant types do not use a single scale for a whole tensor. They split weights into small blocks and store a scale per block, so an outlier in one block does not ruin precision everywhere else. The simplest types are “type-0”, where a weight is reconstructed as w = d × q (a block scale times a small integer), and “type-1”, which adds a block minimum: w = d × q + m. Q4_0 and Q8_0 are the classic plain types.
+
+**K-quants.** The k-quants introduced in PR #1684 add a second level. Weights are grouped into super-blocks of 256, split into sub-blocks of 16 or 32; the sub-block scales (and minimums) are themselves quantized to 4–8 bits, with one higher-precision scale per super-block ([PR #1684](https://github.com/ggml-org/llama.cpp/pull/1684)). That is why Q4_K is about 4.5 bpw and Q6_K about 6.56. The suffixes _S, _M and _L are **mixes**: the same base type for most tensors, but higher precision for the ones that hurt most when compressed. In the PR’s definition, Q4_K_M uses Q6_K for half of the attention.wv and feed_forward.w2 tensors and Q4_K elsewhere; Q3_K_M promotes attention.wv, attention.wo and feed_forward.w2 to Q4_K. This is the mechanism behind Exhibit 4’s gap between Q3_K_S and Q3_K_M: spending a few extra bits in the right tensors buys a large share of the quality back.
+
+**I-quants.** The IQ types, introduced in early 2024, use a different trick at very low bit rates. IQ2_XXS, for example, quantizes weights in groups of eight and encodes their magnitudes as an index into a 256-entry codebook drawn from the E8 lattice, with signs stored using a parity trick — ideas the author credits partly to the QuIP# research ([PR #4773](https://github.com/ggml-org/llama.cpp/pull/4773)). The effect is better quality per bit at 2–4 bpw, at the cost of slower decoding on some hardware. IQ4_XS (4.46 bpw) is a useful alternative to Q4_K_M when a model is just slightly too big.
+
+**Importance matrices.** Not all weights matter equally. llama.cpp’s `imatrix` tool runs calibration text through the model and records, for each weight column, the average squared activation; the quantizer then minimises error weighted by that importance rather than treating every weight alike ([PR #4861](https://github.com/ggml-org/llama.cpp/pull/4861); [imatrix README](https://github.com/ggml-org/llama.cpp/blob/master/tools/imatrix/README.md)). Importance matrices matter most at low bit rates. The practical upshot: when downloading 3-bit or IQ quants, prefer publishers who state they used an imatrix, and if you quantize yourself, calibrate on text that resembles your workload.
+
+```powershell
+# Build an importance matrix from calibration text, then quantize with it
+llama-imatrix -m model-f16.gguf -f calibration-data.txt -ngl 99
+llama-quantize --imatrix imatrix.gguf model-f16.gguf model-IQ4_XS.gguf IQ4_XS
+```
+
+**Quantization-aware training.** QAT, as in Google’s Gemma 3 release, goes further: the model is trained while simulating low-precision arithmetic, so it learns weights that survive quantization. Google reports that QAT reduced the perplexity drop at Q4_0 by 54% ([Google](https://developers.googleblog.com/en/gemma-3-quantized-aware-trained-state-of-the-art-ai-to-consumer-gpus/)). When a vendor ships an official QAT checkpoint, it is usually the best 4-bit option available.
+
+**Failure mode and how to measure.** The characteristic failure of over-quantization is not gibberish; it is subtle drift — slightly worse instruction following, more formatting mistakes, weaker recall of rare facts. You will not see it in a demo. Measure it with a fixed evaluation set run against two or three quants of the same model, and compare against a hosted baseline.
+
+## Deep dive 2: the memory arithmetic
+
+A model needs memory for three things: its weights, its key-value (KV) cache, and working buffers.
+
+**Weights** are approximately parameters × bits per weight ÷ 8. For Llama 3.1 8B at Q4_K_M: about 8 billion × 4.89 ÷ 8 ≈ 4.9 GB, matching the 4.92 GB file on Hugging Face ([bartowski](https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF)). For Llama 3.3 70B at Q4_K_M the file is 42.52 GB; at IQ2_XS it is 21.14 GB; at F16 it is 141.12 GB ([bartowski](https://huggingface.co/bartowski/Llama-3.3-70B-Instruct-GGUF)).
+
+**KV cache** is the part people forget. For each token of context, the model stores a key and a value vector in every layer:
+
+```text
+KV bytes per token = 2 (K and V) × layers × KV heads × head dimension × bytes per element
+```
+
+The model configs give the inputs. Llama 3.1 8B has 32 layers, 8 KV heads and a head dimension of 128; Llama 3.3 70B has 80 layers, 8 KV heads and a head dimension of 128 ([8B config](https://huggingface.co/unsloth/Meta-Llama-3.1-8B-Instruct/blob/main/config.json); [70B config](https://huggingface.co/unsloth/Llama-3.3-70B-Instruct/blob/main/config.json)). At FP16 (2 bytes), that is 2 × 32 × 8 × 128 × 2 = 131,072 bytes, or 128 KiB per token, for the 8B model, and 2 × 80 × 8 × 128 × 2 = 327,680 bytes, or 320 KiB per token, for the 70B model. Multiply by context length.
+
+<Exhibit
+  n={9}
+  title="At long context, the KV cache rivals the model: a 70B model at 128K needs ~43 GB of cache alone"
+  sub="FP16 KV cache size by model and context length (GB)"
+  source="Author’s calculation from model configs (Hugging Face) and the standard KV-cache formula"
+  sourceUrl="https://huggingface.co/unsloth/Llama-3.3-70B-Instruct/blob/main/config.json"
+  note="Estimate for one sequence. Parallel requests multiply it. A q8_0 KV cache roughly halves these figures, per Ollama’s documentation."
+  table={[["Model · context", "KV cache (GB)"], ["8B · 8K", 1.07], ["8B · 32K", 4.29], ["8B · 128K", 17.18], ["70B · 8K", 2.68], ["70B · 32K", 10.74], ["70B · 128K", 42.95]]}
+>
+  <Bars unit=" GB" data={[
+    { label: "8B · 8K", value: 1.07, display: "1.1 GB" },
+    { label: "8B · 32K", value: 4.29, display: "4.3 GB" },
+    { label: "8B · 128K", value: 17.18, display: "17.2 GB" },
+    { label: "70B · 8K", value: 2.68, display: "2.7 GB" },
+    { label: "70B · 32K", value: 10.74, display: "10.7 GB" },
+    { label: "70B · 128K", value: 42.95, display: "43.0 GB", hl: true },
+  ]} />
+</Exhibit>
+
+**Buffers and headroom.** Runtimes also allocate compute buffers, and Windows reserves some VRAM for the desktop. My rule of thumb is 0.5–1 GB, more on cards that also drive displays. Put together, the worked examples look like this:
+
+<Exhibit
+  n={10}
+  title="An 8B model fits an 8 GB card at short context; a 70B model does not fit any single gaming card"
+  sub="Worked memory budgets: weights + FP16 KV cache + ~1 GB buffers — Author’s estimate"
+  source="Weights: bartowski GGUF repos (Hugging Face); KV cache: author’s calculation; buffers: author’s rule of thumb"
+  sourceUrl="https://huggingface.co/bartowski/Llama-3.3-70B-Instruct-GGUF"
+  note="Estimates for a single request. With OLLAMA_NUM_PARALLEL or llama.cpp slots above 1, multiply the KV column."
+>
+  <Compare
+    cols={["Weights", "KV cache", "Total (est.)", "Realistic home"]}
+    rows={[
+      { k: "8B Q4_K_M · 8K", v: ["4.9 GB", "1.1 GB", "~7 GB", "8 GB GPU (tight) or 12 GB"] },
+      { k: "8B Q4_K_M · 32K", v: ["4.9 GB", "4.3 GB", "~10 GB", "12–16 GB GPU; ~8 GB with q8_0 KV"] },
+      { k: "8B Q8_0 · 8K", v: ["8.5 GB", "1.1 GB", "~10.5 GB", "12–16 GB GPU"] },
+      { k: "8B Q4_K_M · 128K", v: ["4.9 GB", "17.2 GB", "~23 GB", "24 GB GPU — context costs more than the model"] },
+      { k: "70B IQ2_XS · 8K", v: ["21.1 GB", "2.7 GB", "~25 GB", "Just over 24 GB, and below the quality floor"] },
+      { k: "70B Q4_K_M · 8K", v: ["42.5 GB", "2.7 GB", "~46 GB", "Two 24 GB GPUs, or a slow GPU+CPU split"] },
+    ]}
+  />
+</Exhibit>
+
+The most important row is the fourth. Teams often pick a small model to save memory and then set a 128K context “because the model supports it”, quietly spending four times the model’s size on cache. Set context to what the task needs. For retrieval-augmented generation, 8K–16K is usually enough: you are sending the top few chunks, not the library.
+
+**Failure mode and measurement.** When a model does not fit in VRAM, runtimes offload layers to the CPU. It still works, so nobody notices — except that generation speed drops sharply. On Ollama, `ollama ps` shows how much of a loaded model sits on the GPU versus the CPU; anything other than 100% GPU on a latency-sensitive service is a bug.
+
+## Deep dive 3: hardware tiers on Windows
+
+The runtime documentation sets the floor. Ollama requires Windows 10 22H2 or newer ([Ollama, Windows](https://docs.ollama.com/windows)). For NVIDIA, it supports compute capability 5.0 and above with driver 550 or newer; cards of compute capability 5.0–6.2 need driver 570 or newer ([Ollama, GPU](https://docs.ollama.com/gpu)) — the Windows page itself lists 551.61 as the minimum, so simply install a current driver. For AMD on Windows, ROCm acceleration needs a ROCm v7 / HIP7-capable driver and a supported card — RX 7900 XTX, 7900 XT, 7900 GRE, 7800 XT, 7700 XT, 7600 XT, 7600 or the Radeon PRO W7000 series. Everything else can use **Vulkan**, which Ollama enables by default when the backend is installed (set `OLLAMA_VULKAN=0` to disable it). llama.cpp itself supports CUDA, HIP, Vulkan and SYCL (for Intel GPUs), among other backends ([llama.cpp](https://github.com/ggml-org/llama.cpp)). LM Studio requires AVX2 on x64 CPUs, runs on Snapdragon X Elite machines, and recommends 16 GB of RAM and 4 GB of dedicated VRAM ([LM Studio](https://lmstudio.ai/docs/app/system-requirements)).
+
+<Exhibit n={11} title="Match the model to the memory you have, not the other way round" sub="Hardware tiers for Windows — Author’s framework, grounded in the vendor documentation cited above" note="Author’s guidance. Exact fit depends on architecture, context length and concurrency; verify with the arithmetic in Exhibit 10.">
+  <Compare
+    cols={["Typical hardware", "What runs well", "Start with"]}
+    rows={[
+      { k: "CPU only, 16–32 GB RAM", v: ["AVX2 laptop or desktop, no discrete GPU", "1–4B models interactively; 7–8B for a single patient user", "Q4_K_M"] },
+      { k: "8 GB VRAM", v: ["RTX 4060 / laptop GPUs", "7–9B at 4–8K context; Gemma 3 12B QAT per Google", "Q4_K_M or vendor QAT"] },
+      { k: "12–16 GB VRAM", v: ["RTX 5060 Ti 16 GB class", "8B at Q8_0 or long context; 12–14B at Q4–Q5; gpt-oss-20b", "Q5_K_M–Q6_K"] },
+      { k: "24–32 GB VRAM", v: ["RTX 3090 / 4090 / 5090 class", "24–32B at Q4 (Gemma 3 27B QAT is 14.1 GB)", "Q4_K_M, IQ4_XS"] },
+      { k: "AMD Radeon", v: ["RX 7600–7900 XTX", "As per VRAM tier, via ROCm v7; older cards via Vulkan", "Same as NVIDIA tier"] },
+      { k: "70B ambitions", v: ["Single consumer GPU", "Does not fit at 4 bits (~46 GB with 8K context)", "Two GPUs, a workstation card, or a smaller model"] },
+    ]}
+  />
+</Exhibit>
+
+Two practical notes. First, laptop GPUs share thermal budgets with the CPU; sustained throughput on a thin laptop is lower than its first minute suggests, so benchmark for ten minutes, not ten seconds. Second, if you are buying hardware for this, VRAM capacity matters more than raw compute: a 16 GB mid-range card runs more useful models than a faster 8 GB one.
+
+## Deep dive 4: runtimes, setup and serving
+
+Three runtimes cover almost every Windows use case. They share the GGUF format, so a model file works across them.
+
+<Exhibit n={12} title="Ollama for services, LM Studio for exploration, llama.cpp for control" sub="Runtime comparison on Windows — Author’s framework; facts from each project’s documentation" note="Defaults as documented in October 2026; check release notes, as these projects change monthly.">
+  <Compare
+    cols={["Ollama", "LM Studio", "llama.cpp"]}
+    hlCol={0}
+    rows={[
+      { k: "Install", v: ["winget install Ollama.Ollama, or OllamaSetup.exe (no admin rights)", "winget install ElementLabs.LMStudio", "winget install llama.cpp, or the PowerShell install script"] },
+      { k: "Interface", v: ["Background service + CLI", "Desktop GUI with model browser", "CLI and server binaries"] },
+      { k: "API", v: ["OpenAI-compatible at localhost:11434/v1", "OpenAI-compatible at localhost:1234/v1", "OpenAI-compatible chat, responses and embeddings routes"] },
+      { k: "Concurrency", v: ["OLLAMA_NUM_PARALLEL (default 1); queue of 512", "Managed by the app", "Server slots (-np), continuous batching"] },
+      { k: "Auth", v: ["None built in; binds 127.0.0.1 by default", "Local server; treat as unauthenticated", "--api-key; binds 127.0.0.1 by default"] },
+      { k: "Best for", v: ["A shared internal service on one box", "Comparing quants and prompts quickly", "Tuning, custom quants, unusual hardware"] },
+    ]}
+  />
+</Exhibit>
+
+**Step 1 — install and run a first model (Ollama).** Ollama installs into your user account without administrator rights and serves an API on `http://localhost:11434` ([Ollama, Windows](https://docs.ollama.com/windows)). You can pull a specific GGUF quant straight from Hugging Face:
+
+```powershell
+winget install Ollama.Ollama
+# or: irm https://ollama.com/install.ps1 | iex
+
+ollama run hf.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF:Q4_K_M
+ollama ps   # check the model is 100% on GPU
+```
+
+**Step 2 — set context and memory deliberately.** Ollama’s documented default context window is 4,096 tokens, overridable with `OLLAMA_CONTEXT_LENGTH` or per request with `num_ctx` ([Ollama FAQ](https://docs.ollama.com/faq)). The KV cache can be quantized with `OLLAMA_KV_CACHE_TYPE` when Flash Attention is on: q8_0 uses about half the memory of f16 “with a very small loss in precision”; q4_0 about a quarter, with a loss that “may be more noticeable at higher context sizes”. Models live in `C:\Users\%USERNAME%\.ollama\models` unless you set `OLLAMA_MODELS`. On Windows, set these as user environment variables, then quit Ollama from the system tray and restart it:
+
+```powershell
+setx OLLAMA_CONTEXT_LENGTH 16384
+setx OLLAMA_FLASH_ATTENTION 1
+setx OLLAMA_KV_CACHE_TYPE q8_0
+setx OLLAMA_NUM_PARALLEL 2
+setx OLLAMA_MODELS "D:\models\ollama"
+```
+
+**Step 3 — or use LM Studio to compare quants.** LM Studio is the fastest way to try three quants of the same model side by side with a GUI. Since July 2025 it has been free for use at work as well as at home ([LM Studio](https://lmstudio.ai/blog/free-for-work)).
+
+```powershell
+winget install ElementLabs.LMStudio
+```
+
+**Step 4 — or llama.cpp for full control.** llama.cpp’s README now documents a unified `llama` command, plus a PowerShell installer (`irm https://llama.app/install.ps1 | iex`); older releases name the binaries `llama-cli` and `llama-server`. The server supports an API key, a context size, parallel slots and KV-cache types (`-c`, `-np`, `--api-key`, `-ctk`/`-ctv`), and binds to 127.0.0.1 by default ([server README](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md)).
+
+```powershell
+winget install llama.cpp
+llama cli -hf ggml-org/Qwen3.5-0.8B-GGUF      # quick interactive test
+llama serve -hf ggml-org/Qwen3.5-0.8B-GGUF    # OpenAI-compatible server
+```
+
+**Step 5 — serve it to applications.** All three expose OpenAI-compatible endpoints, which means existing client code needs only a base URL change. With Ollama the API key is required by the client library but ignored by the server ([Ollama](https://docs.ollama.com/api/openai-compatibility)):
+
+```python
+from openai import OpenAI
+
+client = OpenAI(base_url="http://localhost:11434/v1/", api_key="ollama")
+reply = client.chat.completions.create(
+    model="hf.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF:Q4_K_M",
+    messages=[{"role": "user", "content": "Summarise this clause in one sentence: ..."}],
+)
+print(reply.choices[0].message.content)
+```
+
+That portability is strategically important. If your application talks to an OpenAI-compatible interface, you can move a workload between local and hosted models by configuration — and you should design for exactly that, because the right answer for a workload changes as models and prices move.
+
+### Production concerns
+
+**Concurrency.** Ollama processes one request per model at a time by default and queues up to 512 more; raising `OLLAMA_NUM_PARALLEL` increases the context memory proportionally ([Ollama FAQ](https://docs.ollama.com/faq)). A single consumer GPU is a service for a team, not for a company. Load-test with realistic prompt lengths before you promise anyone a response time.
+
+**Context length.** Set it explicitly and test at the limit. A silently truncated prompt is one of the most common causes of “the local model is worse” complaints in retrieval systems: the retrieved passages never reached the model.
+
+**Network exposure.** Ollama binds to 127.0.0.1 by default and has no built-in authentication. Changing `OLLAMA_HOST` to expose it on a network without putting authentication in front is how incidents happen. In September 2025, Cisco researchers used Shodan to find 1,139 exposed Ollama servers, 214 of them actively hosting models ([Cisco](https://blogs.cisco.com/security/detecting-exposed-llm-servers-shodan-case-study-on-ollama)). Put a reverse proxy with authentication, or llama.cpp’s `--api-key`, in front of anything reachable from another machine, and restrict it to trusted networks.
+
+**Model-file security.** A GGUF file is data, but the parser that reads it is code. In February 2024, Cisco Talos disclosed heap-overflow vulnerabilities in llama.cpp’s GGUF parsing, including CVE-2024-23605 (CVSS 8.8), where “a specially crafted .gguf file can lead to code execution” ([Talos](https://www.talosintelligence.com/vulnerability_reports/TALOS-2024-1916)). Treat model files like executables: download from known publishers, record a hash (`Get-FileHash model.gguf -Algorithm SHA256`), store approved files in a controlled location and keep runtimes updated.
+
+**Licences.** “Open weights” is not one licence. Gemma 4, Qwen3.8, Mistral Small 4 and gpt-oss are Apache-2.0; DeepSeek V4.1-Flash is MIT; Llama models use Meta’s own licences. The Llama 3.1 Community License, for example, requires a separate licence if your products exceeded 700 million monthly active users, asks you to “prominently display ‘Built with Llama’” and binds you to an acceptable use policy ([Meta](https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/LICENSE)). Read the model card before production, and record the licence alongside the hash.
+
+**Updates.** Pin versions. A new runtime release can change defaults (context length, KV handling, GPU selection); a re-uploaded GGUF can change behaviour. Upgrade on a schedule, re-run your evaluation set, then promote.
+
+## Case examples
+
+**Google’s Gemma 3 QAT release (April 2025).** Google trained 4-bit-aware versions of Gemma 3 and published them for consumer GPUs, cutting the 27B model’s weights from 54 GB to 14.1 GB and reducing the Q4_0 perplexity drop by 54% compared with naive quantization ([Google](https://developers.googleblog.com/en/gemma-3-quantized-aware-trained-state-of-the-art-ai-to-consumer-gpus/)). *Lesson:* when a vendor ships a QAT checkpoint, it moves the quality-size frontier; start there.
+
+**OpenAI’s gpt-oss (August 2025).** OpenAI post-trained its open-weight models with MXFP4 quantization of the mixture-of-experts weights and evaluated them in that form; the 20B model runs within 16 GB of memory under Apache-2.0 ([model card](https://huggingface.co/openai/gpt-oss-20b)). *Lesson:* quantization is no longer something the community does to a model after release — it is part of how frontier labs design open models for local hardware.
+
+**Exposed Ollama servers (September 2025).** Cisco’s scan found over a thousand Ollama instances on the public internet without authentication ([Cisco](https://blogs.cisco.com/security/detecting-exposed-llm-servers-shodan-case-study-on-ollama)). *Lesson:* the easiest local runtime is also easy to misconfigure. The model was never the risk; the endpoint was.
+
+**Field notes: an offline RAG system.** The privacy-first RAG system I mentioned at the start runs entirely on local hardware: Ollama serves Gemma 2 (2B or 9B) for generation and nomic-embed-text for embeddings, ChromaDB stores vectors on local disk, a FastAPI backend handles ingestion and queries, DVC versions each ingestion run, MLflow tracks retrieval experiments and Evidently monitors embedding and query drift. It uses CUDA where there is an NVIDIA GPU and Metal on a Mac, and it makes no outbound calls. Because the retrieval interface is identical to the cloud version, the only thing that changes between local and hosted is a model name.
+
+<Note kind="insight">
+In a retrieval-augmented system, retrieval quality usually moves answer quality more than model size does. A small model quantized to around 4 bits, answering from the right three passages, will beat a larger model answering from the wrong ten. Before you buy a bigger GPU, measure retrieval on your own evaluation set.
+</Note>
+
+## Counterpoints
+
+<Note kind="counter" label="Objection 1">
+Cloud APIs are cheaper and better. A small hosted model costs fractions of a cent per query, needs no hardware, and the frontier models are far more capable than anything that runs on a gaming card.
+</Note>
+
+<Note kind="response">
+Mostly right on price, and Exhibit 2 says so: against Haiku-class pricing, a GPU takes close to a million queries to pay back. It is also right on peak capability. But the objection assumes the hosted option is available. For residency-bound data, offline sites and air-gapped networks it is not, and the relevant comparison is a local model versus no model. Where both are allowed, I default to hosted and move workloads local only when volume, latency or control justify it — which an OpenAI-compatible interface makes cheap to revisit.
+</Note>
+
+<Note kind="counter" label="Objection 2">
+Small local models hallucinate more. An 8B model simply knows less than a frontier model, and quantization makes it worse.
+</Note>
+
+<Note kind="response">
+True for open-domain questions: a smaller model has less parametric knowledge, and you should not ask it to recall facts. That is why local models belong in grounded patterns — retrieval-augmented answering, extraction, classification, summarisation of supplied text — with instructions to refuse when the context lacks the answer, and an evaluation set that checks for it. The quantization part of the objection is true below about 3.5 bits on modern models and largely false at 5–8 bits.
+</Note>
+
+<Note kind="counter" label="Objection 3">
+Quantization ruins reasoning. Perplexity barely moves, but multi-step reasoning collapses.
+</Note>
+
+<Note kind="response">
+Partly right, and it is why I do not treat perplexity as the decision metric. A 2025 study of quantized reasoning models found that W8A8 or W4A16 (4-bit weights, 16-bit activations — the regime GGUF 4-bit quants occupy) can be close to lossless, while “lower bit-widths introduce significant accuracy risks”, with model size and task difficulty as key determinants ([Liu et al.](https://arxiv.org/abs/2504.04823)). That supports a 4-bit floor, not a blanket rejection — and it argues for testing reasoning-heavy tasks specifically.
+</Note>
+
+## Implications by stakeholder
+
+**Executives and risk owners.** Local inference converts a data-protection question into an infrastructure question. That is a good trade for regulated data, and a poor one for everything else. Ask for the eligibility case (step one of Exhibit 8) in writing, and expect to fund evaluation and security work, not just hardware.
+
+**Engineering leads.** Design every LLM call behind an OpenAI-compatible interface with the model name in configuration, so workloads can move between local and hosted without code changes. Own the operational basics: authenticated endpoints, pinned model hashes, scheduled upgrades with regression runs, and monitoring of GPU residency and latency.
+
+**Practitioners.** Learn the memory arithmetic and the quant ladder well enough to size a deployment on a napkin. Build a small, honest evaluation set early; it is the only thing that will settle arguments about which quant or model to use.
+
+**Security and compliance teams.** Treat GGUF files and runtimes as software supply chain: approved sources, hashes, version control and patching. Treat a local LLM endpoint as an unauthenticated API until proven otherwise.
+
+## What to do next: a 90-day plan
+
+**Days 1–30: decide and size.**
+1. List candidate workloads and mark which have a residency, offline, control or volume reason. Drop the rest.
+2. For each survivor, record the real context length and concurrency. Run the Exhibit 10 arithmetic.
+3. Build an evaluation set of 50–100 real inputs with expected answers or rubrics, and score the hosted baseline.
+4. On existing hardware, test two or three quants (Q4_K_M, Q5_K_M, Q6_K) of one or two licence-compatible models in LM Studio or Ollama.
+
+**Days 31–60: pilot.**
+5. Stand up Ollama or llama.cpp on one machine with explicit context, KV-cache type and parallelism settings.
+6. Put authentication in front of it, restrict it to the internal network, and record model hashes and licences.
+7. Run a pilot with real users; log latency, GPU residency and failure cases, and re-score the evaluation set.
+
+**Days 61–90: harden or hand back.**
+8. If the local model is within an acceptable margin of the baseline on your evaluation set, harden: monitoring, upgrade cadence, runbooks.
+9. If not, try the next tier up (bigger model or higher quant) once. If it still fails, return the workload to a hosted model — and keep the interface, so you can try again when the next open-weight generation arrives.
+
+## Limitations and methodology
+
+The quality evidence is perplexity, measured mostly on two models: Llama-3-8B for the current deltas and LLaMA-1 7B/13B for the size comparison. Perplexity is a proxy; it does not measure instruction following, grounding or reasoning, and its values are not comparable across models with different tokenizers. The cross-generation comparison in Exhibit 6 mixes evaluation runs and llama.cpp versions and should be read as directional.
+
+Speed figures are hardware-dependent. The README’s 2.5× speed-up does not state its hardware; the PR #1684 timings are from a 2023 build on a 2023 model. Absolute speeds on current builds will differ; ratios are more stable. The memory figures are calculations from published configs and file sizes plus my own rule of thumb for buffers; your runtime will report slightly different numbers. The break-even estimate uses list prices on 14 October 2026, one GPU’s launch price, and an assumed token mix; it ignores electricity, the rest of the machine and the capability gap. I have not presented benchmarks of my own here, and the field note above is flagged for confirmation.
+
+## Closing
+
+The question “can I run a real model on a Windows PC?” has been answered: yes, and with the right quant it is fast enough to use. The more useful question is whether you should, and if so, how to fit it. For workloads where data cannot leave, networks cannot be relied on, or volume is high and steady, a well-quantized open-weight model is a credible production choice. Make the decision in the right order — eligibility, memory budget, quant floor, then the largest model that fits — secure the endpoint like any other service, and let your own evaluation set, not a leaderboard, have the final word.

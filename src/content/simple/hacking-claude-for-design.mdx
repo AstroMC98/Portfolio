@@ -1,0 +1,134 @@
+---
+dek: "AI design looks generic because the model gives you the average of everything it has seen, so the fix is to write your taste down as firm rules, have the AI load them every time, and check every page with real measurements."
+takeaways:
+  - "AI tools default to the “average” look of the web. Asking for something “bold and modern” just gets you the average again; specific rules (these colours, this font, never that) get you something that looks like yours."
+  - "Write those rules down once, as a Claude Code Skill, so the AI loads them automatically instead of you pasting them in every time and eventually forgetting."
+  - "Never accept a page you have not looked at and measured. On this site one automated check found hard-to-read text, and a single colour change fixed it."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Slope from '../../components/blog/Slope.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Ask a hundred people to describe “a nice website” and blend their answers together. You will get something perfectly pleasant that nobody would remember: clean font, purple gradient, three neat boxes with icons. That blend is roughly what an AI model gives you when you ask it to design a page with no direction. Partway through rebuilding this site with Claude Code, I looked at a draft and said it out loud: <em>the fonts are giving AI slop.</em></p>
+
+This piece explains why that happens and what to do about it. The short version of the argument: **AI-generated design drifts towards the average of the web, and the way to get something distinctive is to write your taste down as rules, have the AI load those rules automatically, and check every result with real measurements — not just to write a cleverer request.**
+
+## Why AI design all looks the same
+
+An AI model writes a web page the way it writes a sentence: by predicting the most likely next piece, based on patterns in what it learned from. Anthropic’s own engineers described this in November 2025. Safe design choices, the ones that “offend no one”, dominate the pages the models learned from, so without direction the model drifts to that safe middle. Their words for the typical result were “Inter fonts, purple gradients on white backgrounds, and minimal animations.” They call the effect **distributional convergence**: the output converges on the centre of what the model has seen.
+
+A second step in training makes it stronger. After the basic learning, models are tuned on human feedback, rewarded for answers most people rate as acceptable. Research has found that this tuning noticeably reduces the variety of what the model produces. In design, “acceptable to most people” is close to the definition of generic. The model is not broken. It is doing exactly what it was trained to do.
+
+One detail sharpens the picture. If AI design were simply the average of the whole web, its favourite font would be Roboto, which appears on about 15% of desktop sites. Instead it is Inter, which appears on only about 1%. My reading (an interpretation, not a measurement) is that models copy a narrower slice: recent starter templates, tutorials and showcase sites, where a handful of choices keep repeating. That is good news. A specific, recognisable house style can be named, and anything you can name, you can ban.
+
+Why bother? People judge how a web page looks in about the first 50 milliseconds, and those snap judgements tend to match what they think after a longer look. People also tend to see attractive products as easier to use. A page that reads as a template at first glance spends the rest of the visit earning back trust.
+
+There is a second cost to accepting the default. Every year, a group called WebAIM scans the home pages of the top one million websites for accessibility problems: things that make a page hard or impossible to use for people with poor eyesight or who use assistive tools. Hard-to-read, low-contrast text is the most common problem by a wide margin.
+
+<Exhibit
+  n={1}
+  title="Hard-to-read text is the web’s most common accessibility failure"
+  sub="Share of the top 1,000,000 home pages with each detected problem, February 2026 (%)"
+  source="WebAIM, The WebAIM Million (2026 report)"
+  sourceUrl="https://webaim.org/projects/million/"
+  note="Automated checks only, so the true rates are likely higher. Low-contrast text rose from 79.1% of pages in 2025 to 83.9% in 2026."
+  table={[["Problem", "% of home pages"], ["Low-contrast text", 83.9], ["Missing image descriptions", 53.1], ["Empty buttons", 30.6]]}
+>
+  <Bars unit="%" max={100} data={[
+    { label: "Low-contrast text", value: 83.9, display: "83.9%", hl: true },
+    { label: "Missing image text", value: 53.1, display: "53.1%" },
+    { label: "Empty buttons", value: 30.6, display: "30.6%" },
+  ]} />
+</Exhibit>
+
+So the default fails twice: it looks like everyone else, and, unless somebody checks, it fails the same basic readability tests everyone else fails.
+
+## Jargon decoder
+
+<Compare
+  cols={["In plain words"]}
+  rows={[
+    { k: "AI slop", v: ["Design (or writing) that looks generic and machine-made because nobody made any real decisions"] },
+    { k: "Distributional convergence", v: ["The model drifting towards the most common, middle-of-the-road answer"] },
+    { k: "Constraint", v: ["A specific, checkable rule: “use this exact colour”, rather than “make it bold”"] },
+    { k: "Claude Code", v: ["Anthropic’s AI assistant that writes and edits code inside a software project"] },
+    { k: "Skill", v: ["A saved instruction file the assistant loads automatically when a task needs it"] },
+    { k: "MCP server", v: ["A plug-in connection that gives the assistant a new tool, such as a web browser it can drive"] },
+    { k: "Contrast ratio", v: ["How much text stands out from its background; 4.5:1 is the usual minimum for normal text (the WCAG AA standard)"] },
+    { k: "Lighthouse", v: ["An automated checker that scores a page on things like accessibility"] },
+  ]}
+/>
+
+## Fix 1: rules beat adjectives
+
+“Make it bold and modern” is an adjective, and adjectives get you the average, because the average is what most people mean by them. A useful design brief instead contains five concrete things:
+
+1. **A palette with jobs.** Exact colours, and a rule for when the one accent colour is allowed to appear.
+2. **A type system.** Named fonts, and what each is for.
+3. **A ban list.** The tell-tale defaults you will not accept, each paired with what to do instead.
+4. **A structural reference.** A real publication or product whose *structure* you admire, not just its look.
+5. **The real content.** Your actual headline, numbers and diagrams. Designing around placeholder text produces placeholder design.
+
+One cheap trick does a lot of work: ask the AI to give a one-line reason for every design decision before it writes any code, and to flag any decision whose only reason is “modern” or “clean”. Forced to explain itself, the model can no longer hide behind the average.
+
+There is a catch. **A ban list on its own creates a new default.** When Anthropic steered Claude away from the overused fonts, it simply settled on the next most likely one, Space Grotesk. Take away the middle of the crowd and the model finds the next most popular spot. So every ban needs a positive choice, with a reason, that belongs to you.
+
+The goal looks like this:
+
+<Exhibit n={2} title="Slop works but looks like everything else; the goal is distinctive and usable" sub="Author’s framework">
+  <Matrix
+    x="Distinctiveness"
+    y="Usability and accessibility"
+    quads={[
+      { title: "AI slop", text: "Works, but looks like everything else" },
+      { title: "A point of view", text: "Recognisably yours, and it passes the checks", hl: true },
+      { title: "Broken defaults", text: "Generic and hard to read" },
+      { title: "Art project", text: "Memorable, but people cannot use it" },
+    ]}
+  />
+</Exhibit>
+
+## Fix 2: write your taste down once, as a Skill
+
+A rule you have to remember to paste in is a rule you will eventually forget. Claude Code solves this with **Skills**: a folder holding a short instruction file. The clever part is how it loads. In each session, the assistant only keeps a one-line description of each skill in mind; the full instructions load only when a task matches. So a detailed house style costs almost nothing until you need it.
+
+A good design skill holds decisions and checks, not essays: the colour values, the fonts, the “never this, do that instead” list, and a checklist that must pass before any design work counts as finished. The most common mistake is a vague description. “Design guidelines” will not match a request like “fix the spacing on the pricing card”; “use for any page, component, chart or styling work” will.
+
+Skills hold what you know. **MCP servers** add what the assistant cannot do on its own, most importantly see. A browser connection lets it open the page, resize it to phone and desktop widths, take screenshots and run accessibility audits. One caution from the documentation: tools that read content from the open web can be tricked by hidden instructions on those pages, so point them at your own work.
+
+## Fix 3: look, then measure
+
+Most slop survives because nobody, human or AI, looked at the finished page at different screen sizes and measured it. The loop that built this site goes: write the brief, generate, take screenshots at desktop, tablet and phone widths, critique them against the ban list, measure, fix, and repeat until the numbers pass. Finding problems and fixing them happen in separate steps on purpose. When the same pass does both, the AI tends to find only what it already knows how to fix.
+
+Measurement catches what eyes miss. On this site, a Lighthouse audit flagged the grey comments inside highlighted code examples. Their contrast was 3.12:1, below the 4.5:1 minimum. Changing one colour value raised it to 4.90:1. Without the audit it would have shipped.
+
+<Exhibit
+  n={3}
+  title="One check, one colour change: the code comments went from failing to passing"
+  sub="Contrast of code-comment text on a highlighted line (the minimum for normal text is 4.5:1)"
+  source="Computed with the WCAG contrast formula; problem flagged by a Lighthouse audit of this site"
+  sourceUrl="https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html"
+  table={[["Version", "Colour", "Contrast"], ["Before", "#5d6a64", "3.12:1"], ["After", "#7d8a84", "4.90:1"]]}
+>
+  <Slope left="Before" right="After" unit=":1" max={6} min={2} items={[
+    { label: "Comment text", a: 3.12, b: 4.9, hl: true },
+    { label: "Minimum allowed", a: 4.5, b: 4.5 },
+  ]} />
+</Exhibit>
+
+Two honest caveats. A perfect Lighthouse score means the automated checks passed, not that the page works for every disabled visitor; you still test with a keyboard and zoom in. And readability rules help distinctiveness rather than fight it: they rule out the cheap “sophisticated” tricks such as thin pale-grey text, and force the personality to come from structure, type and content.
+
+## What this looked like on this site
+
+<Note kind="field">
+I told Claude Code the fonts were giving AI slop. It agreed and named the two tells: a heavy display serif with an italic accent word, and a font pairing common to developer portfolios. It replaced the whole type system in one pass with Archivo, a font whose width can be squeezed for condensed headlines, and IBM Plex Mono for labels and data. Then came the render–critique–measure loop: adjusting spacing, keeping emphasised words bold instead of switching to a lighter italic, re-checking every page at three widths, and checking every text colour for contrast.
+</Note>
+
+Could design systems or good taste alone do this without the machinery? A design system is the best rulebook you can have, and a skill should point to it. But a component library will not stop an AI from arranging approved parts into a generic layout or skipping the screenshot. And no, rules do not create taste. A person with taste has to write them, and has to keep updating them as new tells appear.
+
+## If you remember one thing
+
+AI models are excellent averagers. Ask for a page with no direction and you will reliably get the middle of everything they have seen: competent, inoffensive and forgettable. You will not fix that one request at a time. Decide what your taste is, write it down as rules with reasons, have the AI load those rules every time, and check every page with screenshots and numbers. Then the AI stops being the source of the average and becomes the fastest way to apply your point of view.

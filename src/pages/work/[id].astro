@@ -1,0 +1,461 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Logo from '../../components/Logo.astro';
+import ArchDiagram from '../../components/ArchDiagram.astro';
+import Decision from '../../components/case/Decision.astro';
+import { PROJECTS, type Project } from '../../data/projects';
+import { CASE_META } from '../../data/caseMeta';
+import { PROFILE } from '../../data/profile';
+import { ENGAGEMENTS } from '../../data/engagements';
+import BurstLab from '../../components/BurstLab.astro';
+
+export function getStaticPaths() {
+  return PROJECTS.map((p, i) => ({ params: { id: p.id }, props: { index: i } }));
+}
+
+const { index } = Astro.props as { index: number };
+const p: Project = PROJECTS[index];
+const m = CASE_META[p.id];
+const pov = p.details.proofOfValue!;
+const n = String(index + 1).padStart(2, '0');
+const total = String(PROJECTS.length).padStart(2, '0');
+const prev = PROJECTS[(index - 1 + PROJECTS.length) % PROJECTS.length];
+const next = PROJECTS[(index + 1) % PROJECTS.length];
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const proto = p.status === 'Prototype';
+// Draft KPIs never get presented as fact — fall back to the qualitative impact line.
+const kpi = m.kpiVerified ? pov.businessKpi : cap(p.impact[0]);
+
+const CAT: Record<string, string> = { llm: 'Models', backend: 'Backend', frontend: 'Frontend', cloud: 'Cloud', data: 'Data', mlops: 'MLOps' };
+const stackGroups = Object.entries(
+  p.tech.reduce<Record<string, string[]>>((acc, t) => ((acc[CAT[t.cat] ?? 'Other'] ??= []).push(t.label), acc), {}),
+);
+
+const e = ENGAGEMENTS[p.id] ?? {};
+const hasLab = p.id === 'd2lt-enhanced';
+
+// Engagement panel — only fields that are actually known are rendered.
+const engagement = [
+  ['Sector', e.sector],
+  ['Delivered through', e.employer],
+  ['When', e.when],
+  ['Duration', e.duration],
+  ['Team', e.team],
+  ['Scale', e.scale],
+  ['Time to production', e.timeToProd],
+  ['Status', pov.deploymentStatus],
+  ['Primary KPI', kpi],
+  ['Starting point', pov.baseline],
+  ['Scope', pov.scope],
+  ['My role', pov.myRole],
+].filter(([, v]) => v) as [string, string][];
+const brief = e.ask || e.realProblem || e.scopedTo;
+
+// Hardening log — one row per engineering decision, built from its documented failure mode and fix.
+const hardening = p.snippets.map((s: any, i: number) => ({
+  i,
+  title: s.label,
+  failure: s.challenge?.comparison?.classic?.verdict ?? s.challenge?.verdict ?? s.challenge?.headline,
+  cause: s.challenge?.headline,
+  fix: s.challenge?.comparison?.impl?.desc ?? s.process?.title ?? s.executiveNote,
+  guard: s.process?.guarantee ?? s.challenge?.comparison?.impl?.verdict ?? s.impact?.caption,
+  incident: (e.incidents ?? []).includes(s.file),
+}));
+
+const chapters = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'system', label: 'System' },
+  { id: 'decisions', label: `Decisions (${p.snippets.length})` },
+  { id: 'hardening', label: 'Hardening' },
+  { id: 'outcomes', label: 'Outcomes' },
+];
+---
+<Base
+  title={`${p.title} — Case file ${n} · Marc Castro`}
+  description={`${p.description.slice(0, 150)}…`}
+>
+  <Nav />
+  <main id="main" class="cs">
+    <header class="cs-hero">
+      <div class="wrap">
+        <nav class="crumbs mono" aria-label="Breadcrumb">
+          <a href="/#work">← All case files</a>
+          <span>Case file {n} / {total}</span>
+        </nav>
+
+        <div class="cs-hero__meta">
+          {proto ? (
+            <span class="chip chip--amber"><span class="status-dot status-dot--amber" aria-hidden="true"></span>Prototype</span>
+          ) : (
+            <span class="chip chip--signal"><span class="status-dot" aria-hidden="true"></span>Production</span>
+          )}
+          {m.tags.map((t) => <span class="chip">{t}</span>)}
+        </div>
+        <h1 class="cs-hero__title">{p.title}</h1>
+        <p class="cs-hero__sub mono">{p.subtitle}</p>
+
+        <div class="cs-hero__grid">
+          <div class="cs-hero__kpi">
+            <span class="numeral cs-hero__num">{m.headline.prefix}{m.headline.value}{m.headline.suffix}</span>
+            <span class="cs-hero__kpi-label">{m.headline.label}</span>
+          </div>
+          <div class="cs-hero__right">
+            <p class="cs-hero__desc">{p.description}</p>
+            {(e.walkthroughUrl || e.demoUrl || hasLab) && (
+              <div class="cs-hero__proof">
+                {e.walkthroughUrl && <a class="btn btn--primary btn--sm" href={e.walkthroughUrl} target="_blank" rel="noopener">▶ Watch the walkthrough</a>}
+                {e.demoUrl && <a class="btn btn--sm" href={e.demoUrl} target="_blank" rel="noopener">Live demo / repo ↗</a>}
+                {hasLab && <a class="btn btn--sm" href="#lab">Try the burst-traffic lab ↓</a>}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <section class="eng" aria-label="Engagement">
+          <p class="eng__label mono">Engagement</p>
+          <dl class="eng__grid">
+            {engagement.map(([k, v]) => (
+              <div><dt class="mono">{k}</dt><dd class:list={[{ signal: k === 'Status' && !proto, amber: k === 'Status' && proto }]}>{v}</dd></div>
+            ))}
+          </dl>
+        </section>
+      </div>
+    </header>
+
+    <nav class="subnav" aria-label="Case file sections" data-subnav>
+      <div class="wrap subnav__inner">
+        <span class="subnav__title mono">{n} · {p.title}</span>
+        <ul>
+          {chapters.map((c) => <li><a href={`#${c.id}`} data-subnav-link>{c.label}</a></li>)}
+        </ul>
+      </div>
+      <span class="subnav__progress" data-progress></span>
+    </nav>
+
+    <section class="cs-sec" id="overview" aria-labelledby="ov-title">
+      <div class="wrap">
+        <p class="eyebrow"><span class="idx">01</span> Overview</p>
+        <h2 id="ov-title" class="cs-h2">From <em>{pov.baseline.charAt(0).toLowerCase() + pov.baseline.slice(1)}</em> to {kpi.charAt(0).toLowerCase() + kpi.slice(1)}.</h2>
+
+        {brief && (
+          <ol class="brief">
+            {e.ask && <li><span class="mono">They asked for</span><p>{e.ask}</p></li>}
+            {e.realProblem && <li><span class="mono">The real problem</span><p>{e.realProblem}</p></li>}
+            {e.scopedTo && <li><span class="mono">What I scoped</span><p>{e.scopedTo}</p></li>}
+          </ol>
+        )}
+
+        <div class="ba">
+          <div class="ba__col ba__col--before">
+            <span class="mono">Before</span>
+            <p>{pov.baseline}</p>
+          </div>
+          <div class="ba__arrow" aria-hidden="true"><Logo size={30} /></div>
+          <div class="ba__col ba__col--after">
+            <span class="mono">After</span>
+            <p>{kpi}</p>
+          </div>
+        </div>
+
+        <div class="ov-grid">
+          <div>
+            <h3 class="cs-h3">How it works</h3>
+            <p class="lead">{p.details.overview}</p>
+          </div>
+          <div>
+            <h3 class="cs-h3">What I built</h3>
+            <ul class="ticks">{p.highlights.map((h) => <li>{h}</li>)}</ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cs-sec" id="system" aria-labelledby="sys-title">
+      <div class="wrap">
+        <p class="eyebrow"><span class="idx">02</span> The system</p>
+        <h2 id="sys-title" class="cs-h2">Architecture at a glance.</h2>
+
+        {m.diagram && (
+          <figure class="sysfig">
+            <div class="sysfig__frame">
+              <span class="sysfig__tag mono">FIG. {n} — SYSTEM ARCHITECTURE</span>
+              <ArchDiagram id={`sys-${p.id}`} diagram={m.diagram} label={`Architecture of ${p.title}: ${m.diagram.caption}`} />
+            </div>
+            <figcaption>{m.diagram.caption}</figcaption>
+          </figure>
+        )}
+
+        <ol class="comps">
+          {p.details.architecture.map((a, i) => (
+            <li class="comp">
+              <span class="comp__i mono">{String(i + 1).padStart(2, '0')}</span>
+              <h3 class="comp__name">{a.name}</h3>
+              <p class="comp__desc">{a.desc}</p>
+            </li>
+          ))}
+        </ol>
+
+        <div class="stackgrid">
+          <h3 class="cs-h3">Stack</h3>
+          <dl>
+            {stackGroups.map(([g, items]) => (
+              <div><dt class="mono">{g}</dt><dd>{items.map((t) => <span class="chip">{t}</span>)}</dd></div>
+            ))}
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="cs-sec" id="decisions" aria-labelledby="dec-title">
+      <div class="wrap">
+        <p class="eyebrow"><span class="idx">03</span> Engineering decisions</p>
+        <h2 id="dec-title" class="cs-h2">The {p.snippets.length === 1 ? 'decision' : `${p.snippets.length} decisions`} that made it production-grade.</h2>
+        <p class="cs-intro">
+          Each decision opens with the business problem, contrasts the common approach with what I shipped, then walks through the
+          real code — the highlighted lines follow the step you are reading.
+        </p>
+        <ol class="dec-index">
+          {p.snippets.map((s: any, i: number) => (
+            <li><a href={`#decision-${i + 1}`}><span class="mono">{String(i + 1).padStart(2, '0')}</span>{s.label}</a></li>
+          ))}
+        </ol>
+        {p.snippets.map((s: any, i: number) => <Decision s={s} index={i} pid={p.id} />)}
+      </div>
+    </section>
+
+    <section class="cs-sec" id="hardening" aria-labelledby="hard-title">
+      <div class="wrap">
+        <p class="eyebrow"><span class="idx">04</span> Production hardening</p>
+        <h2 id="hard-title" class="cs-h2">What breaks, why, and what keeps it fixed.</h2>
+        <p class="cs-intro">The failure modes this system had to survive — each with its root cause, the fix that shipped, and the guardrail that stops it coming back.</p>
+        <ol class="hlog">
+          <li class="hlog__head mono" aria-hidden="true"><span>#</span><span>Failure mode</span><span>Root cause</span><span>Fix shipped</span><span>Guardrail</span></li>
+          {hardening.map((h) => (
+            <li class="hlog__row">
+              <a class="hlog__n mono" href={`#decision-${h.i + 1}`}>{String(h.i + 1).padStart(2, '0')}</a>
+              <div class="hlog__cell">
+                <span class="hlog__k mono">Failure mode</span>
+                <span class:list={['hlog__badge mono', { 'hlog__badge--inc': h.incident }]}>{h.incident ? 'Production incident' : 'Failure mode'} · {h.title}</span>
+                <p class="hlog__fail">{h.failure}</p>
+              </div>
+              <div class="hlog__cell"><span class="hlog__k mono">Root cause</span><p>{h.cause}</p></div>
+              <div class="hlog__cell"><span class="hlog__k mono">Fix shipped</span><p>{h.fix}</p></div>
+              <div class="hlog__cell"><span class="hlog__k mono">Guardrail</span><p class="hlog__guard">{h.guard}</p></div>
+            </li>
+          ))}
+        </ol>
+        {hasLab && (
+          <div id="lab" class="lab-wrap">
+            <BurstLab />
+          </div>
+        )}
+      </div>
+    </section>
+
+    <section class="cs-sec" id="outcomes" aria-labelledby="out-title">
+      <div class="wrap">
+        <p class="eyebrow"><span class="idx">05</span> Outcomes</p>
+        <h2 id="out-title" class="cs-h2">What changed for the business.</h2>
+        <div class="out-grid">
+          <ol class="outs">
+            {p.impact.map((x, i) => (
+              <li><span class="mono">{String(i + 1).padStart(2, '0')}</span><p>{cap(x)}</p></li>
+            ))}
+          </ol>
+          <div>
+            <h3 class="cs-h3">Key benefits</h3>
+            <ul class="ticks">{p.details.benefits.map((b) => <li>{b}</li>)}</ul>
+          </div>
+        </div>
+        <p class="cs-note mono">Metrics are from project-specific observation windows. Codebases are private; excerpts are curated for illustration.</p>
+      </div>
+    </section>
+
+    <nav class="pager wrap" aria-label="More case files">
+      <a class="pager__card" href={`/work/${prev.id}/`}>
+        <span class="mono">← Previous case file</span>
+        <span class="pager__title">{prev.title}</span>
+      </a>
+      <a class="pager__card pager__card--next" href={`/work/${next.id}/`}>
+        <span class="mono">Next case file →</span>
+        <span class="pager__title">{next.title}</span>
+      </a>
+    </nav>
+
+    <section class="cta wrap" aria-label="Get in touch">
+      <p class="cta__title">Want the full story behind <em>{p.title}?</em></p>
+      <p class="cta__body">I’m happy to walk through the architecture, trade-offs and numbers in an interview.</p>
+      <div class="cta__actions">
+        <a class="btn btn--primary" href={PROFILE.resume} download>Download résumé <span class="arrow arrow--down" aria-hidden="true">↓</span></a>
+        <a class="btn" href={`mailto:${PROFILE.email}?subject=${encodeURIComponent(`Re: ${p.title}`)}`}>Email me <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    <footer class="cs-foot wrap">
+      <a href="/"><Logo size={28} lockup /></a>
+      <span class="mono">© {new Date().getFullYear()} Marc Castro</span>
+      <a class="mono" href="/#work">All case files ↑</a>
+    </footer>
+  </main>
+</Base>
+
+<style>
+  .cs-hero { padding: clamp(110px, 13vh, 140px) 0 clamp(40px, 5vw, 64px); background: radial-gradient(900px 500px at 85% 0%, rgb(61 245 167 / 0.08), transparent 70%); }
+  .crumbs { display: flex; justify-content: space-between; gap: 16px; font-size: 12px; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 40px; }
+  .crumbs a { color: var(--text-2); transition: color 0.2s; }
+  .crumbs a:hover { color: var(--signal); }
+  .cs-hero__meta { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cs-hero__title { margin-top: 22px; font-family: var(--font-display); font-stretch: 72%; font-weight: 700; font-size: clamp(2.6rem, 1.2rem + 5vw, 6rem); line-height: 0.95; letter-spacing: -0.012em; max-width: 1100px; }
+  .cs-hero__sub { margin-top: 16px; font-size: 13px; letter-spacing: 0.06em; color: var(--muted); }
+  .cs-hero__grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(28px, 4vw, 64px); align-items: end; margin-top: clamp(36px, 5vw, 56px); }
+  .cs-hero__kpi { display: grid; gap: 12px; }
+  .cs-hero__num { font-size: var(--fs-numeral); }
+  .cs-hero__kpi-label { font-size: 1.05rem; max-width: 360px; color: var(--text); }
+  .cs-hero__desc { font-size: var(--fs-md); color: var(--text-2); line-height: 1.65; }
+
+  .cs-hero__right { display: grid; gap: 22px; }
+  .cs-hero__proof { display: flex; flex-wrap: wrap; gap: 10px; }
+  .eng { margin-top: clamp(40px, 5vw, 64px); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--ink-2); }
+  .eng__label { padding: 10px 20px; border-bottom: 1px solid var(--line); background: var(--ink-3); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--signal); }
+  .eng__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1px; background: var(--line); }
+  .eng__grid > div { padding: 16px 20px; background: var(--ink-2); }
+  .eng__grid dt { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .eng__grid dd { font-size: 0.92rem; line-height: 1.45; }
+  .eng__grid dd.signal { color: var(--signal); }
+  .eng__grid dd.amber { color: var(--amber); }
+
+  .brief { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: clamp(32px, 4vw, 48px); counter-reset: b; }
+  .brief li { padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--ink-2); display: grid; gap: 10px; align-content: start; }
+  .brief .mono { font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--signal); }
+  .brief p { font-size: 1.02rem; }
+
+  .hlog { margin-top: clamp(32px, 4vw, 48px); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; }
+  .hlog__head, .hlog__row { display: grid; grid-template-columns: 52px repeat(4, minmax(0, 1fr)); gap: 0; }
+  .hlog__head { background: var(--ink-3); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .hlog__head span { padding: 12px 16px; }
+  .hlog__row { border-top: 1px solid var(--line); background: var(--ink-2); }
+  .hlog__n { padding: 18px 16px; font-size: 12px; color: var(--signal); }
+  .hlog__cell { padding: 18px 16px; border-left: 1px solid var(--line); display: grid; gap: 8px; align-content: start; font-size: 0.88rem; color: var(--text-2); }
+  .hlog__k { display: none; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .hlog__badge { justify-self: start; font-size: 10px; letter-spacing: 0.08em; color: var(--amber); }
+  .hlog__badge--inc { color: var(--ink); background: var(--danger); padding: 2px 8px; border-radius: 999px; }
+  .hlog__fail { color: var(--text); }
+  .hlog__guard { color: var(--signal); font-family: var(--font-mono); font-size: 0.8rem; }
+  .lab-wrap { margin-top: clamp(40px, 5vw, 64px); scroll-margin-top: 140px; }
+
+  .subnav { position: sticky; top: 72px; z-index: 30; background: rgb(10 13 12 / 0.92); backdrop-filter: blur(12px); border-block: 1px solid var(--line); }
+  .subnav__inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 52px; }
+  .subnav__title { font-size: 11.5px; letter-spacing: 0.06em; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .subnav ul { display: flex; gap: 4px; flex: 0 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .subnav a { white-space: nowrap; }
+  .subnav a { display: block; padding: 6px 12px; border-radius: 8px; font-size: 0.86rem; color: var(--text-2); transition: color 0.2s, background-color 0.2s; }
+  .subnav a:hover { background: var(--ink-3); color: var(--text); }
+  .subnav a.is-active { color: var(--signal); }
+  .subnav__progress { position: absolute; left: 0; bottom: -1px; height: 2px; width: 100%; background: var(--signal); transform-origin: left; transform: scaleX(0); box-shadow: 0 0 10px var(--signal-glow); }
+
+  .cs-sec { padding-block: clamp(72px, 8vw, 112px); border-top: 1px solid var(--line); scroll-margin-top: 120px; }
+  .cs-sec:first-of-type { border-top: 0; }
+  .cs-h2 { margin-top: 18px; max-width: 1000px; font-family: var(--font-display); font-stretch: 72%; font-weight: 650; font-size: var(--fs-2xl); letter-spacing: -0.008em; }
+  .cs-h2 em { font-style: normal; font-weight: inherit; color: var(--muted); }
+  .cs-h3 { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: var(--signal); margin-bottom: 16px; }
+  .cs-intro { margin-top: 18px; max-width: 760px; color: var(--text-2); font-size: var(--fs-md); }
+  .lead { font-size: 1.05rem; color: var(--text-2); line-height: 1.75; }
+
+  .ba { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 18px; align-items: stretch; margin-block: clamp(36px, 5vw, 56px); }
+  .ba__col { padding: 26px; border-radius: var(--radius-lg); border: 1px solid var(--line); background: var(--ink-2); display: grid; gap: 10px; align-content: start; }
+  .ba__col .mono { font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; }
+  .ba__col p { font-family: var(--font-display); font-stretch: 84%; font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem); line-height: 1.3; }
+  .ba__col--before .mono { color: var(--amber); }
+  .ba__col--before p { color: var(--text-2); }
+  .ba__col--after { border-color: rgb(61 245 167 / 0.4); background: linear-gradient(180deg, rgb(61 245 167 / 0.06), var(--ink-2)); }
+  .ba__col--after .mono { color: var(--signal); }
+  .ba__arrow { align-self: center; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; border: 1px solid var(--line-2); background: var(--ink); }
+
+  .ov-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 72px); }
+  .ticks { display: grid; gap: 12px; }
+  .ticks li { position: relative; padding-left: 26px; color: var(--text-2); }
+  .ticks li::before { content: '✓'; position: absolute; left: 0; color: var(--signal); }
+
+  .sysfig { margin-top: clamp(32px, 4vw, 48px); display: grid; gap: 14px; }
+  .sysfig__frame {
+    position: relative;
+    padding: clamp(36px, 4vw, 56px) clamp(12px, 3vw, 48px) clamp(16px, 3vw, 36px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background-color: rgb(10 13 12 / 0.7);
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .sysfig__tag { position: absolute; top: 14px; left: 18px; font-size: 10px; letter-spacing: 0.18em; color: var(--muted); }
+  .sysfig :global(.arch) { max-width: 980px; margin-inline: auto; display: block; }
+  .sysfig figcaption { color: var(--muted); font-size: 0.92rem; max-width: 820px; }
+
+  .comps { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 14px; margin-top: clamp(32px, 4vw, 48px); }
+  .comp { padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--ink-2); display: grid; gap: 8px; align-content: start; }
+  .comp__i { font-size: 11px; color: var(--signal); }
+  .comp__name { font-weight: 600; font-size: 1.02rem; }
+  .comp__desc { font-size: 0.9rem; color: var(--text-2); }
+
+  .stackgrid { margin-top: clamp(32px, 4vw, 48px); }
+  .stackgrid dl { display: grid; gap: 10px; }
+  .stackgrid dl > div { display: grid; grid-template-columns: 110px 1fr; gap: 14px; align-items: center; }
+  .stackgrid dt { font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .stackgrid dd { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .dec-index { display: flex; flex-wrap: wrap; gap: 10px; margin-block: 28px clamp(48px, 6vw, 72px); }
+  .dec-index a { display: inline-flex; align-items: center; gap: 10px; padding: 10px 16px; border: 1px solid var(--line-2); border-radius: 999px; font-size: 0.9rem; transition: border-color 0.2s, color 0.2s; }
+  .dec-index a:hover { border-color: var(--signal); color: var(--signal); }
+  .dec-index .mono { font-size: 11px; color: var(--signal); }
+
+  .out-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 72px); margin-top: clamp(32px, 4vw, 48px); }
+  .outs { display: grid; }
+  .outs li { display: grid; grid-template-columns: 44px 1fr; gap: 8px; padding-block: 18px; border-top: 1px solid var(--line); }
+  .outs li:last-child { border-bottom: 1px solid var(--line); }
+  .outs .mono { font-size: 12px; color: var(--signal); padding-top: 6px; }
+  .outs p { font-family: var(--font-display); font-stretch: 84%; font-size: clamp(1.15rem, 1rem + 0.6vw, 1.45rem); line-height: 1.35; }
+  .cs-note { margin-top: 36px; font-size: 11.5px; color: var(--muted); letter-spacing: 0.03em; }
+
+  .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-block: 24px clamp(56px, 7vw, 88px); }
+  .pager__card { display: grid; gap: 10px; padding: 26px 28px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--ink-2); transition: border-color 0.3s, transform 0.4s var(--ease-out); }
+  .pager__card:hover { border-color: var(--signal); transform: translateY(-3px); }
+  .pager__card--next { text-align: right; }
+  .pager__card .mono { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .pager__title { font-family: var(--font-display); font-stretch: 84%; font-weight: 600; font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem); }
+
+  .cta { display: grid; justify-items: start; gap: 16px; padding-block: clamp(56px, 7vw, 96px); border-top: 1px solid var(--line); }
+  .cta__title { font-family: var(--font-display); font-stretch: 72%; font-weight: 650; font-size: var(--fs-xl); letter-spacing: -0.02em; max-width: 900px; }
+  .cta__title em { font-style: normal; font-weight: inherit; color: var(--signal); }
+  .cta__body { color: var(--text-2); }
+  .cta__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+  .cs-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-block: 28px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--muted); }
+  .cs-foot a:hover { color: var(--signal); }
+
+  @media (max-width: 1080px) {
+    .subnav__title { display: none; }
+    .hlog__head { display: none; }
+    .hlog__row { grid-template-columns: 44px minmax(0, 1fr); }
+    .hlog__n { grid-row: span 4; }
+    .hlog__cell { grid-column: 2; border-left: 0; padding-block: 10px; }
+    .hlog__cell:first-of-type { padding-top: 18px; }
+    .hlog__k { display: block; }
+  }
+  @media (max-width: 860px) {
+    .cs-hero__grid, .ov-grid, .out-grid { grid-template-columns: 1fr; }
+    .ba { grid-template-columns: 1fr; }
+    .ba__arrow { justify-self: center; transform: rotate(90deg); width: 52px; height: 52px; }
+    .sysfig__frame { overflow-x: auto; }
+    .sysfig :global(.arch) { min-width: 600px; }
+  }
+  @media (max-width: 640px) {
+    .subnav ul { overflow-x: auto; }
+    .pager { grid-template-columns: 1fr; }
+    .pager__card--next { text-align: left; }
+    .stackgrid dl > div { grid-template-columns: 1fr; gap: 6px; }
+  }
+</style>
+
+<script>
+  import { initCasePage } from '../../scripts/casePage';
+  initCasePage();
+</script>

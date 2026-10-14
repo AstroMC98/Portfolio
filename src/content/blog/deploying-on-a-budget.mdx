@@ -1,0 +1,627 @@
+---
+title: "Deploying on a Budget: Vercel + Supabase, Step by Step (and When to Pick Something Else)"
+dek: "A complete walkthrough for shipping a small database-backed web app on Vercel's Hobby plan and Supabase's Free plan for $0 a month, with the two security settings that make it safe, the limits that bite first, and the jobs where another free tier is the better choice. Prices and limits checked on 14 October 2026."
+date: 2026-10-14
+kicker: "How-to"
+motif: budget
+tags: ["Deployment", "How-to", "Supabase", "Vercel"]
+thesis: "For a personal project or prototype, Vercel Hobby plus Supabase Free is the quickest credible $0 stack in October 2026, but it is safe only when Row Level Security and explicit grants are treated as the real security boundary, and it is the wrong stack once the project earns money, needs an always-on server or cannot tolerate a paused database."
+takeaways:
+  - "Vercel Hobby plus Supabase Free costs $0 a month and covers a small app comfortably: 100 GB of transfer and 1 million CDN requests on Vercel, a 500 MB database, 50,000 monthly active users and 5 GB of uncached egress on Supabase (checked 14 Oct 2026)."
+  - "The publishable key ships to every browser by design. What protects your data is Row Level Security plus explicit grants; in 2025, 170 of 1,645 scanned Lovable-built apps had tables reachable through inadequate RLS."
+  - "From 30 Oct 2026, Supabase stops exposing new tables in the public schema to its Data API automatically, so a tutorial that skips the GRANT statements will return empty results or errors."
+  - "Vercel's Hobby plan is for personal, non-commercial use only, and that includes a site a paid consultant builds for a client; the commercial step is Vercel Pro at $20 a month."
+  - "For a small app, request counts and database egress bite before bandwidth: by the author's estimate the Budget Board demo hits Vercel's 1 million CDN requests (about 250,000 first visits) long before 100 GB of transfer."
+  - "Outgrowing free costs about $45 a month for both Pro plans; both vendors offer spend controls, and you should switch them on before you need them."
+sources:
+  - label: "Vercel — Pricing (checked 14 Oct 2026)"
+    url: "https://vercel.com/pricing"
+  - label: "Vercel Docs — Vercel Hobby Plan (updated 14 Sep 2026)"
+    url: "https://vercel.com/docs/plans/hobby"
+  - label: "Vercel Docs — Fair Use Guidelines: commercial usage (updated 14 Sep 2026)"
+    url: "https://vercel.com/docs/limits/fair-use-guidelines"
+  - label: "Vercel Docs — Vite on Vercel (updated 26 Aug 2026)"
+    url: "https://vercel.com/docs/frameworks/frontend/vite"
+  - label: "Vercel Docs — Environment variables (updated 17 Sep 2026)"
+    url: "https://vercel.com/docs/environment-variables"
+  - label: "Vercel Docs — Deployment Protection (updated 15 Sep 2026)"
+    url: "https://vercel.com/docs/deployment-protection"
+  - label: "Vercel Docs — Adding and configuring a custom domain (updated 16 Sep 2026)"
+    url: "https://vercel.com/docs/domains/working-with-domains/add-a-domain"
+  - label: "Vercel Docs — Spend Management (updated 18 Sep 2026)"
+    url: "https://vercel.com/docs/spend-management"
+  - label: "Vercel Docs — Troubleshoot project collaboration (updated 13 Mar 2026)"
+    url: "https://vercel.com/docs/deployments/troubleshoot-project-collaboration"
+  - label: "Vercel Blog — A more flexible Pro plan for modern teams (9 Sep 2025)"
+    url: "https://vercel.com/blog/new-pro-pricing-plan"
+  - label: "Supabase — Pricing (checked 14 Oct 2026)"
+    url: "https://supabase.com/pricing"
+  - label: "Supabase Docs — Understanding API keys (checked 14 Oct 2026)"
+    url: "https://supabase.com/docs/guides/api/api-keys"
+  - label: "Supabase Docs — Row Level Security (checked 14 Oct 2026)"
+    url: "https://supabase.com/docs/guides/database/postgres/row-level-security"
+  - label: "Supabase Changelog — Breaking change: tables not exposed to Data and GraphQL API automatically (28 Apr 2026)"
+    url: "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically"
+  - label: "Supabase Docs — Project pausing (checked 14 Oct 2026)"
+    url: "https://supabase.com/docs/guides/platform/free-project-pausing"
+  - label: "Supabase Docs — Cost control and Spend Cap (checked 14 Oct 2026)"
+    url: "https://supabase.com/docs/guides/platform/cost-control"
+  - label: "Supabase Docs — Billing FAQ: exceeding Free plan quotas (checked 14 Oct 2026)"
+    url: "https://supabase.com/docs/guides/platform/billing-on-supabase"
+  - label: "Matt Palmer — Statement on CVE-2025-48757 (29 May 2025)"
+    url: "https://mattpalmer.io/posts/statement-on-CVE-2025-48757/"
+  - label: "NIST NVD — CVE-2025-48757 (published 30 May 2025)"
+    url: "https://nvd.nist.gov/vuln/detail/CVE-2025-48757"
+  - label: "Netlify Docs — Credit-based pricing plans (checked 14 Oct 2026)"
+    url: "https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/credit-based-pricing-plans/"
+  - label: "Netlify Docs — How credits work (checked 14 Oct 2026)"
+    url: "https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/how-credits-work/"
+  - label: "Cloudflare Docs — Workers pricing (checked 14 Oct 2026)"
+    url: "https://developers.cloudflare.com/workers/platform/pricing/"
+  - label: "Cloudflare Docs — Pages limits (checked 14 Oct 2026)"
+    url: "https://developers.cloudflare.com/pages/platform/limits/"
+  - label: "Render Docs — Deploy for free (checked 14 Oct 2026)"
+    url: "https://render.com/docs/free"
+  - label: "Railway — Pricing (checked 14 Oct 2026)"
+    url: "https://railway.com/pricing"
+  - label: "Fly.io Docs — Pricing (checked 14 Oct 2026)"
+    url: "https://docs.fly.io/about/pricing"
+  - label: "Neon Docs — Plans (checked 14 Oct 2026)"
+    url: "https://neon.com/docs/introduction/plans"
+  - label: "GitHub Docs — GitHub Pages limits (checked 14 Oct 2026)"
+    url: "https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits"
+  - label: "Vite — create-vite README (templates; checked 14 Oct 2026)"
+    url: "https://github.com/vitejs/vite/tree/main/packages/create-vite"
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Stats from '../../components/blog/Stats.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Timeline from '../../components/blog/Timeline.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">A web app with a real database used to need a server, a bill and a weekend. In October 2026 it needs about an hour and no card: a static front end on Vercel's Hobby plan, a Postgres database on Supabase's Free plan, and a GitHub repository joining the two. The catch is that the cheapest part of this stack, a database key you deliberately ship to every visitor's browser, is also the part that has leaked data from real apps.</p>
+
+This is a step-by-step tutorial. We will deploy **Budget Board**, a deliberately small public message board: anyone can read and post messages of up to 280 characters, and nobody can edit or delete them. It is about 200 lines of TypeScript and HTML with no framework, so every moving part is visible. By the end you will have a live URL, preview deployments on every pull request, an optional custom domain and spend guardrails, all on free tiers whose limits I checked against the vendors' own pricing and documentation pages on 14 October 2026.
+
+My argument is this: **for a personal project or prototype, Vercel Hobby plus Supabase Free is the quickest credible $0 stack available today, but it is safe only when Row Level Security and explicit grants are treated as the real security boundary, and it is the wrong stack the moment the project earns money, needs an always-on server or cannot tolerate a paused database.** The tutorial is the heart of the piece. Around it sits the analysis that tells you whether to follow it at all: what the free tiers actually include, which limit bites first, what happens when you hit it, and which alternative to pick for which job.
+
+## Context: why this matters now
+
+Free tiers are a product decision, and vendors revise them. Three changes in the past two years alter how a budget deployment should be built in late 2026.
+
+**The rules of the free tiers moved.** Fly.io no longer gives new organisations a free allowance; only accounts on plans discontinued in October 2024 keep theirs ([Fly.io](https://docs.fly.io/about/pricing)). Netlify's Free plan is now a pool of 300 credits a month with a hard limit, and production deploys, bandwidth and requests all draw from it ([Netlify](https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/credit-based-pricing-plans/)). Vercel restructured Pro in September 2025 around a $20 monthly usage credit and switched spend management on by default ([Vercel](https://vercel.com/blog/new-pro-pricing-plan)).
+
+**Supabase changed how tables reach the internet.** On 28 April 2026, Supabase announced that new tables in the `public` schema would no longer be exposed to its Data API automatically. That became the default for new projects from 30 May 2026 and applies to all existing projects from 30 October 2026 ([Supabase changelog](https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically)). Supabase is also deprecating its legacy `anon` and `service_role` keys by the end of 2026 in favour of **publishable** (`sb_publishable_…`) and **secret** (`sb_secret_…`) keys ([Supabase](https://supabase.com/docs/guides/api/api-keys)). Most tutorials written before 2026 use the old key names and skip the grants, so they now fail in confusing ways.
+
+**The cost of getting security wrong became concrete.** In March 2025, Matt Palmer found that sites built with the AI app builder Lovable were exposing Supabase tables to anyone holding the public key. His scan of 1,645 showcased projects found 303 vulnerable endpoints across 170 projects, about 10.3%, including user emails, phone numbers and payment details ([Palmer](https://mattpalmer.io/posts/statement-on-CVE-2025-48757/)). It was published as CVE-2025-48757 with a CVSS 3.1 score of 9.3; Lovable disputes it on the grounds that each customer is responsible for protecting their own application's data ([NVD](https://nvd.nist.gov/vuln/detail/CVE-2025-48757)). Whichever side you take on blame, the mechanism is the one this tutorial is built around.
+
+<Exhibit n={1} title="The free-tier rules changed under existing tutorials in 2025 and 2026" sub="Selected changes relevant to a $0 Vercel + Supabase deployment" source="Fly.io; Matt Palmer; NIST NVD; Vercel; Supabase (all checked 14 Oct 2026)" sourceUrl="https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically">
+  <Timeline items={[
+    { date: "OCT 2024", title: "Fly.io discontinues its legacy plans", text: "New organisations get a trial, not a free allowance.", state: "done" },
+    { date: "MAR 2025", title: "Lovable RLS exposure found", text: "170 of 1,645 scanned projects had tables reachable with the public key.", state: "done" },
+    { date: "MAY 2025", title: "CVE-2025-48757 published", text: "CVSS 3.1 score 9.3; disputed by the supplier.", state: "done" },
+    { date: "SEP 2025", title: "Vercel restructures Pro", text: "$20 monthly usage credit; spend management on by default.", state: "done" },
+    { date: "28 APR 2026", title: "Supabase announces the grants change", text: "New public tables no longer exposed to the Data API automatically.", state: "done" },
+    { date: "30 MAY 2026", title: "Default for new Supabase projects", text: "Tables need an explicit GRANT before the API can see them.", state: "done" },
+    { date: "30 OCT 2026", title: "Applies to all existing projects", text: "Old tables keep their grants; new ones do not.", state: "hl" },
+    { date: "END 2026", title: "Legacy anon and service_role keys deprecated", text: "Publishable and secret keys replace them.", state: "hl" },
+  ]} />
+</Exhibit>
+
+### What the two free tiers actually give you
+
+Here is the budget, read directly from each vendor's pricing page and documentation on 14 October 2026.
+
+<Exhibit
+  n={2}
+  title="Generous for a side project, with two strings attached: non-commercial use and a pausing database"
+  sub="Vercel Hobby vs Supabase Free, headline inclusions and conditions, checked 14 Oct 2026"
+  source="Vercel pricing and Hobby plan docs; Supabase pricing, billing and project pausing docs"
+  sourceUrl="https://vercel.com/docs/plans/hobby"
+  note="Monthly figures unless stated. Vercel also includes 4 CPU-hours of Active CPU and 360 GB-hours of provisioned memory for functions; Budget Board uses no functions. Supabase also includes 5 GB of cached egress, 500,000 Edge Function invocations and 200 concurrent Realtime connections."
+>
+  <Compare
+    cols={["Vercel Hobby", "Supabase Free"]}
+    rows={[
+      { k: "Price", v: ["$0", "$0"] },
+      { k: "Who may use it", v: ["Personal, non-commercial use only", "Anyone; 2 active free projects per owner"] },
+      { k: "Traffic", v: ["100 GB transfer; 1M CDN requests", "5 GB uncached egress"] },
+      { k: "Users and data", v: ["n/a (static hosting)", "50,000 MAU; 500 MB database; 1 GB files"] },
+      { k: "Deploys", v: ["100 per day; 200 projects", "n/a"] },
+      { k: "When idle", v: ["Stays online", "Paused after 7 days of low activity"] },
+      { k: "Over the limit", v: ["Usually wait 30 days", "Grace period, then read-only or HTTP 402"] },
+      { k: "First paid step", v: ["Pro, $20/month + $20 credit", "Pro, $25/month + $10 compute credit"] },
+    ]}
+  />
+</Exhibit>
+
+Two lines in that table deserve to be read twice. Vercel's fair use guidelines define commercial usage as any deployment "used for the purpose of financial gain of **anyone** involved in **any part of the production** of the project, including a paid employee or consultant writing the code", and list taking payments, advertising a product or service, being paid to build or host the site, affiliate-driven sites and ads as examples; asking for donations is explicitly allowed ([Vercel](https://vercel.com/docs/limits/fair-use-guidelines)). And Supabase pauses Free projects that show low activity over a seven-day period, after a warning email, with a one-year window to restore them ([Supabase](https://supabase.com/docs/guides/platform/free-project-pausing)).
+
+## A framework: the three-gate test
+
+Before you type a command, decide whether this stack fits the job. I use three gates, in order. A project that passes all three should use Vercel Hobby plus Supabase Free without guilt; a project that fails one should change one component, not abandon the approach.
+
+<Exhibit n={3} title="Pass three gates before choosing the $0 stack: purpose, persistence, permissions" sub="The three-gate test for a free-tier deployment — Author's framework">
+  <Flow steps={[
+    { title: "1. Purpose", text: "Is anyone paid to build it, or does it sell, advertise or take payments? If yes, Vercel Hobby is out: use Pro or another host." },
+    { title: "2. Persistence", text: "Can the app tolerate a database paused after a quiet week, and does it need a process running between requests? If it needs always-on, choose differently." },
+    { title: "3. Permissions", text: "Can you write down who may read and write each table, and express it as grants and RLS policies? If not, do not ship a public key yet.", hl: true },
+    { title: "Ship on free", text: "Vercel Hobby + Supabase Free, with spend controls and a written upgrade trigger." },
+  ]} />
+</Exhibit>
+
+**Gate 1, purpose,** is contractual, not technical. A portfolio, a hackathon demo, a learning project or a free community tool passes. A client site, a shop or a SaaS fails on Vercel Hobby, and GitHub Pages carries a similar restriction: it "is not intended for or allowed to be used as a free web-hosting service to run your online business, e-commerce site" or commercial SaaS ([GitHub](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)).
+
+**Gate 2, persistence,** separates static-plus-database apps from apps that need a server running. Budget Board has no server of its own: the browser talks straight to Supabase. If your app needs background jobs, WebSockets you host yourself or long-running processes, a container host is a better fit, and the free ones there sleep (Render) or are trials (Railway, Fly.io).
+
+**Gate 3, permissions,** is the one that the Lovable incident failed. On this stack the database is reachable from the public internet by design. The only thing between a visitor and your tables is the combination of grants and Row Level Security you write. If you cannot state the rules in a sentence per table, you are not ready to deploy.
+
+## How the stack works: two locks on one door
+
+It helps to see the request path before building it. When a visitor opens Budget Board, Vercel's CDN serves three static files: HTML, CSS and a JavaScript bundle. That bundle contains the Supabase project URL and the publishable key, because Vite compiles every variable prefixed `VITE_` into client code. The browser then calls Supabase's Data API directly.
+
+Supabase's documentation is blunt about what that key is. A publishable key is "safe to expose online", but "anyone can read it, so it only reaches what Row Level Security allows", and you should "enable it on every table before you deploy" ([Supabase](https://supabase.com/docs/guides/api/api-keys)). Secret keys, by contrast, bypass RLS and must never appear in "a browser, a shipped application, or source control".
+
+<Exhibit n={4} title="The publishable key opens the front door; grants and RLS decide which rooms it opens" sub="Request path for Budget Board, from browser to Postgres — Author's diagram from Supabase documentation">
+  <Flow steps={[
+    { title: "Browser", text: "Loads static files from Vercel's CDN; the bundle contains the URL and publishable key." },
+    { title: "Data API", text: "Supabase receives the request with the publishable key and runs it as the anon role." },
+    { title: "Lock 1: grants", text: "Does anon have SELECT or INSERT on public.messages at all? No grant, no access.", hl: true },
+    { title: "Lock 2: RLS policies", text: "Which rows may anon read, and does a new row pass the WITH CHECK rule?", hl: true },
+    { title: "Postgres", text: "The CHECK constraint enforces 1 to 280 characters even if both locks are open." },
+  ]} />
+</Exhibit>
+
+Grants answer "may this role touch the table at all?"; policies answer "which rows?". Supabase's documentation describes the danger case precisely: "A table in an exposed schema without RLS is readable and writable by any role with a grant on it" ([Supabase](https://supabase.com/docs/guides/database/postgres/row-level-security)). The 2026 grants change helps here, because a table you forget about is no longer exposed by default, but it also means a correct schema must now state its grants explicitly. Our schema does both.
+
+## The tutorial: deploy Budget Board in thirteen steps
+
+You need Node.js 22.12 or newer (Vite 8 requires `^20.19.0 || >=22.12.0`), Git, and free accounts on GitHub, Supabase and Vercel. Sign in to Vercel with GitHub; it makes step 7 a two-click import. Total time is about an hour on a first run.
+
+### Step 1: create the project
+
+Scaffold a vanilla TypeScript project with Vite and add the Supabase client. The `--` before `--template` is required on npm 7 and later ([Vite](https://github.com/vitejs/vite/tree/main/packages/create-vite)).
+
+```bash
+npm create vite@latest budget-board -- --template vanilla-ts
+cd budget-board
+npm install @supabase/supabase-js
+```
+
+The finished app has six files that matter. I pinned exact versions as published on npm on 14 October 2026, so the build you run is the build I tested: `vite` 8.3.4, `typescript` 7.0.2 and `@supabase/supabase-js` 2.117.3.
+
+```text
+index.html            page shell: form, message list, "test the lock" button
+src/main.ts           Supabase client, list, post, test the lock
+src/style.css         small dark theme
+src/vite-env.d.ts     types for import.meta.env
+supabase/schema.sql   table, grants, RLS policies
+.env.example          variable names, no real values
+```
+
+The core of `src/main.ts` is short. It reads two environment variables, refuses to start if either is missing or if someone has pasted a secret key, and renders untrusted message text with `textContent`, never `innerHTML`, so a posted `<script>` tag is displayed rather than executed.
+
+```ts
+import { createClient } from '@supabase/supabase-js';
+
+const url = import.meta.env.VITE_SUPABASE_URL;
+const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+if (!url || !key) throw new Error('Set VITE_SUPABASE_URL and the publishable key');
+if (key.startsWith('sb_secret_')) {
+  throw new Error('Secret keys bypass RLS and must never ship to a browser');
+}
+
+const db = createClient(url, key);
+
+// Read the 50 newest messages
+const { data, error } = await db
+  .from('messages')
+  .select('id, created_at, body')
+  .order('created_at', { ascending: false })
+  .limit(50);
+
+// Post a message (the database re-checks the length)
+await db.from('messages').insert({ body: text.trim() });
+```
+
+The real file wraps those calls in small functions, a character counter and a "Test the lock" button that tries to delete the newest message with the public key and reports whether the database refused. That button is how you will verify the security model in step 10. In the demo build the whole bundle is 56.4 KB of JavaScript after gzip, most of it the Supabase client.
+
+### Step 2: create the Supabase project
+
+In the Supabase dashboard, create a new project. Give it a name, generate a strong database password and store it in a password manager (you will not need it for this tutorial, but you will for backups or direct connections), and pick the region closest to your users. If the creation form offers Data API options, leave the Data API enabled; our schema grants access explicitly, so it works whichever exposure default your project has.
+
+The Free plan allows two active free projects across all organisations you own or administer; paused projects do not count ([Supabase](https://supabase.com/docs/guides/platform/billing-on-supabase)). Spend that second slot wisely: step 11 suggests using it as a staging database.
+
+### Step 3: run the schema in the SQL Editor
+
+Open **SQL Editor**, start a new query, paste the file below and click **Run**. It is safe to re-run.
+
+```sql
+-- 1. The table. The CHECK constraint enforces the 1-280 character rule
+--    in the database itself, even for requests that skip the web page.
+create table if not exists public.messages (
+  id         bigint generated always as identity primary key,
+  created_at timestamptz not null default now(),
+  body       text not null check (char_length(body) between 1 and 280)
+);
+
+-- 2. Row Level Security ON. With RLS on and no matching policy,
+--    the Data API returns nothing and changes nothing.
+alter table public.messages enable row level security;
+
+-- 3. Lock 1, grants: which roles may touch the table at all.
+revoke all on table public.messages from anon, authenticated;
+grant select, insert on table public.messages to anon, authenticated;
+
+-- 4. Lock 2, policies: which rows those roles may read or write.
+drop policy if exists "Anyone can read messages" on public.messages;
+create policy "Anyone can read messages"
+  on public.messages for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "Anyone can post a message" on public.messages;
+create policy "Anyone can post a message"
+  on public.messages for insert
+  to anon, authenticated
+  with check (char_length(body) between 1 and 280);
+
+-- 5. Deliberately no UPDATE or DELETE policy and no grant for them.
+```
+
+Three design choices are worth explaining. The `revoke all` line matters for projects created before the grants change, where `anon` would otherwise have inherited update and delete privileges on new tables; revoking first makes the result identical on old and new projects. The policies name `anon, authenticated` explicitly rather than relying on defaults, which is the pattern Supabase's own examples use for public data, with the warning to use it "only for data that is meant to be public" ([Supabase](https://supabase.com/docs/guides/database/postgres/row-level-security)). And the length rule appears three times on purpose: in the browser for a friendly message, in the insert policy, and in the table's CHECK constraint, which no client can bypass.
+
+To confirm, run `select policyname, cmd, roles from pg_policies where tablename = 'messages';`. You should see two rows, one for `SELECT` and one for `INSERT`.
+
+### Step 4: copy the project URL and the publishable key
+
+Open the project's **Connect** dialog, or **Settings > API Keys**, and copy two values: the project URL (`https://<project-ref>.supabase.co`) and the **publishable** key, which starts `sb_publishable_` ([Supabase](https://supabase.com/docs/guides/api/api-keys)).
+
+<Note kind="warn" label="The one key that must never leave the server">
+Do not copy a secret key (`sb_secret_…`) or the legacy `service_role` key into anything that starts with `VITE_`. Both bypass Row Level Security, and anything prefixed `VITE_` ends up in a JavaScript file every visitor downloads. If you ever paste one by mistake and push it, rotate it in Settings > API Keys immediately; deleting the commit is not enough.
+</Note>
+
+### Step 5: run it locally
+
+Create `.env.local` from the example and fill in both values. The `.gitignore` excludes every `.env*` file except `.env.example`, so real values are never committed.
+
+```bash
+cp .env.example .env.local
+# edit .env.local:
+# VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+# VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+
+npm run dev      # http://localhost:5173
+npm run build    # type-check, then production build into dist/
+```
+
+Post a message. If the list shows "Could not load messages", the usual causes are a typo in the URL, a missing grant (re-run step 3) or a paused project.
+
+### Step 6: push the repository to GitHub
+
+Create an empty repository on GitHub, then push. With the GitHub CLI it is one command; otherwise add the remote by hand.
+
+```bash
+git init
+git add .
+git commit -m "Budget Board: Vite + Supabase"
+git branch -M main
+
+# Option A: GitHub CLI
+gh repo create budget-board --public --source=. --push
+
+# Option B: an empty repo you created on github.com
+git remote add origin https://github.com/<you>/budget-board.git
+git push -u origin main
+```
+
+Before pushing, run `git status` and check that `.env.local` is not listed. A public repository is fine here: nothing in it is secret. If you prefer private, note one Hobby restriction: for private repositories, Vercel deploys only commits authored by the Hobby team's owner, and the Hobby plan "does not support collaboration for private repositories" ([Vercel](https://vercel.com/docs/deployments/troubleshoot-project-collaboration)).
+
+### Step 7: import the repository into Vercel
+
+In Vercel, choose **Add New… > Project**, find `budget-board` in the list of GitHub repositories and click **Import**. Vercel detects Vite and fills in the build settings; leave them as they are.
+
+Budget Board is a single page, so it needs no `vercel.json`. If you later build a single-page app with client-side routes, Vercel's Vite guide shows the rewrite to `/index.html` that makes deep links work ([Vercel](https://vercel.com/docs/frameworks/frontend/vite)).
+
+### Step 8: set the environment variables
+
+Still on the import screen, open **Environment Variables** and add the two values from step 4. If you have already deployed, use **Settings > Environment Variables** instead.
+
+| Name | Value | Environments |
+| --- | --- | --- |
+| `VITE_SUPABASE_URL` | `https://<project-ref>.supabase.co` | Production, Preview |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…` | Production, Preview |
+
+Two details trip people up. First, Vite reads these values at **build** time and bakes them into the bundle, and Vercel is explicit that "any change you make to environment variables are not applied to previous deployments, they only apply to new deployments" ([Vercel](https://vercel.com/docs/environment-variables)). After editing a variable, redeploy. Second, Vercel now asks whether each variable is a Config or a Secret value. The publishable key is public by design, so Config is honest; marking it Secret hides it in the dashboard but does not hide it from browsers.
+
+### Step 9: deploy
+
+Click **Deploy**. The build runs `tsc --noEmit && vite build`, which type-checks before bundling, so a type error fails the deployment instead of shipping. A successful build ends with a production URL on `vercel.app`.
+
+### Step 10: test it, including the part that should fail
+
+Open the production URL. Then test four things, in this order.
+
+1. **Read.** The list loads, with the test message from step 5.
+2. **Write.** Post a new message; it appears at the top.
+3. **Reject.** Click **Test the lock**. The page should report "Blocked, as intended" with a permission error, because `anon` has no DELETE grant and there is no DELETE policy. If it ever reports rows deleted, stop and revisit step 3.
+4. **Bypass the page.** The real attacker does not use your UI. Call the API directly with the same public key:
+
+```bash
+URL=https://<project-ref>.supabase.co
+KEY=sb_publishable_...
+
+# Read: returns a JSON array of messages
+curl -s "$URL/rest/v1/messages?select=id,body&limit=3" -H "apikey: $KEY"
+
+# Delete everything: must be refused
+curl -s -X DELETE "$URL/rest/v1/messages?id=gt.0" -H "apikey: $KEY"
+
+# Oversized insert: must be rejected by the policy or the CHECK constraint
+curl -s -X POST "$URL/rest/v1/messages" -H "apikey: $KEY" \
+  -H "Content-Type: application/json" \
+  -d "{\"body\": \"$(printf 'x%.0s' {1..300})\"}"
+```
+
+Supabase asks for publishable and secret keys on the `apikey` header, "not on `Authorization: Bearer`" ([Supabase](https://supabase.com/docs/guides/api/api-keys)). The delete should return a permission error; the 300-character insert should fail. Finally, open **Table Editor** in Supabase and confirm that your messages are there and nothing else is.
+
+### Step 11: preview deployments on a pull request
+
+This is the feature that makes Vercel worth choosing even at $0. Every push to a branch other than `main` gets its own preview URL, and pull requests get a comment linking to it.
+
+```bash
+git checkout -b tweak-tagline
+# edit the tagline in index.html
+git commit -am "Friendlier tagline"
+git push -u origin tweak-tagline
+gh pr create --fill
+```
+
+Once the preview build finishes, the Vercel bot comments on the pull request with a preview link. Review the change there, merge, and Vercel deploys `main` to production.
+
+Two settings decide how useful previews are. **Who can see them:** Deployment Protection's Standard Protection, available on all plans, protects every deployment except production domains, and with Vercel Authentication only signed-in members of your Vercel team get through ([Vercel](https://vercel.com/docs/deployment-protection)); check **Settings > Deployment Protection** before sharing a preview link with someone outside the team. **Which database they use:** with the variables from step 8, previews write to your production database. For a toy that is fine. For anything with real users, create your second free Supabase project as staging, run the same `schema.sql` there, and set its URL and key as **Preview**-only variables. Vercel applies preview variables to every non-production branch, and branch-specific values override them ([Vercel](https://vercel.com/docs/environment-variables)).
+
+### Step 12: add a custom domain (optional)
+
+In the project, open **Settings > Domains** and add your domain. Vercel shows the exact DNS records to create at your registrar: an **A** record for an apex domain such as `example.com`, or a **CNAME** for a subdomain such as `board.example.com`, where each project has its own unique CNAME target ([Vercel](https://vercel.com/docs/domains/working-with-domains/add-a-domain)). Copy the values from your dashboard rather than from a blog post, including this one. If you add an apex domain, Vercel prompts you to add `www` as well and redirect one to the other. Hobby allows up to 50 domains per project.
+
+The domain is the only line in this tutorial that costs money, and it is a registrar fee, not a hosting fee.
+
+### Step 13: put guardrails on cost and know your upgrade trigger
+
+On the free tiers there is no bill to run up: Vercel Hobby accounts "cannot purchase additional usage" ([Vercel](https://vercel.com/pricing)), and Supabase Free usage is not charged. The risk is not money but downtime. So the guardrails on free are about noticing, and the guardrails on paid are about capping. Write both down now; the next section explains the numbers.
+
+- **Watch usage monthly.** Vercel's **Usage** tab shows transfer, CDN requests and function usage against the Hobby limits; Supabase's **Usage** page shows database size, egress and MAU.
+- **Decide what happens when Supabase pauses.** If a week without traffic is plausible, either accept a manual restore or plan to move to Pro. Do not run a scheduled job just to defeat the pause; it works against the spirit of a free tier you depend on.
+- **Before upgrading, configure the caps.** On Vercel Pro, set an on-demand budget and turn on **Pause Production Deployments**. On Supabase Pro, leave the Spend Cap on until you have a reason to turn it off.
+
+## Deep dive 1: which limit bites first
+
+Free-tier marketing quotes the biggest number, usually bandwidth. For a small app that is rarely the constraint. I estimated how many first visits Budget Board could serve under each limit, using the real build output from step 9 and generous assumptions about the database response.
+
+<Exhibit
+  n={5}
+  title="For a small app, request counts and database egress bite long before bandwidth"
+  sub="Estimated first visits per month before each free limit is reached, Budget Board demo (thousands) — Author's estimate"
+  source="Author's estimate from the demo's build output and limits on Vercel, Supabase and Netlify pricing pages, checked 14 Oct 2026"
+  sourceUrl="https://vercel.com/docs/plans/hobby"
+  note="Assumes about 58 KB transferred and 4 CDN requests per first visit (HTML, CSS, JavaScript and favicon, gzipped), and one full list load of up to 50 messages of 280 characters (about 18 KB of JSON) per visit. Repeat visits use the browser cache and cost less. Netlify figure assumes no production deploys; each one costs 15 of the 300 credits."
+  table={[["Limit", "Assumption", "First visits (est.)"], ["Vercel transfer, 100 GB", "58 KB per visit", "~1,720,000"], ["Supabase egress, 5 GB uncached", "18 KB per list load", "~280,000"], ["Vercel CDN requests, 1M", "4 requests per visit", "~250,000"], ["Netlify Free, 300 credits", "Bandwidth + requests only", "~150,000"]]}
+>
+  <Bars unit="K" data={[
+    { label: "Vercel transfer (100 GB)", value: 1720, display: "~1.7M" },
+    { label: "Supabase egress (5 GB)", value: 280, display: "~280K" },
+    { label: "Vercel CDN requests (1M)", value: 250, display: "~250K", hl: true },
+    { label: "Netlify Free (300 credits)", value: 150, display: "~150K" },
+  ]} />
+</Exhibit>
+
+Three lessons follow. First, on this stack the binding constraints are Vercel's request count and Supabase's egress, both at a few hundred thousand first visits a month. That is a great deal of traffic for a side project and very little for a product. Second, the database is the likelier bottleneck as the app grows, because every page view queries it while static files are cached by browsers; pagination, smaller selects and shorter payloads buy more headroom than any CDN setting. Third, the 500 MB database is not the problem for text: at roughly 350 bytes per row including overhead, it holds over a million 280-character messages (author's estimate). Images and files are a different story; Supabase Free includes 1 GB of file storage.
+
+The Netlify bar is a reminder that credit-based free tiers count things you might not expect. At 15 credits per production deploy, 20 deploys in a month would use all 300 credits on their own, while deploy previews are not metered ([Netlify](https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/credit-based-pricing-plans/)). The right free tier depends on how often you ship as well as how much traffic you get.
+
+## Deep dive 2: the security model, and how the Lovable apps failed
+
+The Lovable exposure is the clearest public case of what goes wrong on this exact architecture, and the numbers are worth holding in your head.
+
+<Exhibit n={6} title="One in ten scanned apps exposed data through the same public-key-plus-weak-RLS pattern" sub="Matt Palmer's scan of Lovable Launched projects, March 2025, and the resulting CVE" source="Matt Palmer, Statement on CVE-2025-48757 (29 May 2025); NIST NVD" sourceUrl="https://mattpalmer.io/posts/statement-on-CVE-2025-48757/">
+  <Stats items={[
+    { value: "1,645", label: "showcased Lovable projects scanned (homepages only)", source: "PALMER · MAY 2025" },
+    { value: "170", label: "projects with inadequate RLS, about 10.3% of the sample", source: "PALMER · MAY 2025" },
+    { value: "303", label: "vulnerable endpoints across those projects", source: "PALMER · MAY 2025" },
+    { value: "9.3", label: "CVSS 3.1 base score for CVE-2025-48757 (disputed by supplier)", source: "NIST NVD · MAY 2025" },
+  ]} />
+</Exhibit>
+
+Palmer's write-up lists what was reachable: user tables with emails, names and phone numbers, transactions and payment details, and third-party API keys stored in the database ([Palmer](https://mattpalmer.io/posts/statement-on-CVE-2025-48757/)). Nothing about the hosting or the key was unusual. The publishable key (then the `anon` key) was in the bundle exactly as Supabase intends. The failure was that the tables behind it either had RLS off or had policies that did not express the intended rules.
+
+Three practices close that gap, and Budget Board uses all of them.
+
+- **Default deny, then allow narrowly.** Turn RLS on in the same script that creates the table, so there is never a moment when the table is exposed without it. With RLS on and no policy, Supabase returns nothing through the publishable key ([Supabase](https://supabase.com/docs/guides/database/postgres/row-level-security)).
+- **Grant only the verbs you mean.** Budget Board grants `select` and `insert`, not `all`. Since the 2026 change, explicit grants are required anyway; use the requirement to be precise rather than copying the broad `select, insert, update, delete` example meant for authenticated users ([Supabase changelog](https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically)).
+- **Test as the attacker.** Step 10's `curl` calls use only what any visitor has: the URL and the publishable key. If those calls can read or change something they should not, so can anyone.
+
+Never store third-party API keys in a table the browser can read. If the app needs to call a paid API, that call belongs in a server-side function holding a secret, which is the point at which Budget Board's "no server" design stops being enough.
+
+## Deep dive 3: what happens when you hit a limit
+
+A free tier's real terms are not its allowances but its failure modes. When usage runs out, some platforms pause, some throttle, some sleep, and paid plans either bill or stop, depending on settings you chose. These are the behaviours as each vendor documents them.
+
+<Exhibit
+  n={7}
+  title="Free tiers fail by pausing, sleeping or waiting; paid tiers fail by billing unless you cap them"
+  sub="Documented behaviour at or beyond the limit, checked 14 Oct 2026"
+  source="Vercel Hobby and Spend Management docs; Supabase pausing, billing FAQ and cost-control docs; Netlify credits docs; Render free docs"
+  sourceUrl="https://vercel.com/docs/spend-management"
+  note="Vercel's spend checks run every few minutes, so pausing is not instantaneous. Supabase's Spend Cap excludes compute and other predictable, opted-in items."
+>
+  <Compare
+    cols={["What happens", "How you recover"]}
+    rows={[
+      { k: "Vercel Hobby", v: ["Over a usage limit: in most cases, the feature is unavailable", "Wait until 30 days have passed, or upgrade"] },
+      { k: "Supabase Free: idle", v: ["Paused after 7 days of low activity, after a warning email", "Restore from the dashboard within 1 year"] },
+      { k: "Netlify Free", v: ["Credits used up: all projects show Site not available", "Credits reset each cycle; no top-ups on Free"] },
+      { k: "Render Free", v: ["Web service sleeps after 15 min idle; Postgres expires at 30 days", "About 1 minute to wake; upgrade the database"] },
+      { k: "Vercel Pro", v: ["Usage beyond the $20 credit is billed; alerts at 50/75/100%", "Optional pause of all production deployments"] },
+      { k: "Supabase Pro", v: ["Spend Cap on by default: capped items stop at quota", "Turn the cap off to pay as you go"] },
+    ]}
+  />
+</Exhibit>
+
+The column that matters is the second. Vercel's spend management notifies at 50%, 75% and 100% of your on-demand budget and can pause every production deployment when it is reached; paused projects must be resumed one by one, and do not unpause automatically when you raise the budget ([Vercel](https://vercel.com/docs/spend-management)). Vercel set the default on-demand limit at $200 for new Pro teams when it restructured the plan ([Vercel](https://vercel.com/blog/new-pro-pricing-plan)). Supabase's Spend Cap covers 12 usage items, including egress, disk size and MAU, but excludes compute, because "usage items that are predictable and explicitly opted into by the user are excluded" ([Supabase](https://supabase.com/docs/guides/platform/cost-control)). Know which of your costs are capped and which are not before the first invoice teaches you.
+
+## Deep dive 4: the price of outgrowing free
+
+When a project fails gate 1 or gate 2, or simply grows, here is what the first paid step costs on each platform. These are the lowest list prices for the smallest useful paid configuration, not a like-for-like comparison of capacity.
+
+<Exhibit
+  n={8}
+  title="Outgrowing the free stack costs about $45 a month; cheaper single-purpose steps exist"
+  sub="Lowest monthly price of the first paid step, USD, checked 14 Oct 2026"
+  source="Vercel, Supabase, Netlify, Cloudflare, Railway and Fly.io pricing pages and docs"
+  sourceUrl="https://supabase.com/pricing"
+  note="Not like-for-like: each buys a different bundle. Vercel Pro includes $20 of usage credit and bills developer seats at $20 per user per month. Fly.io's figure is its smallest always-on Machine (shared-cpu-1x, 256 MB) per 30 days in its cheapest regions. Neon's paid plan has no monthly minimum and is billed by usage."
+  table={[["Step", "Price per month", "What it buys"], ["Fly.io smallest Machine", "$2.19", "One always-on 256 MB VM"], ["Railway Hobby", "$5", "$5 of usage included"], ["Cloudflare Workers Paid", "$5 minimum", "Higher Workers limits"], ["Netlify Personal", "$9", "1,000 credits"], ["Vercel Pro", "$20", "Commercial use, $20 credit"], ["Netlify Pro", "$20", "3,000 credits, unlimited members"], ["Supabase Pro", "$25", "No pausing, 8 GB disk, 100K MAU, 250 GB egress"], ["Vercel Pro + Supabase Pro", "$45", "This stack, commercially licensed"]]}
+>
+  <Bars prefix="$" data={[
+    { label: "Fly.io smallest Machine", value: 2.19, display: "$2.19" },
+    { label: "Railway Hobby", value: 5, display: "$5" },
+    { label: "Cloudflare Workers Paid", value: 5, display: "$5" },
+    { label: "Netlify Personal", value: 9, display: "$9" },
+    { label: "Vercel Pro", value: 20, display: "$20" },
+    { label: "Netlify Pro", value: 20, display: "$20" },
+    { label: "Supabase Pro", value: 25, display: "$25" },
+    { label: "Vercel Pro + Supabase Pro", value: 45, display: "$45", hl: true },
+  ]} />
+</Exhibit>
+
+The upgrades are independent, and that is the useful part. If the trigger is a paused database, upgrade only Supabase: Pro removes inactivity pausing and raises the database to 8 GB, MAU to 100,000 and egress to 250 GB, with $10 of compute credit covering one Micro instance ([Supabase](https://supabase.com/pricing)). If the trigger is commercial use, upgrade only Vercel, or move the static front end to a host whose terms fit and keep Supabase as it is. The front end is a folder of static files and the database is standard Postgres, so neither half locks you to the other.
+
+## Case examples
+
+**The Lovable exposure (2025).** Covered above, and worth restating as a lesson for anyone using an AI app builder: the generated code put the public key in the browser exactly as intended, and about one in ten scanned projects had not expressed their access rules in the database ([Palmer](https://mattpalmer.io/posts/statement-on-CVE-2025-48757/)). *Lesson:* when a tool writes your schema, read the grants and policies yourself, then run the step 10 tests.
+
+**Supabase's grants change (2026).** A platform default changed underneath existing tutorials. A table created by raw SQL in a project on the new default is invisible to the Data API until granted, which shows up as empty results or "not found" errors rather than an obvious permission failure ([Supabase changelog](https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically)). *Lesson:* keep schema, grants and policies together in one versioned SQL file, so the security model is code you can review, not dashboard clicks you have to remember.
+
+**Render's free web services.** A free web service on Render spins down after 15 minutes without inbound traffic and takes about a minute to spin back up; a free Postgres database expires 30 days after creation ([Render](https://render.com/docs/free)). *Lesson:* "free" can mean free and slow to wake. That is fine for a demo you open before a meeting, and wrong for anything a stranger will try once and abandon.
+
+<Note kind="field">
+This portfolio is the static end of the same spectrum. It is an Astro site hosted free on GitHub Pages and deployed by a GitHub Actions workflow, with a daily scheduled rebuild that publishes future-dated posts. The third-party deploy action is pinned to a commit SHA, and job permissions are scoped: the build job can only read the repository, and only the deploy job can write to Pages. It has no database, so it never needed the second half of this tutorial, and it is a portfolio rather than a business, which keeps it inside GitHub Pages' usage rules.
+</Note>
+
+## Which free tier for which job
+
+The three-gate test tells you whether the default stack fits. When it does not, the matrix below tells you where to look, by the two questions that separate the options most: does the app need a database, and does it need server-side work that outlives a single request?
+
+<Exhibit n={9} title="Match the free tier to the job: the database and server questions do most of the sorting" sub="Free-tier options by workload — Author's framework" note="Author's positioning, based on each vendor's documented free allowances as of 14 Oct 2026. Commercial-use terms differ by vendor; check them before launch.">
+  <Matrix
+    x="Server-side work needed"
+    y="Database needed"
+    quads={[
+      { title: "Static front end + hosted Postgres", text: "Vercel or Netlify or Cloudflare with Supabase or Neon. Budget Board lives here.", hl: true },
+      { title: "Always-on app + database", text: "Render (sleeps; DB expires at 30 days), Railway ($1 credit), Fly.io (trial). Expect to pay about $5." },
+      { title: "Pure static site", text: "GitHub Pages or Cloudflare Pages. Non-commercial for GitHub Pages." },
+      { title: "Functions, no database", text: "Cloudflare Workers (100,000 requests a day) or Vercel Functions." },
+    ]}
+  />
+</Exhibit>
+
+<Exhibit
+  n={10}
+  title="A pick for each job, and the free-tier catch that comes with it"
+  sub="Recommended free tier by job, with the documented limit most likely to matter, checked 14 Oct 2026"
+  source="Vendor pricing and documentation pages listed in Sources"
+  sourceUrl="https://developers.cloudflare.com/workers/platform/pricing/"
+  note="Author's recommendations. Figures from Vercel, Supabase, GitHub, Cloudflare, Neon, Render, Railway and Fly.io documentation."
+>
+  <Compare
+    cols={["Pick", "Watch out for"]}
+    hlCol={0}
+    rows={[
+      { k: "Portfolio or docs", v: ["GitHub Pages", "1 GB site; 100 GB/month soft bandwidth; no business use"] },
+      { k: "Static site, heavy traffic", v: ["Cloudflare Pages or Workers", "500 builds/month; 20,000 files per Pages site"] },
+      { k: "Prototype with data", v: ["Vercel Hobby + Supabase Free", "Non-commercial; DB pauses after 7 quiet days"] },
+      { k: "Postgres that sleeps cheaply", v: ["Neon Free", "Scales to zero after 5 min; 100 CU-hours per project"] },
+      { k: "API or edge logic", v: ["Cloudflare Workers Free", "100,000 requests/day; 10 ms CPU per call"] },
+      { k: "Long-running server", v: ["Render Free, then Railway or Fly.io", "Sleeps after 15 min; DB expires at 30 days"] },
+      { k: "Anything paid for", v: ["Vercel Pro + Supabase Pro", "About $45/month before usage"] },
+    ]}
+  />
+</Exhibit>
+
+Two of these deserve a sentence more. **Neon** is the most generous free Postgres for many small databases: 100 projects, 1 GB of storage each (20 GB across the account), 100 CU-hours of compute per project and 5 GB of egress, with compute suspended after five minutes of inactivity ([Neon](https://neon.com/docs/introduction/plans)). It is a database only, with no equivalent of Supabase's Data API, auth and storage in one, so you would add a server-side layer. **Cloudflare** makes requests for static assets on Workers "free and unlimited", and its Free Workers plan allows 100,000 requests a day with 10 ms of CPU each ([Cloudflare](https://developers.cloudflare.com/workers/platform/pricing/)). For a static site expecting a traffic spike, that is hard to beat.
+
+## Counterpoints
+
+<Note kind="counter" label="Objection 1">
+Putting a database key in the browser is insecure, full stop. A real app should have a backend in front of the database.
+</Note>
+
+<Note kind="response">
+The objection mistakes the key for the boundary. A publishable key identifies the project, the way a hostname does; Supabase says so plainly and tells you to rely on RLS ([Supabase](https://supabase.com/docs/guides/api/api-keys)). A backend that holds a secret key and forwards requests moves the same authorisation rules from SQL policies into application code, where they are no easier to get right. The architecture is sound when the rules are explicit and tested, which is why step 3 and step 10 exist. The objection is right in one case: anything requiring a secret, such as calling a paid third-party API, needs server-side code.
+</Note>
+
+<Note kind="counter" label="Objection 2">
+Free tiers are a trap. You build on them, the terms change, and you are locked in.
+</Note>
+
+<Note kind="response">
+Exhibit 1 shows terms do change, so the risk is real. But lock-in on this stack is low by construction: the front end is a `dist/` folder any static host can serve, and the database is standard Postgres you can export with `pg_dump` using the password from step 2. The mitigation is to stay portable on purpose: keep schema and policies in a versioned SQL file, avoid platform-specific features until you need them, and re-check the pricing pages before each launch.
+</Note>
+
+<Note kind="counter" label="Objection 3">
+Nobody enforces the non-commercial rule. Freelancers ship client sites on Hobby all the time.
+</Note>
+
+<Note kind="response">
+Whether it is enforced is not the question; whether you can defend it to a client is. Vercel's definition explicitly covers "a paid employee or consultant writing the code" ([Vercel](https://vercel.com/docs/limits/fair-use-guidelines)), and Hobby accounts cannot buy more usage when a launch goes well. $20 a month is a small line in any paid engagement. Build on Hobby, and move the project to a Pro team before the client's first real user arrives.
+</Note>
+
+<Note kind="counter" label="Objection 4">
+A $5 VPS gives you a real server, a real database and no limits for less than either Pro plan.
+</Note>
+
+<Note kind="response">
+For an engineer who wants to run servers, yes, and Exhibit 8 shows cheaper single-purpose steps exist. But the VPS price excludes the work: patching, TLS, backups, monitoring and recovery. The managed stack's value is preview deployments, HTTPS, a global CDN and a database dashboard with no operations time, which matters most at exactly the stage when a project is free. Choose the VPS when you want to learn operations or need always-on processes; choose the managed stack when your scarce resource is time.
+</Note>
+
+## Implications by stakeholder
+
+**Students and job-seekers.** This stack turns a portfolio project from screenshots into a live URL a recruiter can click, at $0. The security steps are the differentiator: a short README section showing the grants, the policies and the `curl` tests that prove them says more about your judgement than another feature does.
+
+**Freelancers and consultants.** Prototype on free tiers, but price Vercel Pro (and Supabase Pro if the client cannot tolerate pausing) into every paid engagement, and create the projects in an account or team the client will own. Hand over the SQL file along with the code.
+
+**Founders.** The free stack is a good place to find out whether anyone wants the product. Write your upgrade trigger before launch, for example "first paying customer or 50% of any free limit", and configure the spend controls at the same time. About $45 a month is a small price for not discovering a paused database during a demo.
+
+**Engineering and security leads.** If your organisation uses AI app builders or lets teams spin up Supabase projects, require the same review you would for any public API: RLS on every exposed table, explicit grants, no secret keys in client code, and an automated test that runs the step 10 calls against preview deployments.
+
+## What to do next: a pre-launch checklist
+
+Run this list before you share the URL with anyone you do not know.
+
+1. **Gate 1 passed in writing.** No one is paid to build it and it sells nothing; otherwise you are on Vercel Pro.
+2. **Schema in version control.** One SQL file creates the table, enables RLS, grants specific verbs and defines every policy.
+3. **RLS on every exposed table.** Check **Table Editor** for the RLS badge, or query `pg_tables` where `rowsecurity` is false in the `public` schema.
+4. **Only the publishable key in client code.** Search the built `dist/` folder for the first ten or so characters of your real secret key; there should be no match. Do not search for the bare prefix `sb_secret_`: the Supabase client library contains that string itself, so the demo's bundle matches it with no secret present.
+5. **Attacker tests pass.** The step 10 `curl` calls refuse deletes and oversized inserts.
+6. **Untrusted text rendered safely.** `textContent`, not `innerHTML`, for anything users write.
+7. **Previews isolated.** Preview variables point at a staging project if real users write data.
+8. **Pausing decided.** Either accept manual restores or schedule the move to Supabase Pro.
+9. **Usage reviewed monthly.** Note the two numbers from Exhibit 5 that bind first: CDN requests and database egress.
+10. **Caps configured before upgrading.** Vercel on-demand budget with Pause Production Deployments; Supabase Spend Cap left on.
+
+## Limitations and methodology
+
+All prices, allowances and behaviours come from the vendors' own pricing pages and documentation, read on 14 October 2026; where a documentation page shows a last-updated date, the Sources list includes it. These terms change often, as Exhibit 1 shows, so treat every figure as dated. Two inconsistencies in the source pages are worth flagging. Supabase's project-pausing page has a heading that says 90 days while its body says a paused project can be restored "for up to 1 year"; I used the body text. And Vercel's pricing page lists Pro at $20 a month alongside $20 per developer seat without stating exactly how the two combine for a one-person team, so check the checkout page.
+
+Exhibit 5 is my own estimate. It uses the real gzipped sizes from the demo's production build and simplifying assumptions about requests per visit and message length; it ignores browser caching, which makes repeat visits much cheaper, and bots, which make everything more expensive. The 500 MB row estimate is approximate. Exhibit 8 compares the cheapest paid step on each platform, not equivalent capacity, so it should not be read as a ranking of value.
+
+The Lovable figures come from the researcher's own published statement and the NVD record; I did not reproduce the scan, and the CVE is disputed by the supplier. Commercial-use terms vary by vendor; I quote Vercel's and GitHub's because they are explicit, and I make no claim about other vendors' terms. The demo app was built and compiled for this article; the dashboard steps follow each provider’s documentation as checked on 14 October 2026, so menu labels may have moved since. The tutorial was written for the dashboards as they appeared in October 2026; menu names drift, so if a label differs, look for the nearest equivalent rather than a different procedure.
+
+## Closing
+
+The budget stack is no longer a compromise. For the price of nothing, a small app gets a global CDN, preview deployments, a managed Postgres database and automatic certificates, in an hour. What it does not get is a server-side safety net: the database is on the public internet, the key is in every browser, and the only things standing between a visitor and your data are a dozen lines of SQL you either wrote deliberately or did not write at all. Write them first, test them like an attacker, and the free tier will carry you further than you expect. The key was never the secret. The policy is.

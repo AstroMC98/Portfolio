@@ -1,0 +1,498 @@
+---
+title: "Designing with Claude Without the AI Slop: Constraints, Skills and Verification Loops"
+dek: "Ask any model for a landing page and you get the statistical centre of every landing page it has learned from. Better adjectives will not fix that. Encoding taste as constraints, packaging it as Claude Code Skills, and verifying every render with real measurements will."
+date: 2026-06-30
+kicker: Design
+motif: brush
+tags: [Design, Claude, How-to]
+thesis: "AI-generated design converges on the statistical median of the web; distinctiveness comes from encoding taste as constraints, skills and verification loops — not from better prompts alone."
+takeaways:
+  - "“Slop” has a mechanism: models sample from the high-probability centre of their training data, and preference tuning narrows output diversity further. Anthropic’s own engineers call it distributional convergence."
+  - "Constraints beat adjectives. A brief with a palette, a type system, a ban list, a structural reference and the real content moves the model off the median; “bold and modern” does not."
+  - "Package taste once as a Claude Code Skill. Only its description sits in context until it is needed, so a detailed house style costs almost nothing per session."
+  - "Ban lists create new defaults. Anthropic found Claude converging on Space Grotesk after Inter was banned — so pair bans with positive choices and a reason for each."
+  - "Never accept UI you have not rendered, critiqued and measured. On this site, one contrast audit moved code comments from 3.12:1 to 4.90:1 with a single hex change."
+  - "Accessibility is the constraint that keeps distinctiveness honest: 83.9% of the top million home pages still fail text contrast in 2026."
+sources:
+  - label: "Anthropic — Improving frontend design through Skills (12 Nov 2025)"
+    url: "https://claude.com/resources/articles/improving-frontend-design-through-skills"
+  - label: "Claude Code docs — Extend Claude with skills"
+    url: "https://code.claude.com/docs/en/skills"
+  - label: "Claude Code docs — Plugins overview"
+    url: "https://code.claude.com/docs/en/plugins"
+  - label: "Claude Code docs — Connect Claude Code to tools via MCP"
+    url: "https://code.claude.com/docs/en/mcp"
+  - label: "Microsoft — Playwright MCP server"
+    url: "https://github.com/microsoft/playwright-mcp"
+  - label: "Chrome DevTools MCP — repository and tool reference"
+    url: "https://github.com/ChromeDevTools/chrome-devtools-mcp/blob/main/docs/tool-reference.md"
+  - label: "Chrome for Developers — Lighthouse accessibility scoring"
+    url: "https://developer.chrome.com/docs/lighthouse/accessibility/scoring"
+  - label: "W3C — Understanding WCAG 2.2 Success Criterion 1.4.3: Contrast (Minimum)"
+    url: "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html"
+  - label: "WebAIM — The WebAIM Million (2026 report)"
+    url: "https://webaim.org/projects/million/"
+  - label: "HTTP Archive — Web Almanac 2024, Fonts chapter"
+    url: "https://almanac.httparchive.org/en/2024/fonts"
+  - label: "HTTP Archive — Web Almanac 2025, Fonts chapter"
+    url: "https://almanac.httparchive.org/en/2025/fonts"
+  - label: "Kirk et al. — Understanding the Effects of RLHF on LLM Generalisation and Diversity (arXiv:2310.06452)"
+    url: "https://arxiv.org/abs/2310.06452"
+  - label: "Nielsen Norman Group — The Aesthetic-Usability Effect"
+    url: "https://www.nngroup.com/articles/aesthetic-usability-effect/"
+  - label: "Nature News — First impressions count for web (Lindgaard et al., 2006)"
+    url: "https://www.nature.com/news/2006/060109/full/news060109-13.html"
+  - label: "GOV.UK Design System"
+    url: "https://design-system.service.gov.uk/"
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Columns from '../../components/blog/Columns.astro';
+import Lines from '../../components/blog/Lines.astro';
+import Slope from '../../components/blog/Slope.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">I rebuilt this portfolio with Claude Code. Partway through, I looked at a draft and said the quiet part out loud: <em>the fonts are giving AI slop.</em> The hero used Fraunces, a display serif, with one word set in an italic accent — a look I had seen on a great many AI-generated sites. Nothing about it was wrong. That was the problem. We replaced it with Archivo, a variable sans-serif whose width axis lets headlines run condensed, and IBM Plex Mono for labels and data. The site you are reading is the result.</p>
+
+That moment is the subject of this article, because it exposes something more general than one font choice. My thesis: **AI-generated design converges on the statistical median of the web, and distinctiveness comes from encoding taste as constraints, skills and verification loops — not from better prompts alone.** A prompt is a one-off request. Taste that survives across sessions, collaborators and deadlines has to be written down as rules the model must follow, loaded automatically, and checked against a rendered page with real numbers.
+
+Here is the route. I start with why this matters now and what the data say about the web that models learn from. I explain the mechanism behind “slop”, then offer a framework. The deep dives cover the anatomy of slop tells, constraint-first briefs with templates, packaging taste as Claude Code Skills, plugins and MCP servers, the render–critique–measure loop, and accessibility as a design constraint. I then walk through three cases — including this site’s redesign — before steelmanning the objections, drawing out implications by role, setting out an action plan and stating the limits of the evidence.
+
+## Context: why this matters now
+
+A growing share of interface code is now drafted by models. That changes the economics of design: a passable page costs minutes rather than days. It also changes the failure mode. When a page is cheap to produce, the scarce thing is no longer a page — it is a page that looks like it belongs to *you*, and that works for everyone who has to use it.
+
+The second point is not hypothetical. WebAIM’s annual scan of the top one million home pages found detectable WCAG failures on 95.9% of them in February 2026, with an average of 56.1 errors per page. Low-contrast text — the most common failure — appeared on 83.9% of home pages, up from 79.1% a year earlier, ending a slow improvement ([WebAIM](https://webaim.org/projects/million/)). WebAIM suggests the trend likely reflects broader shifts in web development, including more third-party frameworks and AI-assisted coding, though its scan does not measure AI-generated sites directly. The same report links error counts to technology choices — pages using Astro, the framework this site is built on, averaged 9.0 errors — while stressing that these correlations do not show the technology caused the difference. Defaults in the stack matter, for better and worse.
+
+<Exhibit
+  n={1}
+  title="Four in five top home pages still ship low-contrast text — and 2026 went backwards"
+  sub="Share of the top 1,000,000 home pages with detected low-contrast text (%)"
+  source="WebAIM, The WebAIM Million (2026 report)"
+  sourceUrl="https://webaim.org/projects/million/"
+  note="Automated detection only: automated tools cannot detect every accessibility issue, so true failure rates are likely higher."
+  table={[["Year", "Low-contrast text (%)"], ["2019", 85.3], ["2020", 86.3], ["2021", 86.4], ["2022", 83.9], ["2023", 83.6], ["2024", 81.0], ["2025", 79.1], ["2026", 83.9]]}
+>
+  <Lines yMin={70} yMax={90} unit="%" series={[
+    { name: "Low-contrast text", points: [{ x: "2019", y: 85.3 }, { x: "2020", y: 86.3 }, { x: "2021", y: 86.4 }, { x: "2022", y: 83.9 }, { x: "2023", y: 83.6 }, { x: "2024", y: 81.0 }, { x: "2025", y: 79.1 }, { x: "2026", y: 83.9 }] },
+  ]} />
+</Exhibit>
+
+<Exhibit
+  n={2}
+  title="Contrast is the most common accessibility failure on the web, ahead of missing alt text"
+  sub="Share of top 1,000,000 home pages with each detected failure, February 2026 (%)"
+  source="WebAIM, The WebAIM Million (2026 report)"
+  sourceUrl="https://webaim.org/projects/million/"
+  table={[["Failure type", "% of home pages"], ["Low-contrast text", 83.9], ["Missing image alt text", 53.1], ["Missing form input labels", 51.0], ["Empty links", 46.3], ["Empty buttons", 30.6], ["Missing document language", 13.5]]}
+>
+  <Bars unit="%" max={100} data={[
+    { label: "Low-contrast text", value: 83.9, display: "83.9%", hl: true },
+    { label: "Missing alt text", value: 53.1, display: "53.1%" },
+    { label: "Missing form labels", value: 51.0, display: "51.0%" },
+    { label: "Empty links", value: 46.3, display: "46.3%" },
+    { label: "Empty buttons", value: 30.6, display: "30.6%" },
+    { label: "Missing page language", value: 13.5, display: "13.5%" },
+  ]} />
+</Exhibit>
+
+Put the two forces together and the stakes are clear. Models make it easy to ship pages that look like everyone else’s and, unless someone checks, fail the same basic accessibility tests everyone else fails. Distinctiveness and accessibility are not competing goals here; both are casualties of accepting the default.
+
+## The evidence: why models produce slop
+
+### The mechanism: distributional convergence
+
+Anthropic’s Applied AI team described the problem plainly in November 2025. “During sampling, models predict tokens based on statistical patterns in training data,” they wrote, and “safe design choices — those that work universally and offend no one — dominate web training data.” Without direction, the model gravitates to that centre; unguided prompts often yield “Inter fonts, purple gradients on white backgrounds, and minimal animations.” They call this **distributional convergence** ([Anthropic](https://claude.com/resources/articles/improving-frontend-design-through-skills)).
+
+Post-training compounds it. Research on reinforcement learning from human feedback (RLHF) found that it “significantly reduces output diversity compared to SFT across a variety of measures” ([Kirk et al.](https://arxiv.org/abs/2310.06452)). Preference tuning rewards answers that most raters find acceptable, and in design, “acceptable to most people” is close to a definition of generic. The model is not failing; it is doing exactly what it was optimised to do.
+
+### The median of what, exactly?
+
+One detail in the data surprised me and sharpened the argument. If AI slop were simply the median of the web, its typeface would be Roboto or Open Sans, not Inter. HTTP Archive’s Web Almanac found Roboto on 15.2% of desktop sites in 2024 and Inter on about 1% ([Web Almanac 2024](https://almanac.httparchive.org/en/2024/fonts)); the 2025 edition puts Inter at roughly 1.4–1.5% of pages, rising quickly ([Web Almanac 2025](https://almanac.httparchive.org/en/2025/fonts)).
+
+<Exhibit
+  n={3}
+  title="The web’s median typeface is Roboto, not Inter — slop mirrors a narrower slice of the web"
+  sub="Share of desktop websites using each font family, 2024 (%)"
+  source="HTTP Archive, Web Almanac 2024 — Fonts chapter (Figure 4.18)"
+  sourceUrl="https://almanac.httparchive.org/en/2024/fonts"
+  note="Font Awesome (10.4%) is an icon font and is omitted. Mobile shares differ; Roboto’s low mobile figure (2.7%) likely reflects locally installed copies on Android."
+  table={[["Family", "Desktop (%)", "Mobile (%)"], ["Roboto", 15.2, 2.7], ["Noto Sans JP", 6.1, 5.7], ["Open Sans", 5.6, 6.8], ["Poppins", 4.7, 5.8], ["Montserrat", 3.3, 3.9], ["Lato", 3.2, 3.8], ["Inter", 1.0, 1.1]]}
+>
+  <Bars unit="%" data={[
+    { label: "Roboto", value: 15.2, display: "15.2%" },
+    { label: "Noto Sans JP", value: 6.1, display: "6.1%" },
+    { label: "Open Sans", value: 5.6, display: "5.6%" },
+    { label: "Poppins", value: 4.7, display: "4.7%" },
+    { label: "Montserrat", value: 3.3, display: "3.3%" },
+    { label: "Lato", value: 3.2, display: "3.2%" },
+    { label: "Inter", value: 1.0, display: "1.0%", hl: true },
+  ]} />
+</Exhibit>
+
+My interpretation — and it is an interpretation, not a measured finding — is that model output reflects the slice of the web that models learn *UI code* from and are rewarded for: recent framework starters, component libraries, tutorials and showcase sites, where a handful of choices recur. That matters for the remedy. You are not fighting “the web”; you are fighting a specific, recognisable, recent house style. Which means you can name it, and what you can name, you can ban.
+
+### Why distinctiveness is worth the effort
+
+People judge visual appeal fast. Gitte Lindgaard’s team at Carleton University found that impressions of web pages formed in the first 50 milliseconds “tallied well with judgements made after a longer period of scrutiny” ([Nature News](https://www.nature.com/news/2006/060109/full/news060109-13.html)). And attractiveness carries over: the aesthetic-usability effect, first studied at Hitachi with 252 participants rating 26 ATM interface variations, describes “users’ tendency to perceive attractive products as more usable” ([NN/g](https://www.nngroup.com/articles/aesthetic-usability-effect/)). A page that reads as a template in the first glance spends the rest of the visit earning back credibility.
+
+The same NN/g article contains the caveat that keeps this honest: “A pretty design can make users forgiving of minor usability problems, but not of large ones.” Distinctiveness buys attention and goodwill; it does not buy a pass on legibility.
+
+## A framework: aim for the top-right, enforce with three layers
+
+Two axes matter: how recognisably *yours* a design is, and whether people can actually read and use it.
+
+<Exhibit n={4} title="Slop is usable but generic; the goal is distinctive and usable" sub="Author’s framework">
+  <Matrix
+    x="Distinctiveness"
+    y="Usability and accessibility"
+    quads={[
+      { title: "AI slop", text: "Works, passes some audits, looks like everything else" },
+      { title: "A point of view", text: "Recognisably yours, and it passes the measurements", hl: true },
+      { title: "Broken defaults", text: "Generic and inaccessible: low-contrast grey on grey" },
+      { title: "Art project", text: "Memorable, but people cannot read or use it" },
+    ]}
+  />
+</Exhibit>
+
+Getting to the top-right takes three layers, each fixing a different weakness of prompting alone:
+
+1. **Constraints** move the model off the median for a given task. They are specific, testable rules — tokens, type, bans, references, real content — rather than adjectives.
+2. **Skills** make those constraints persistent. A constraint you have to remember to paste is a constraint you will eventually forget.
+3. **Verification loops** catch what constraints miss. A model cannot see its output unless you give it a browser, and neither can you if you only read the diff.
+
+The deep dives take each layer in turn.
+
+## Deep dive 1: the anatomy of slop
+
+You cannot ban what you cannot name. These are the patterns I look for, grouped by dimension. None is wrong in isolation; together they read as “nobody decided”.
+
+<Exhibit n={5} title="The tells of AI-generated design — and what to ask for instead" sub="Author’s field list of default patterns">
+  <Compare
+    cols={["The default", "Why it reads as slop", "What to ask for instead"]}
+    rows={[
+      { k: "Type", v: ["Inter or a display serif with an italic accent word; a popular mono for code", "The most frequent pairings in recent starters and showcases", "A named family chosen for a reason (e.g. a width axis), one weight scale, no italic emphasis by default"] },
+      { k: "Colour", v: ["Indigo-to-purple gradients, glass cards, glow everywhere", "Signals a template before anyone reads a word", "One accent with a defined role, neutral surfaces, emphasis reserved for one thing per view"] },
+      { k: "Layout", v: ["Centred hero, three identical feature cards with icons", "Symmetry with nothing to say", "A grid driven by your content: your numbers, your diagrams, your proof"] },
+      { k: "Imagery", v: ["Isometric people, abstract blobs, stock dashboards", "Could belong to any company", "Diagrams of your actual system and data"] },
+      { k: "Copy", v: ["Generic promises about AI-powered workflows", "Says nothing a competitor could not", "A specific claim with a number and a source"] },
+      { k: "Motion", v: ["Everything fades up on scroll", "Content invisible until animated; tiring", "Motion that explains; content visible without JavaScript"] },
+    ]}
+  />
+</Exhibit>
+
+**Failure mode.** Bans alone create new defaults. Anthropic’s own article noted that after steering Claude away from overused fonts, it still tended to converge on Space Grotesk — a font that had appeared in their own list of suggestions ([Anthropic](https://claude.com/resources/articles/improving-frontend-design-through-skills)). Remove the centre of a distribution and the model finds the next most probable point. The fix is to pair every ban with a positive, reasoned choice that belongs to you.
+
+**How to measure.** Keep the ban list in the repository and grep for it: font-family declarations, gradient syntax, backdrop blur, banned phrases in copy. A ban that is not checked is a suggestion.
+
+## Deep dive 2: constraint-first briefs
+
+“Make it bold and modern” is an adjective. Adjectives get you the median, because the median is what most people mean by them. Constraints get you a point of view. Every UI brief I write contains five things:
+
+1. **A palette with roles** — surfaces, primary and muted text, one accent, one warning — as hex values, with the rule for when the accent may appear.
+2. **A type system** — named families, allowed weights and widths, and what each is for.
+3. **A ban list** — the defaults from Exhibit 5 that are not allowed, each paired with what to do instead.
+4. **A structural reference** — a real publication, product or print artefact whose *structure* you admire, not its surface.
+5. **The real content** — the actual headline, numbers, names and diagrams the design must carry. Designing around placeholder text produces placeholder design.
+
+```text
+Design the hero for an AI engineer's portfolio.
+
+Palette: ink #0a0d0c, raised #111715, text #ecefea, muted #8b958f,
+         accent #3df5a7 (one accent moment per viewport).
+Type:    Archivo variable. Headlines: font-stretch 72%, weight 800.
+         Body: 100% width, weight 400. IBM Plex Mono for labels and data only.
+Banned:  serif display + italic accent word -> use width and weight for emphasis
+         gradients and glass cards          -> flat surfaces, hairline borders
+         centred hero + icon-card triplet   -> asymmetric grid led by real numbers
+         stock or isometric illustration    -> diagrams of real systems
+Reference: the structure of a consulting exhibit: numbered, insight-led title,
+           source line, data table.
+Content: [paste the real headline, metrics and sources]
+
+Before writing code, list each design decision with a one-line reason.
+Flag any decision whose only reason is "modern" or "clean".
+```
+
+The last two lines do more work than they appear to. Asking for a reason per decision forces the model to articulate a rationale before committing to tokens, and “because it is modern” becomes visibly inadequate. I have found this the single cheapest intervention against the median.
+
+The second template is for critique. I run it against screenshots, not code, because the code can be perfect while the page is not:
+
+```text
+You are reviewing screenshots of this page at 1440, 768 and 375 px.
+1. List every element that matches the ban list in SKILL.md, with location.
+2. Name the one thing a visitor sees first at each width. Is it the most
+   important thing? If not, what is competing with it?
+3. List any text you would expect to fail WCAG AA contrast (4.5:1 body,
+   3:1 large) and the token responsible.
+4. Identify anything that overflows, truncates or collides at 375 px.
+Return findings only; do not fix anything yet.
+```
+
+Separating critique from fixing is deliberate. When the same turn finds and fixes, the model tends to find only what it already knows how to fix.
+
+**Failure mode.** Over-specified briefs produce rigid, lifeless pages: every value fixed, no room for the model to make a good local decision. Constrain the system (tokens, type, bans), not every instance.
+
+## Deep dive 3: packaging taste as a Claude Code Skill
+
+If you paste the same brief every session, it should be a Skill. The Claude Code documentation defines the format precisely: a skill is a folder containing a `SKILL.md` file with YAML frontmatter between `---` markers, followed by Markdown instructions ([Claude Code docs](https://code.claude.com/docs/en/skills)). Several details matter for design work:
+
+- **All frontmatter fields are optional; `description` is the one that is recommended,** because “Claude uses it to decide when to apply the skill.” `name` defaults to the directory name. The combined `description` and `when_to_use` text is truncated at 1,536 characters in the skill listing, so put the key use case first.
+- **Loading is progressive.** In a session, only skill descriptions sit in context; “full skill content only loads when invoked.” As the docs put it, “a skill’s body loads only when it’s used, so long reference material costs almost nothing until you need it.” This is why a skill beats stuffing your house style into `CLAUDE.md`, which is loaded every time.
+- **Supporting files stay out of context until needed.** The docs recommend keeping `SKILL.md` under 500 lines and moving detailed reference into separate files that the skill points to; scripts in the folder are executed rather than loaded.
+- **Location sets scope.** Project skills live in `.claude/skills/<name>/SKILL.md` and travel with the repository; personal skills live in `~/.claude/skills/`; plugin skills are invoked as `/plugin-name:skill-name`.
+- **Invocation is automatic or explicit.** Claude loads a skill when a request matches its description, or you type `/skill-name`. Setting `disable-model-invocation: true` makes a skill manual-only — useful for heavyweight audits you want to run deliberately.
+
+Here is a house-style skill in that format:
+
+```markdown
+---
+name: house-style
+description: Use for any UI, page, component, chart or styling work in this repo.
+  Applies the house design tokens, type system and anti-slop ban list, and
+  requires browser verification with contrast checks before work is called done.
+---
+
+# House style
+
+## Tokens (source of truth: src/styles/tokens.css)
+- Surfaces #0a0d0c / #111715 / #172019. Hairlines #1e2824.
+- Text #ecefea (primary), #c4cbc6 (secondary), #8b958f (muted, never below 14px).
+- Accent #3df5a7: one accent moment per viewport.
+
+## Type
+- Archivo variable. Headlines font-stretch 72%, weight 750-800. Body 100%, 400.
+- IBM Plex Mono for labels, data and code only.
+
+## Never -> instead
+- Serif display + italic accent word -> emphasis through width and weight
+- Gradients, glass cards, glow -> flat surfaces, hairline borders
+- Icon-card triplets, centred hero -> grid led by real content
+- Content hidden until animation runs -> visible by default, motion optional
+
+## Before calling UI work done
+1. Render and screenshot at 1440, 768 and 375 px.
+2. Run the critique prompt in critique.md against the screenshots.
+3. Check contrast for every text token used (AA: 4.5:1 body, 3:1 large).
+4. Run a Lighthouse accessibility audit and fix every failed audit.
+
+See exhibits.md for chart conventions.
+```
+
+Note what the skill does and does not contain. It holds decisions and checks, not essays about good design. It points to the token file as the source of truth, so the skill and the CSS cannot drift apart silently. And it keeps the long material — critique prompt, chart conventions — in supporting files that load only when needed.
+
+<Exhibit n={6} title="Put taste where it will load at the right time: rules in a Skill, tools in MCP, distribution in a plugin" sub="Where design knowledge can live in Claude Code — Author’s framework, based on the Claude Code documentation">
+  <Compare
+    cols={["Loads when", "Good for", "Weakness"]}
+    rows={[
+      { k: "One-off prompt", v: ["Only in that turn", "Exploration, a single page", "Forgotten next session"] },
+      { k: "CLAUDE.md", v: ["Every session, in full", "Short, always-true project rules", "Long style guides cost context every turn"] },
+      { k: "Skill", v: ["Description always; body when invoked", "House style, critique checklists, chart rules", "Only as good as its description’s trigger"] },
+      { k: "MCP server", v: ["Tools available while connected", "Seeing and measuring: browsers, audits", "Third-party servers can expose prompt-injection risk"] },
+      { k: "Plugin", v: ["Bundled components, every enabled session", "Sharing a whole setup with a team", "Each enabled plugin adds descriptions to every turn"] },
+    ]}
+  />
+</Exhibit>
+
+**Failure mode.** The most common skill failure is a vague description, so the skill never triggers. “Design guidelines” will not match “fix the spacing on the pricing card”; “Use for any UI, page, component, chart or styling work” will. Test the trigger by asking for a small UI change in a fresh session and checking whether the skill loads.
+
+## Deep dive 4: plugins and MCP servers — giving Claude eyes
+
+Skills encode what you know. Plugins and MCP servers add what Claude cannot do on its own.
+
+A **plugin** is “a directory of skills, agents, hooks, MCP servers, or other components that Claude Code installs and loads as one unit,” usually with a manifest at `.claude-plugin/plugin.json`; you browse and install them with `/plugin` ([Claude Code docs](https://code.claude.com/docs/en/plugins)). Anthropic packaged the approach from its own frontend-design article as exactly this kind of installable skill. Two cautions from the documentation are worth repeating. An enabled plugin is part of every session, so the names and descriptions of its skills and agents sit in context on every turn. And “what the plugin runs, it runs as you” — review third-party plugins before installing them.
+
+An **MCP server** connects Claude Code to external tools through the Model Context Protocol, “an open source standard for AI-tool integrations” ([Claude Code docs](https://code.claude.com/docs/en/mcp)). For design work, the essential servers are browsers. Microsoft’s Playwright MCP server provides browser automation and, notably, works primarily from Playwright’s accessibility tree rather than pixels; its README describes `browser_snapshot` as “better than screenshot” for acting on a page, while `browser_take_screenshot` captures what the page looks like and `browser_resize` sets the viewport ([Playwright MCP](https://github.com/microsoft/playwright-mcp)). The Chrome DevTools MCP server adds a `lighthouse_audit` tool covering accessibility, SEO and best practices (performance is traced separately) ([tool reference](https://github.com/ChromeDevTools/chrome-devtools-mcp/blob/main/docs/tool-reference.md)).
+
+```bash
+# A browser Claude can drive, resize and screenshot
+claude mcp add playwright npx @playwright/mcp@latest
+
+# Chrome DevTools: Lighthouse audits, traces, emulation
+claude mcp add chrome-devtools -- npx -y chrome-devtools-mcp@latest
+
+# Share a server with your team: project scope writes .mcp.json at the repo root
+claude mcp add --scope project playwright npx @playwright/mcp@latest
+```
+
+The accessibility-tree design has a side benefit I did not expect. If the snapshot Claude reads is a meaningless list of unlabelled divs, that is roughly what a screen-reader user experiences too. The tool that lets the model see the page doubles as a structural accessibility check.
+
+**Failure mode.** Browser servers fetch and read external content, and the Claude Code docs warn that “servers that fetch external content can expose you to prompt injection risk.” Point design-verification browsers at your local dev server, and be deliberate before letting them roam the open web in the same session that has write access to your code.
+
+## Deep dive 5: render, critique, measure
+
+Most slop survives because nobody — human or model — looked at the rendered page at three widths and measured it. The loop below is how this site was built.
+
+<Exhibit n={7} title="Never accept UI you have not rendered, critiqued and measured" sub="The anti-slop loop with Claude Code — Author’s framework">
+  <Flow steps={[
+    { title: "Brief", text: "Palette, type, bans with replacements, a structural reference, real content." },
+    { title: "Generate", text: "Claude states a reason for each decision, then writes the code." },
+    { title: "Render", text: "Screenshots at 1440, 768 and 375 px through a browser MCP server." },
+    { title: "Critique", text: "Ban list and critique prompt against the screenshots — findings only.", hl: true },
+    { title: "Measure", text: "Contrast ratios, Lighthouse, overflow checks: numbers, not impressions." },
+    { title: "Refine", text: "Fix the findings, then loop until the measurements pass." },
+  ]} />
+</Exhibit>
+
+Measurement catches what eyes miss. On this site, a Lighthouse accessibility audit flagged code comments inside highlighted code lines. Against the lighter highlighted-line background, the comment colour `#5d6a64` reached only 3.12:1 — below the 4.5:1 minimum for body text. Changing it to `#7d8a84` raised the ratio to 4.90:1. One hex value; without the audit it would have shipped.
+
+<Exhibit
+  n={8}
+  title="One audit, one hex change: code comments went from failing to passing WCAG AA"
+  sub="Contrast ratio of code-comment text on a highlighted code line (AA minimum for body text is 4.5:1)"
+  source="Computed with the WCAG relative-luminance formula; issue flagged by a Lighthouse accessibility audit of this site"
+  sourceUrl="https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html"
+  table={[["Version", "Colour", "Contrast"], ["Before", "#5d6a64", "3.12:1"], ["After", "#7d8a84", "4.90:1"]]}
+>
+  <Slope left="Before" right="After" unit=":1" max={6} min={2} items={[
+    { label: "Comment text", a: 3.12, b: 4.9, hl: true },
+    { label: "WCAG AA minimum", a: 4.5, b: 4.5 },
+  ]} />
+</Exhibit>
+
+The arithmetic is simple enough to put in the loop itself. WCAG defines relative luminance for sRGB as L = 0.2126 R + 0.7152 G + 0.0722 B on linearised channels, and contrast as (L1 + 0.05) / (L2 + 0.05), lighter over darker ([W3C](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)). A script Claude can run against your tokens:
+
+```js
+// WCAG 2.x contrast ratio between two hex colours
+const lin = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+const lum = (hex) => {
+  const [r, g, b] = [1, 3, 5].map((i) => lin(parseInt(hex.slice(i, i + 2), 16) / 255));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const contrast = (a, b) => {
+  const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+};
+console.log(contrast('#8b958f', '#0a0d0c').toFixed(2)); // 6.31
+```
+
+Run across the site’s text tokens against the page background, it shows every text colour clearing AA, with the muted grey — the token most likely to fail in a dark theme — at 6.31:1.
+
+<Exhibit
+  n={9}
+  title="Every text colour on this site clears WCAG AA, including the muted grey"
+  sub="Contrast ratio against the page background #0a0d0c (AA: 4.5:1 for body text)"
+  source="Computed with the WCAG relative-luminance formula from this site’s design tokens"
+  sourceUrl="https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html"
+  table={[["Token", "Hex", "Contrast"], ["Primary text", "#ecefea", "16.83:1"], ["Accent", "#3df5a7", "13.77:1"], ["Secondary text", "#c4cbc6", "11.81:1"], ["Muted text", "#8b958f", "6.31:1"]]}
+>
+  <Bars unit=":1" data={[
+    { label: "Primary text", value: 16.83, display: "16.8:1" },
+    { label: "Accent", value: 13.77, display: "13.8:1" },
+    { label: "Secondary text", value: 11.81, display: "11.8:1" },
+    { label: "Muted text", sub: "the token most at risk", value: 6.31, display: "6.3:1", hl: true },
+  ]} />
+</Exhibit>
+
+**Know what Lighthouse measures.** The Lighthouse accessibility score is a weighted average of pass/fail audits based on axe-core; “a page doesn’t get points for partially passing an accessibility audit,” and the colour-contrast audit carries a weight of 7 on a scale whose weights are 3, 7 and 10. Manual checks — focus order, landmarks — “don’t affect your score” ([Chrome for Developers](https://developer.chrome.com/docs/lighthouse/accessibility/scoring)). A score of 100 means the automated audits passed, not that the page is accessible. Keep a short manual checklist alongside it: keyboard through every interactive element, check focus visibility, zoom to 200%.
+
+**Failure mode.** The loop can become theatre: screenshots taken, nobody reads them. Make the critique output a list of findings with locations, and do not move on until each is fixed or explicitly waived.
+
+## Deep dive 6: accessibility as a design constraint
+
+I treat accessibility as a design input, not a compliance step at the end, for a practical reason: it is the constraint that keeps distinctiveness honest. Most attempts to look different push towards the bottom-right of Exhibit 4 — thin weights, low-contrast “sophisticated” greys, text over imagery. A hard contrast floor rules those moves out early and forces the distinctiveness to come from structure, type and content instead.
+
+The 4.5:1 threshold is not arbitrary. W3C explains that visual acuity of 20/40 is associated with a contrast-sensitivity loss of roughly 1.5, and the baseline 3:1 multiplied by 1.5 gives 4.5:1; large text — at least 18 point, or 14 point bold — gets the lower 3:1 threshold ([W3C](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)). That is a design rule with a reason, which is exactly what a good constraint looks like.
+
+The variable-font trend makes this easier than it was. About a third of websites used variable fonts in 2024; the 2025 Web Almanac puts it at 39.4% of desktop and 41.3% of mobile sites ([Web Almanac 2025](https://almanac.httparchive.org/en/2025/fonts)). A width or weight axis gives you a large range of expressive emphasis — condensed headlines, heavy numerals — without resorting to the low-contrast or decorative tricks that fail audits.
+
+<Exhibit
+  n={10}
+  title="Variable fonts are now mainstream: two in five sites use one"
+  sub="Share of websites using at least one variable font (%)"
+  source="HTTP Archive, Web Almanac 2024 and 2025 — Fonts chapters"
+  sourceUrl="https://almanac.httparchive.org/en/2025/fonts"
+  table={[["Year · client", "Share (%)"], ["2024 desktop", 33.0], ["2024 mobile", 34.0], ["2025 desktop", 39.4], ["2025 mobile", 41.3]]}
+>
+  <Columns unit="%" max={50} data={[
+    { label: "2024 desktop", value: 33.0, display: "33%" },
+    { label: "2024 mobile", value: 34.0, display: "34%" },
+    { label: "2025 desktop", value: 39.4, display: "39.4%" },
+    { label: "2025 mobile", value: 41.3, display: "41.3%", hl: true },
+  ]} />
+</Exhibit>
+
+## Case examples
+
+**Anthropic’s frontend-design skill (November 2025).** Anthropic’s Applied AI team diagnosed distributional convergence and responded not with a better one-off prompt but with a compact, roughly 400-token prompt covering typography, colour, motion and backgrounds, packaged as a skill that loads on demand ([Anthropic](https://claude.com/resources/articles/improving-frontend-design-through-skills)). Their typography guidance named families to avoid (Inter, Roboto, Open Sans, Lato, default system fonts) and families to consider, including the IBM Plex family. They also reported the failure mode — convergence on Space Grotesk — candidly. *Lesson:* the vendor’s own answer to slop is the thesis of this article: constraints, packaged as a skill. And bans alone create new defaults.
+
+**The GOV.UK Design System.** The UK government’s design system exists to “make government services consistent with GOV.UK,” providing reusable, accessible components so teams can “learn from the research and experience of other service teams” ([GOV.UK](https://design-system.service.gov.uk/)). It is deliberately plain. *Lesson:* this is taste encoded as constraints at national scale, and its goal is recognisability and usability, not novelty. Distinctiveness in this article’s sense means “recognisably yours” — and for GOV.UK, being recognisably GOV.UK is the point.
+
+**This portfolio’s redesign.** The facts are simple. An early draft used Fraunces as a display serif with an italic accent for emphasis. I judged the fonts to be “giving AI slop”, and the type system was replaced with Archivo — loaded as a variable font with its width axis, set condensed for display (`font-stretch` between 72% and 84%) and at normal width for body text — and IBM Plex Mono for labels, data and code. The tokens in Exhibit 9 were checked against WCAG, and a Lighthouse audit caught the code-comment contrast failure in Exhibit 8.
+
+<Exhibit n={11} title="The redesign replaced a fashionable pairing with one variable family and one mono, each with a reason" sub="This site’s type decisions — Author’s summary from the site’s source" source="This site’s stylesheets (tokens.css, blog.css) and font packages">
+  <Compare
+    cols={["Decision", "Reason"]}
+    rows={[
+      { k: "Removed", v: ["Fraunces display serif with an italic accent word, Geist for body, JetBrains Mono for labels", "Read as a common AI-template look and the default developer-portfolio pairing"] },
+      { k: "Display", v: ["Archivo variable, condensed via the width axis (font-stretch 72–84%)", "Emphasis from width and weight, not a serif-italic contrast"] },
+      { k: "Body", v: ["Archivo at normal width, weight 400", "One family, one scale; display and body stay related"] },
+      { k: "Data and labels", v: ["IBM Plex Mono (400, 500, 600)", "Separates numbers, sources and code from prose"] },
+      { k: "Loading", v: ["Self-hosted via Fontsource packages", "No third-party font requests"] },
+      { k: "Verification", v: ["Contrast maths on every text token; Lighthouse audit", "Caught the code-comment failure in Exhibit 8"] },
+    ]}
+  />
+</Exhibit>
+
+<Note kind="field">
+How the swap happened: I told Claude Code the fonts were giving AI slop. It agreed and named the two tells — a heavy display serif with tight tracking and an italic accent word, and the Geist-plus-JetBrains-Mono pairing common to developer portfolios — then replaced the whole system in one pass: Archivo for display and body, IBM Plex Mono for labels. The follow-up was the render–critique–measure loop: loosening tracking that had been tuned for the serif, making emphasised words keep the heading's weight instead of dropping to a lighter italic, and re-checking every page at three widths. It also offered a mono-led alternative direction in case Archivo didn't land.
+</Note>
+
+## Counterpoints
+
+<Note kind="counter" label="Objection 1">
+Users do not care about distinctiveness. They care whether the page loads, makes sense and lets them do the thing. Generic is fine — arguably better, because it is familiar.
+</Note>
+
+<Note kind="response">
+Partly right, and familiarity is a real asset: conventions in navigation, forms and controls should stay conventional. But first impressions form in about 50 milliseconds, and attractiveness shapes perceived usability. For a product competing on trust — a consultancy, a portfolio, a new brand — looking like every other template is a cost. Distinctiveness belongs in the parts that carry identity: type, voice, structure, content. Interaction patterns should stay boring.
+</Note>
+
+<Note kind="counter" label="Objection 2">
+Design systems already solve this. Give the model your component library and tokens and it will produce on-brand output. Skills and loops are extra machinery.
+</Note>
+
+<Note kind="response">
+A design system is the best constraint you can have, and if you have one, the skill should mostly point to it. But a design system specifies components, not judgement: it will not stop a model composing approved parts into a generic layout, writing generic copy or skipping the screenshot. The skill carries the judgement — bans, reasons, checks — and the loop verifies it. GOV.UK pairs its components with research and guidance for exactly this reason.
+</Note>
+
+<Note kind="counter" label="Objection 3">
+Taste cannot be encoded. It is tacit, contextual and evolves; a rules file produces a different kind of sameness.
+</Note>
+
+<Note kind="response">
+The strongest objection, and partly true. Rules do not create taste; a person with taste has to write them. And yes, a fixed rule set converges on its own median, as Anthropic’s Space Grotesk finding shows. What can be encoded is the *output* of taste: decisions, reasons and failure lists. Treat the skill as a living document — when a review finds a new tell, add it — and keep a human looking at the screenshots. Encoding does not replace taste; it stops you having to re-apply it from scratch every session.
+</Note>
+
+## Implications by stakeholder
+
+**Founders and product leads.** Your site is often the first evidence a prospect sees. A model can produce a credible page in minutes, which means a credible page is no longer a signal. Invest a few hours, once, in deciding what your visual identity is and writing it down as constraints; that document is now an asset your team and your tools can both use.
+
+**Designers.** The role shifts from producing every screen to authoring the system that produces screens — tokens, rules, bans with reasons, critique checklists — and to judging output at speed. Designers who can write a good skill will multiply their influence across every engineer and every model session in the organisation.
+
+**Engineers.** Treat design rules like lint rules. Keep tokens in one file, point the skill at it, add browser MCP servers to the project scope, and make “rendered at three widths and measured” part of the definition of done. A grep for banned patterns in CI is cheap and catches regressions a reviewer will miss.
+
+## What to do next
+
+**Week 1 — name your median.** Generate three pages with an unguided prompt. List every recurring pattern across them. That list, with a reasoned replacement for each item, is your ban list.
+
+**Week 2 — write the constraints.** Define tokens with roles, a type system with a reason for each family, a structural reference and real content. Check every text token for contrast before writing any components.
+
+**Week 3 — package it.** Write `.claude/skills/house-style/SKILL.md` with a trigger-rich description, the decisions and the done-checklist; move the critique prompt and chart rules into supporting files. Test that it loads in a fresh session.
+
+**Week 4 — close the loop.** Add Playwright and Chrome DevTools MCP servers at project scope. Make screenshots at 1440, 768 and 375 px, the critique pass, contrast checks and a Lighthouse accessibility audit mandatory before UI work is called finished.
+
+**Ongoing — maintain it.** Every time a review finds a new tell or a model starts converging on a new default, add it to the skill. Re-run the unguided prompt every few months: when a new model version ships, its median moves, and so should your ban list.
+
+## Limitations and methodology
+
+Several limits apply. The mechanism of distributional convergence is described by Anthropic’s engineers and supported by research on RLHF and output diversity, but there is no published, systematic measurement of how often AI-generated sites use specific fonts or colours; my slop tells are a practitioner’s field list, not a census. My explanation of why model output differs from the web’s typographic median is an interpretation.
+
+WebAIM’s figures come from automated testing, which catches only a subset of accessibility problems; WebAIM associates technologies with error counts but notes that correlation is not causation, and it does not measure AI-generated pages directly. Web Almanac font shares depend on detection method and differ between desktop and mobile. The first-impressions research dates from 2006 and measured visual appeal, not conversion. The contrast values for this site are exact calculations from its tokens; the redesign narrative beyond the facts stated is flagged for confirmation. Lighthouse scores, finally, measure automated audits, not the experience of a disabled user — nothing here substitutes for testing with people.
+
+## Closing
+
+Models are excellent averagers. Asked for a page with no direction, they will reliably produce the centre of what they have learned — competent, inoffensive and indistinguishable. That is not a bug to be prompted away one request at a time. It is a property of how the systems work, and the answer is structural: decide what your taste is, encode it as constraints with reasons, package those constraints so they load every time, and verify each render with screenshots and numbers. Do that and the model stops being the source of the median and becomes the fastest way to apply a point of view.

@@ -1,0 +1,513 @@
+---
+title: "AI in Public Service: Augment the Caseworker, Never Automate the Verdict"
+dek: "Government AI use cases doubled in a year. The successes share a shape — high-volume, reversible work with a named human in charge — and so do the disasters. A field guide to telling them apart, with the evidence graded honestly and a plan for the Philippines."
+date: 2026-09-20
+kicker: Public Sector
+motif: civic
+tags: [Public Sector, Governance, Philippines]
+thesis: "Public-sector AI succeeds where it augments high-volume, reversible work under named human authority, and fails catastrophically where it automates adverse decisions about people — however accurate the model."
+takeaways:
+  - "Adoption is real and accelerating: US federal agencies reported 3,611 AI use cases for 2025, up 105% in a year, 445 of them high-impact. But audits of government capability still find thin skills, strategy and assurance behind the numbers."
+  - "The evidence is weaker than the headlines. Few of the best-known government productivity figures are measured against a baseline; most are self-reported or projected. One randomised trial found developers 19% slower with AI while they believed they were 20% faster."
+  - "The strongest measured win — the UK's Consult tool — is narrow, high-volume, text-heavy and checked by experts. That shape is the template to copy."
+  - "Robodebt and the Dutch childcare scandal were not model-accuracy failures. They turned weak signals into adverse action at volume and pushed the cost of every error onto citizens. The cost ran to billions — and, in the Netherlands, a government."
+  - "'Human in the loop' is not a control on its own. A review of 41 oversight policies concluded people often cannot perform the oversight those policies assume. Design for contestability and institutional review, not a rubber stamp."
+  - "For the Philippines, the 2026 DICT–CSC circular and the 200,000-seat Gemini rollout create the conditions to scale. The order of operations — baseline, registry, procurement terms, contestability — decides whether that scale helps or harms."
+sources:
+  - label: "Nextgov — Agencies report over 1,700 AI use cases (19 Dec 2024)"
+    url: "https://www.nextgov.com/artificial-intelligence/2024/12/agencies-report-over-1700-ai-use-cases/401803/"
+  - label: "Nextgov — Agencies report over 3,000 AI use cases in 2025 (Apr 2026)"
+    url: "https://www.nextgov.com/artificial-intelligence/2026/04/agencies-report-over-3000-ai-use-cases-2025/412898/"
+  - label: "OECD — Governing with Artificial Intelligence"
+    url: "https://www.oecd.org/en/publications/governing-with-artificial-intelligence_795de142-en.html"
+  - label: "UK National Audit Office — Use of artificial intelligence in government, summary (15 Mar 2024)"
+    url: "https://www.nao.org.uk/wp-content/uploads/2024/03/use-of-artificial-intelligence-in-government-summary.pdf"
+  - label: "GOV.UK — Ground-breaking use of AI saves taxpayers money (Consult, 16 Oct 2025)"
+    url: "https://www.gov.uk/government/news/ground-breaking-use-of-ai-saves-taxpayers-money-and-delivers-greater-government-efficiency"
+  - label: "GOV.UK — Landmark government trial shows AI could save civil servants nearly 2 weeks a year (2 Jun 2025)"
+    url: "https://www.gov.uk/government/news/landmark-government-trial-shows-ai-could-save-civil-servants-nearly-2-weeks-a-year"
+  - label: "GOV.UK — Government coders using AI to each save 28 days a year (12 Sep 2025)"
+    url: "https://www.gov.uk/government/news/government-coders-using-ai-to-each-save-28-days-a-year-and-build-more-tech"
+  - label: "Department for Business and Trade — Microsoft 365 Copilot evaluation (Aug 2025)"
+    url: "https://assets.publishing.service.gov.uk/media/68adbe409e1cebdd2c96a19d/dbt-microsoft-365-copilot-evaluation.pdf"
+  - label: "Commonwealth of Pennsylvania — Shapiro Administration generative AI pilot results (21 Mar 2025)"
+    url: "https://www.pa.gov/governor/newsroom/2025-press-releases/-shapiro-administration-leads-the-way-in-ethical-use-of-ai.html"
+  - label: "Open Government Products (Singapore) — Pair impact report"
+    url: "https://reports.open.gov.sg/pair/overview"
+  - label: "METR — Measuring the impact of early-2025 AI on experienced open-source developer productivity (10 Jul 2025)"
+    url: "https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/"
+  - label: "Ben Green — The flaws of policies requiring human oversight of government algorithms (Computer Law & Security Review, 2022)"
+    url: "https://arxiv.org/abs/2109.05067"
+  - label: "Alon-Barkat & Busuioc — Human–AI interactions in public sector decision making (JPART; preprint)"
+    url: "https://arxiv.org/abs/2103.02381v1"
+  - label: "EU AI Act — Article 14: Human oversight"
+    url: "https://artificialintelligenceact.eu/article/14/"
+  - label: "US Office of Management and Budget — M-25-22, Driving Efficient Acquisition of AI in Government (3 Apr 2025)"
+    url: "https://www.whitehouse.gov/wp-content/uploads/2025/02/M-25-22-Driving-Efficient-Acquisition-of-Artificial-Intelligence-in-Government.pdf"
+  - label: "Law Society Journal — Crude, cruel and unlawful: Robodebt Royal Commission findings (Jul 2023)"
+    url: "https://lsj.com.au/articles/crude-cruel-and-unlawful-robodebt-royal-commission-findings/"
+  - label: "SBS News — Robodebt class action settlement approved (23 Jun 2026)"
+    url: "https://www.sbs.com.au/news/article/robotdebt-victims-class-action-settlement-approved/sd5arll0g"
+  - label: "Herstel Toeslagen — Childcare benefits recovery dashboard (18 Sep 2026)"
+    url: "https://herstel.toeslagen.nl/dashboard-kinderopvangtoeslag/"
+  - label: "Amnesty International — Xenophobic Machines (Oct 2021)"
+    url: "https://www.amnesty.org/en/documents/eur35/4686/2021/en/"
+  - label: "DutchNews — Tax office fined €2.7m for discriminating against dual national families (8 Dec 2021)"
+    url: "https://www.dutchnews.nl/news/2021/12/tax-office-fined-e2-7m-for-discriminating-against-dual-national-families/"
+  - label: "Public Matters — Cabinet Rutte resigns following childcare benefit scandal (15 Jan 2021)"
+    url: "https://publicmatters.nl/en/actueel/update-dutch-politics-cabinet-rutte-resigns-following-childcare-benefit-scandal/"
+  - label: "DTI — National AI Strategy Roadmap 2.0 and CAIR launch (3 Jul 2024)"
+    url: "https://dti.gov.ph/news/dti-drives-ai-innovation-national-roadmap-2-0-cair-launch"
+  - label: "Baker McKenzie — Philippines: New Government Procurement Act enacted into law (2024)"
+    url: "https://insightplus.bakermckenzie.com/bm/projects/philippines-new-government-procurement-act-enacted-into-law"
+  - label: "Cruz Marcelo — DICT and CSC issue JMC on ethical and responsible AI in government (2026)"
+    url: "https://cruzmarcelo.com/dict-and-csc-issue-joint-memorandum-circular-establishing-principles-for-the-ethical-and-responsible-development-deployment-and-use-of-artificial-intelligence-in-the-government/"
+  - label: "Baker McKenzie — Philippines launches responsible AI governance framework (Jul 2026)"
+    url: "https://www.bakermckenzie.com/en/insight/publications/2026/07/philippines-launches-responsible-ai-governance-framework"
+  - label: "Google Cloud — DICT and Google Cloud partner on AI and cybersecurity initiatives (Jun 2026)"
+    url: "https://www.googlecloudpresscorner.com/2026-06-21-DICT-and-Google-Cloud-Partner-on-Multi-Year-AI-and-Cybersecurity-Initiatives-to-Deliver-Next-Generation-Citizen-Services"
+  - label: "WHO Philippines — WHO and DOH target 12M Filipinos screened for TB by 2026 (12 Nov 2025)"
+    url: "https://www.who.int/philippines/news/detail/12-11-2025-who--doh-target-12m-filipinos-to-be-screened-for-tuberculosis-by-2026--philippines-aims-to-double-budget-for-tb-services"
+  - label: "WHO — Use of machine learning for fraud detection within the claims management process in the Philippines (5 Dec 2024)"
+    url: "https://www.who.int/publications/i/item/9789240101333"
+  - label: "Asia News Network / Inquirer — PhilHealth eyes AI-powered system to detect fraud in health claims (8 Jan 2026)"
+    url: "https://asianews.network/philippine-national-insurance-eyes-ai-powered-system-to-detect-fraud-in-health-claims/"
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Columns from '../../components/blog/Columns.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Timeline from '../../components/blog/Timeline.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">In late 2016, Australia's welfare department was sending more than 20,000 automated debt notices a week. Each letter told a citizen they owed money, calculated by spreading their annual tax-office income evenly across the year and comparing it with what they had declared fortnight by fortnight. If they disagreed, it was up to them to prove it. Seven years later a Royal Commission called the scheme "a crude and cruel mechanism, neither fair nor legal." In October 2025, the UK government published results for a tool that read more than 50,000 public consultation responses in about two hours and agreed with expert reviewers more closely than the experts agreed with each other. Both get filed under "government AI" — though Robodebt was a simple automated rule, which is rather the point. They have almost nothing else in common, and the difference is the subject of this article.</p>
+
+My argument is this: **public-sector AI succeeds where it augments high-volume, reversible work under named human authority, and fails catastrophically where it automates adverse decisions about people — however accurate the model.** The model is rarely what decides the outcome. The decisive factors are the shape of the work, who carries the cost of an error, whether that error can be caught and reversed before it harms someone, and whether a named official, not a system, signs the decision.
+
+I have worked on both sides of this line. In 2024 my team won the Department of Health's Hack4Health with a fraud-detection platform for unified health data, and in 2025 I trained public servants for the Department of Information and Communications Technology (DICT). Fraud detection can become a Robodebt if it is wired the wrong way; AI assistants for public servants are the tools whose benefits are easiest to overstate.
+
+The article starts with the adoption curve and what governments use AI for, then grades the evidence on outcomes — measured, self-reported or projected. It sets out a framework for deciding where AI belongs in a public process and goes deep on four dimensions: the anatomy of the two best-known failures, the "human in the loop" problem, procurement and lock-in, and the Philippine context. It closes with case examples, the strongest objections, implications for ministers, CIOs, frontline staff and citizens, a phased plan and the limits of the evidence.
+
+## Context: why this matters now
+
+### The adoption curve has turned steep
+
+The clearest public data on government AI adoption comes from the United States, where federal agencies must publish an inventory of their AI use cases. The 2024 inventory listed 1,757 use cases from 37 agencies, 227 of them classed as rights- or safety-impacting. The 2025 inventory listed 3,611 from 56 agencies — a 105% increase — with 445 classed as "high-impact." The intelligence community and the Department of Defense are exempt, so the real figure is higher.
+
+<Exhibit
+  n={1}
+  title="US federal agencies more than doubled their reported AI use cases in a single year"
+  sub="Public AI use cases reported in the federal inventory"
+  source="Nextgov reporting on OMB inventories (Dec 2024; Apr 2026)"
+  sourceUrl="https://www.nextgov.com/artificial-intelligence/2026/04/agencies-report-over-3000-ai-use-cases-2025/412898/"
+  note="2024: 37 agencies, 227 rights- or safety-impacting. 2025: 56 agencies, 445 high-impact. The intelligence community and Department of Defense are exempt; other agencies may withhold national-security use cases. Counts reflect what agencies chose to report, not an independent audit."
+  table={[["Inventory", "Use cases", "Agencies"], ["2024", "1,757", "37"], ["2025", "3,611", "56"]]}
+>
+  <Columns data={[
+    { label: "2024 inventory", value: 1757, display: "1,757" },
+    { label: "2025 inventory", value: 3611, display: "3,611", hl: true },
+  ]} />
+</Exhibit>
+
+The growth is broad, but it is concentrated in agencies that hold large volumes of records about people. The Department of Health and Human Services reported the most use cases in 2025, 447, up from 271 the year before. The Department of Veterans Affairs reported 367 use cases and the largest number of high-impact ones, 215. That concentration matters: the agencies scaling fastest are the ones whose decisions most directly touch benefits, health and eligibility.
+
+<Exhibit
+  n={2}
+  title="The agencies adopting AI fastest are those that hold the most records about people"
+  sub="Reported AI use cases by agency, 2025 federal inventory (top five)"
+  source="Nextgov, Apr 2026"
+  sourceUrl="https://www.nextgov.com/artificial-intelligence/2026/04/agencies-report-over-3000-ai-use-cases-2025/412898/"
+  note="HHS reported 271 use cases in the 2024 inventory. The VA reported the most high-impact use cases in 2025 (215). The same reporting counted 102 use cases built on Microsoft Copilot — a sign of how much adoption arrives through enterprise licences rather than bespoke systems."
+  table={[["Agency", "2025 use cases"], ["Health and Human Services", 447], ["NASA", 425], ["Veterans Affairs", 367], ["Energy", 340], ["Justice", 314]]}
+>
+  <Bars data={[
+    { label: "Health & Human Services", sub: "up from 271 in 2024", value: 447, hl: true },
+    { label: "NASA", value: 425 },
+    { label: "Veterans Affairs", sub: "215 high-impact", value: 367, hl: true },
+    { label: "Energy", value: 340 },
+    { label: "Justice", value: 314 },
+  ]} />
+</Exhibit>
+
+### What governments actually use AI for
+
+Inventories count; they do not explain. The OECD's review of 200 government AI use cases across 11 government functions is more revealing about purpose. Most initiatives aim to automate or tailor services; fewer than half aim to improve decisions or forecasts; under a third aim to strengthen accountability or detect anomalies such as fraud. The OECD also found generative AI still rare among the cases it reviewed, and a large share of initiatives still at pilot stage.
+
+<Exhibit
+  n={3}
+  title="Most government AI aims to automate or tailor services; under a third targets accountability and anomaly detection"
+  sub="Share of 200 government AI use cases by stated purpose (a use case can have more than one)"
+  source="OECD, Governing with Artificial Intelligence"
+  sourceUrl="https://www.oecd.org/en/publications/governing-with-artificial-intelligence_795de142-en.html"
+  note="Purposes overlap, so shares sum to more than 100%. The sample is the OECD's curated set of 200 cases across 11 government functions, not a census."
+  table={[["Purpose", "% of use cases"], ["Automate or tailor services", 57], ["Improve decisions and forecasting", 45], ["Accountability and anomaly detection", 30]]}
+>
+  <Bars unit="%" max={100} data={[
+    { label: "Automate or tailor services", value: 57, hl: true },
+    { label: "Improve decisions & forecasting", value: 45 },
+    { label: "Accountability & anomaly detection", value: 30 },
+  ]} />
+</Exhibit>
+
+The categories hide the distinction that matters most. "Automating a service" can mean drafting a reply to a citizen's letter for an officer to edit, or it can mean issuing a debt notice. "Anomaly detection" can mean flagging a hospital claim for an investigator, or it can mean labelling a family as fraudsters. The category tells you the technique. It does not tell you who carries the risk.
+
+### The capability behind the numbers is thin
+
+The most rigorous look inside a government's AI capability I know of is the UK National Audit Office's 2024 survey of 89 government bodies, of which 87 responded. Just over a third had deployed AI, typically with one or two use cases each, and 70% were piloting or planning it. But only 21% had an AI strategy, only 30% had risk and quality-assurance processes that explicitly covered AI, and 70% said skills were a barrier to adoption. The NAO also found that existing digital and technology spend controls did not provide assurance that AI risks had been mitigated.
+
+<Exhibit
+  n={4}
+  title="Ambition outran capability: most UK government bodies were planning AI, but few had the strategy or assurance to govern it"
+  sub="Share of 87 responding UK government bodies, 2024"
+  source="UK National Audit Office, Use of artificial intelligence in government (Mar 2024)"
+  sourceUrl="https://www.nao.org.uk/wp-content/uploads/2024/03/use-of-artificial-intelligence-in-government-summary.pdf"
+  note="Survey of central government departments and larger arm's-length bodies. A further 61% had plans to develop an AI strategy and a further 46% had plans for AI-specific assurance. Data predate the 2025 trials discussed below."
+  table={[["Measure", "% of bodies"], ["Piloting or planning AI", 70], ["Skills a barrier to adoption", 70], ["Had deployed AI", 37], ["Risk and QA processes cover AI", 30], ["Had an AI strategy", 21]]}
+>
+  <Bars unit="%" max={100} data={[
+    { label: "Piloting or planning AI", value: 70 },
+    { label: "Say skills are a barrier", value: 70, hl: true },
+    { label: "Have deployed AI", value: 37 },
+    { label: "Assurance processes cover AI", value: 30, hl: true },
+    { label: "Have an AI strategy", value: 21, hl: true },
+  ]} />
+</Exhibit>
+
+Three forces push adoption faster than that capability grows. Fiscal pressure makes AI the most visible lever for doing more with the same headcount. Distribution means generative AI now arrives bundled into office software governments already license, so adoption happens by procurement default — the 102 Copilot-based entries in the US inventory are a symptom. And policy momentum sets targets in seats and use cases, not outcomes. Together, they mean the number of AI systems touching citizens is growing faster than the institutional ability to know whether they work.
+
+## The evidence: what we actually know about outcomes
+
+Before deciding where AI belongs, it is worth being precise about what the public evidence shows. I sort claims into four grades:
+
+1. **Measured against a baseline** — the AI's output is compared with a human or pre-existing standard on the same task, ideally with a control.
+2. **Measured without a counterfactual** — usage, time or quality is observed, but there is no comparison group.
+3. **Self-reported** — participants estimate their own time saved or quality gained.
+4. **Projected** — a modelled figure extrapolated from one of the above.
+
+Applied to the best-known government results, the grading looks like this.
+
+<Exhibit n={5} title="Few of the headline government AI results are measured against a baseline; most are self-reported or projected" sub="Author’s grading of public evidence on government AI outcomes" note="Author’s framework; facts from the sources cited in the text. Grades describe the evidence, not the quality of the programme.">
+  <Compare
+    cols={["Programme", "Sample and duration", "Headline result", "Evidence grade"]}
+    rows={[
+      { k: "UK Consult", v: ["One consultation, 50,000+ responses", "Themes in ~2 hours; F1 0.79–0.82 vs expert groups, against 0.74 human–human", "Measured against a baseline"] },
+      { k: "Consult savings", v: ["Extrapolation across government", "75,000 days and £20m a year", "Projected"] },
+      { k: "UK M365 Copilot trial", v: ["20,000+ civil servants, 3 months", "26 minutes a day saved", "Self-reported"] },
+      { k: "UK DBT Copilot evaluation", v: ["1,000 licences, Oct–Dec 2024", "Small time savings; no evidence of improved productivity", "Measured without a counterfactual"] },
+      { k: "UK coding assistants", v: ["1,000+ developers, Nov 2024–Feb 2025", "~28 days a year each; 15% of AI code used unedited", "Mostly self-reported; method not published"] },
+      { k: "Pennsylvania ChatGPT pilot", v: ["175 staff, 14 agencies, ~12 months", "95 minutes a day saved; 85%+ positive", "Self-reported"] },
+      { k: "Singapore Pair", v: ["98,527 monthly active users (Q2 2026)", "81 minutes per task; $28.9M savings vs $450,220 development cost", "Government estimate; method not published"] },
+      { k: "METR coding RCT (not government)", v: ["16 developers, 246 tasks", "19% slower with AI; believed 20% faster", "Randomised controlled trial"] },
+    ]}
+  />
+</Exhibit>
+
+### The strongest measured result: narrow, high-volume, reviewed
+
+The UK's Consult tool is the best evidence I know of that AI can do valuable public work. It analyses responses to public consultations, a high-volume, text-heavy task. In a test on more than 50,000 responses to a water-industry review, it produced themes in about two hours for £240 of compute, plus 22 hours of expert checking. Its themes agreed with expert groups about 83% of the time. More interesting is how its agreement compared with human agreement.
+
+<Exhibit
+  n={6}
+  title="The UK’s Consult tool agreed with expert reviewers more closely than human reviewers agreed with each other"
+  sub="Agreement on themes in consultation responses, F1 score (higher is better)"
+  source="GOV.UK, 16 Oct 2025"
+  sourceUrl="https://www.gov.uk/government/news/ground-breaking-use-of-ai-saves-taxpayers-money-and-delivers-greater-government-efficiency"
+  note="One consultation; the government's own evaluation. The £20m-a-year figure quoted alongside it is a projection, not a measurement."
+  table={[["Comparison", "F1"], ["Consult vs expert group B", "0.82"], ["Consult vs expert group A", "0.79"], ["Human reviewer vs human reviewer", "0.74"]]}
+>
+  <Bars max={1} data={[
+    { label: "Consult vs expert group B", value: 0.82, display: "0.82", hl: true },
+    { label: "Consult vs expert group A", value: 0.79, display: "0.79", hl: true },
+    { label: "Human vs human reviewer", value: 0.74, display: "0.74" },
+  ]} />
+</Exhibit>
+
+What makes this credible is a clear task, a quality metric, a human baseline on the same data and experts who still check the output. What makes it safe is that a theme summary decides nothing about an individual: a mislabelled response produces a slightly wrong summary that a policy team reads alongside other evidence. The error is cheap, visible and reversible.
+
+### The most-quoted results: large, and mostly self-reported
+
+The figures that dominate press releases are different in kind. The UK's Microsoft 365 Copilot trial reported 26 minutes saved per civil servant per day across more than 20,000 participants. Pennsylvania's ChatGPT Enterprise pilot reported 95 minutes a day across 175 employees. Both are participants' own estimates.
+
+<Exhibit
+  n={7}
+  title="Reported time savings from generative AI in government are large — and they are participants’ own estimates"
+  sub="Average minutes saved per staff member per day, as reported by participants"
+  source="GOV.UK (Jun 2025); Commonwealth of Pennsylvania (Mar 2025)"
+  sourceUrl="https://www.gov.uk/government/news/landmark-government-trial-shows-ai-could-save-civil-servants-nearly-2-weeks-a-year"
+  note="UK: Microsoft 365 Copilot trial, 20,000+ civil servants over three months. Pennsylvania: ChatGPT Enterprise pilot, 175 employees across 14 agencies over ~12 months. Both self-reported; the samples, tools and durations differ, so the bars are not comparable with each other."
+  table={[["Programme", "Minutes saved per day (self-reported)"], ["Pennsylvania ChatGPT Enterprise pilot", 95], ["UK Microsoft 365 Copilot trial", 26]]}
+>
+  <Bars unit=" min" data={[
+    { label: "Pennsylvania pilot", sub: "175 staff · 14 agencies", value: 95 },
+    { label: "UK Copilot trial", sub: "20,000+ civil servants", value: 26, hl: true },
+  ]} />
+</Exhibit>
+
+Self-reported time savings are not worthless. They are a reasonable signal of where people find a tool useful. But they are a poor measure of productivity, for a reason that one carefully designed study made unusually clear.
+
+### The perception gap
+
+In 2025 the research organisation METR ran a randomised controlled trial with 16 experienced open-source developers working on 246 real tasks in codebases they knew well. Before the study, the developers expected AI tools to make them 24% faster. Afterwards, they believed AI had made them 20% faster. Measured against the randomised control, they were 19% slower.
+
+<Exhibit
+  n={8}
+  title="Experienced developers believed AI made them 20% faster; measured against a control, it made them 19% slower"
+  sub="Change in task completion speed with AI tools allowed, % (positive = faster)"
+  source="METR, randomised controlled trial (10 Jul 2025)"
+  sourceUrl="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/"
+  note="16 experienced developers, 246 tasks, early-2025 tools (mainly Cursor with Claude 3.5/3.7 Sonnet). Not a government study, and METR has since published updated data on later tools; it is included because it measures the gap between perceived and measured speed directly."
+  table={[["Measure", "Speed change"], ["Forecast before the study", "+24%"], ["Belief after the study", "+20%"], ["Measured result", "−19%"]]}
+>
+  <Bars unit="%" data={[
+    { label: "Developers’ forecast", value: 24, display: "+24%" },
+    { label: "Developers’ belief afterwards", value: 20, display: "+20%" },
+    { label: "Measured against control", value: 19, display: "−19%", neg: true, hl: true },
+  ]} />
+</Exhibit>
+
+This is one study, in one domain, with early-2025 tools, and METR is careful to say it does not show AI is unhelpful in general. I cite it not to argue that government assistants slow people down, but because it shows users can be confidently wrong about a tool's effect — and self-report is exactly the measurement the most-quoted government figures rely on.
+
+The UK's Department for Business and Trade ran one of the more candid evaluations, with 1,000 Copilot licences from October to December 2024. It found small time savings on most tasks, but scheduling and image generation took longer than without the tool. Satisfaction was high — 72% of diary respondents — yet the evaluation "did not find evidence that time savings have led to improved productivity." 22% of respondents said they had identified hallucinations, 43% had not and 11% were unsure. The department described its own study as having no counterfactual. That honesty is worth more than a large number.
+
+### The net reading
+
+Taken together, the evidence supports three claims and no more. AI performs well on narrow, high-volume text tasks where quality can be checked against a human baseline. Staff like generative AI assistants and believe they save time, especially on drafting and summarising. And whether those savings become better or cheaper public services is largely unmeasured. Everything else — the "two weeks a year", the "£20m" — is projection: useful for business cases, not evidence of outcomes.
+
+## A framework: the harm–reversibility test
+
+When an agency asks me where to start, I place each candidate process on two axes. The horizontal axis is **the volume and reversibility of the work**: how many similar items flow through, how well documented the process is, and whether an error can be caught and corrected before it reaches a person. The vertical axis is **the severity of an adverse outcome for a person**: does the output decide, or strongly shape, whether someone loses money, liberty, a benefit or their reputation?
+
+<Exhibit n={9} title="Start where work is high-volume and reversible; on decisions that harm people, AI may inform but never decide" sub="Author’s framework for placing public-sector AI use cases" note="Author’s framework. Robodebt and the Dutch childcare system both sat in the top-right quadrant and were operated as if they were in the bottom-right.">
+  <Matrix
+    x="Volume and reversibility of the work"
+    y="Severity of an adverse outcome for a person"
+    quads={[
+      { title: "Assist a decision-maker", text: "Rare, high-stakes cases — AI retrieves and drafts; a qualified official decides and records reasons" },
+      { title: "Triage, never decide", text: "High-volume, high-stakes — AI prioritises and flags with evidence; a named human signs every adverse action; appeal is real", hl: true },
+      { title: "Not worth it yet", text: "Low volume, low stakes — the change cost exceeds the benefit" },
+      { title: "Start here", text: "High-volume, reversible, low harm — consultations, correspondence drafts, search, translation, internal knowledge", hl: true },
+    ]}
+  />
+</Exhibit>
+
+Three questions place a process on the grid:
+
+- **Who bears the error?** If the agency bears it — a slightly worse summary, a draft that needs editing — the process belongs at the bottom. If a citizen bears it — a debt, a fraud flag, a refusal — it belongs at the top, whatever the model's accuracy.
+- **Can it be reversed before it harms someone?** A draft letter reviewed by an officer is reversible. A notice already sent, a payment already stopped or a name already on a list is not reversible in any sense that matters to the person.
+- **Who signs?** Every adverse decision needs a named official who has seen the evidence, not just the score, and who can be asked to explain it. If nobody can be named, the system is deciding.
+
+The framework deliberately ignores model accuracy — not because accuracy is unimportant, but because a 95%-accurate model applied to a million adverse decisions still wrongs 50,000 people, and the two great failures of the last decade were failures of placement, not accuracy.
+
+## Deep dive 1: anatomy of the failures
+
+### Robodebt: a cheap signal turned into a debt
+
+Australia's Robodebt scheme ran from 2015 to 2019. The mechanism was simple. The Department of Human Services took a person's annual income from tax-office data, averaged it evenly into fortnights, and compared that average with the income the person had declared each fortnight while receiving benefits. A discrepancy generated a letter asking the recipient to disprove the debt or pay it. By Christmas 2016 the system was issuing more than 20,000 debt notices a week.
+
+The flaw was not hidden. People on benefits often earn unevenly, so averaging an annual figure across the year invents income in fortnights when none was earned. The Social Security Act requires entitlement to be calculated on income actually received in each fortnight, and the scheme shifted the burden of proving whether a debt existed from the department to the citizen. A tribunal found the income-averaging method unlawful as early as March 2017, yet the scheme continued for more than two years.
+
+The Royal Commission's final report in July 2023 called it "a crude and cruel mechanism, neither fair nor legal" and made 57 recommendations. It also found that officials had tried to mislead investigations into the scheme. The financial toll keeps rising: in June 2026 the Federal Court approved a further A$548.5 million settlement, including A$475 million in compensation shared by about 125,000 registered claimants. Around 450,000 people are estimated to have been affected, and the total cost across class actions now exceeds A$2.4 billion.
+
+### The Dutch childcare benefits scandal: a risk score that encoded nationality
+
+In the Netherlands, over several years in the 2010s, the tax authority reclaimed childcare benefits from tens of thousands of parents on accusations of fraud that later proved false, pushing many families into financial ruin. Amnesty International's investigation, *Xenophobic Machines*, documented that the authority's risk-classification system used nationality as a risk factor. In December 2021 the Dutch Data Protection Authority fined the tax administration €2.75 million for processing the (dual) nationality of applicants in an unlawful and discriminatory way — data that should have been deleted years earlier.
+
+The political accountability was the most severe of any algorithmic failure I know of. After a parliamentary inquiry report titled *Unprecedented Injustice* found that the tax authority had violated fundamental rule-of-law principles, Prime Minister Mark Rutte's cabinet resigned on 15 January 2021. The remediation is still running. As of 18 September 2026, the government's recovery dashboard showed 69,716 registrations, 44,105 parents formally recognised as victims, and 117,978 children paid under the children's compensation scheme.
+
+<Exhibit n={10} title="Both failures turned a weak signal into adverse action at volume and pushed the cost of error onto citizens" sub="Anatomy of the two best-documented public-sector algorithm failures" source="Royal Commission findings via LSJ (Jul 2023); SBS (Jun 2026); Herstel Toeslagen dashboard (Sep 2026); Amnesty (2021); Dutch DPA via DutchNews (Dec 2021)" sourceUrl="https://herstel.toeslagen.nl/dashboard-kinderopvangtoeslag/">
+  <Compare
+    cols={["Robodebt (Australia, 2015–2019)", "Childcare benefits (Netherlands, 2010s)"]}
+    rows={[
+      { k: "The weak signal", v: ["Annual tax income averaged into fortnights", "Risk classification that included nationality"] },
+      { k: "The automated step", v: ["Debt notice generated from a discrepancy — 20,000+ a week at peak", "Families flagged for investigation and benefits reclaimed"] },
+      { k: "Who bore the error", v: ["Citizens, who had to disprove the debt or pay", "Families, whose benefits were reclaimed on fraud accusations later shown to be false"] },
+      { k: "Warning ignored", v: ["Tribunal found averaging unlawful in 2017; scheme ran to 2019", "Nationality data kept long after it should have been deleted"] },
+      { k: "Scale", v: ["~450,000 people affected", "69,716 registrations; 44,105 parents recognised; 117,978 children paid"] },
+      { k: "Accountability", v: ["Royal Commission: 57 recommendations; >A$2.4B total cost", "Cabinet resigned (Jan 2021); €2.75M data-protection fine"] },
+    ]}
+  />
+</Exhibit>
+
+### The common mechanism
+
+Read side by side, the two cases share five design choices, and none of them is about model quality:
+
+1. **A cheap signal stood in for evidence.** Averaged income is not earned income; a nationality-weighted risk score is not evidence of fraud. Both were convenient because the data were already there.
+2. **The adverse action was automated at volume.** The output was not a flag for an investigator to weigh; it was, in effect, the decision, and volume made individual review impractical.
+3. **The cost of error moved to the citizen.** In Australia this was explicit: the citizen had to disprove the debt. In the Netherlands, families bore repayment demands on fraud labels that a parliamentary inquiry later found had violated fundamental rule-of-law principles. Either way, the people least equipped to contest an administrative decision carried its errors.
+4. **Review did not catch the errors.** A right of review means little if the reviewer sees the same score, works to the same targets and has no time. In both countries, the errors were ultimately exposed from outside the administering agency.
+5. **Institutional warnings did not stop the system.** In Australia, a tribunal ruling did not halt the scheme. In the Netherlands, the problem surfaced through parliament, regulators and civil society years after it began.
+
+### How to measure for this failure mode
+
+If you run any system that contributes to adverse decisions, four numbers tell you whether you are drifting towards a Robodebt: the **overturn rate** on review and appeal; **time to remedy** for a wrongly affected person; the **share of adverse actions with a named human sign-off** and recorded reasons; and **outcome disparity** across groups defined by protected or proxy attributes such as nationality, postcode and language. None needs a data scientist to compute, and all belong on the agency head's dashboard, not in a model card.
+
+## Deep dive 2: the human-in-the-loop problem
+
+The standard response to the failures above is "keep a human in the loop." I agree with the instinct and distrust the slogan, because the research on human oversight of government algorithms is sobering.
+
+Ben Green, then at the University of Michigan, reviewed 41 policies that prescribe human oversight of government algorithms and concluded that they rest on an untested assumption. In his words, the evidence suggests "people are unable to perform the desired oversight functions." Worse, oversight requirements can legitimise flawed systems by implying that a human check makes them safe. Green proposes shifting from individual human oversight to institutional oversight: agencies should have to justify, with evidence, both the use of an algorithm and the effectiveness of any proposed human oversight, and submit that justification to public review before adoption.
+
+The experimental evidence is more nuanced than "humans rubber-stamp." Saar Alon-Barkat and Madalina Busuioc ran pre-registered experiments in the Netherlands with 1,509 participants making public-sector employment decisions. They found no evidence of classic automation bias — participants did not defer to an algorithm more than to a human expert. They did find *selective adherence*: participants were more likely to accept advice that predicted poor performance for a member of a negatively stereotyped minority. The algorithm was not over-trusted in general. It was trusted when it confirmed what the reviewer already believed. That is arguably worse, because it means human review can amplify bias rather than correct it.
+
+The EU AI Act's Article 14 reflects these lessons: overseers of a high-risk system must be able to understand its limits, stay aware of the tendency to over-rely on it, interpret its output, override it and stop it. For remote biometric identification, two competent people must verify a match separately before anyone acts on it.
+
+What this means in design terms:
+
+- **Show the evidence, not just the score.** A reviewer who sees only "risk: high" has nothing to disagree with; one who sees the documents behind the flag can check them.
+- **Require reasons in both directions.** If officers must justify overriding the system but not agreeing with it, agreement becomes the path of least resistance.
+- **Measure the override rate, and worry at both extremes.** Near zero suggests rubber-stamping; very high suggests the system is not useful. Track it by reviewer and by group.
+- **Audit a random sample of agreed cases.** Nobody looks again at cases where reviewer and system agree, which is where selective adherence hides.
+- **Protect reviewers' time.** If a caseworker must clear hundreds of flags a day, the human in the loop is a formality regardless of training.
+
+<Note kind="field">
+Our winning Hack4Health entry was a fraud-detection platform for unified health data, which was later presented as BANT.AI at the 20th National Health Research Forum for Action. Fraud detection is the textbook case for this article’s thesis: the output that belongs in a government workflow is an investigator’s work-queue — each flagged claim with the specific inconsistencies that triggered it — not an automatic denial. Flag, explain, and let a person decide.
+</Note>
+
+## Deep dive 3: procurement, capability and vendor lock-in
+
+The failures above were built in-house. The next generation of public-sector AI risk is more likely to arrive through procurement, and the evidence suggests governments are not yet equipped to buy it well.
+
+### The capability gap is the procurement gap
+
+The NAO's finding that 70% of UK bodies saw skills as a barrier is a buying problem as much as a staffing one. An agency that cannot evaluate a model cannot write a specification that holds a vendor to performance, test claims independently or tell when it is locked in. The NAO noted more than 4,000 digital, data and technology vacancies across UK government by October 2022. The Philippine government faces the same constraint with a smaller budget.
+
+### What good procurement terms look like
+
+The most concrete guidance I have seen is the US Office of Management and Budget's April 2025 memorandum M-25-22 on AI acquisition, which applies to federal solicitations issued 180 days after it. It is worth reading in full, but four provisions are directly transferable to any government:
+
+- **Lock-in protections.** Agencies should favour proposals that include knowledge transfer, clear data and model portability, clear licensing terms and pricing transparency, and should secure rights to code and models produced under the contract.
+- **Independent evaluation on the agency's own data.** Agencies must evaluate systems using data they define — validation and test sets that are *not accessible to the vendor* and are as close as possible to real deployment data.
+- **Ongoing monitoring written into the contract.** Contracts must let the agency regularly evaluate performance, risks and effectiveness, for example quarterly or twice a year.
+- **Exit planned at the start.** When a contract will not be extended, agencies should work with the vendor to secure continued rights and access to data and derived products, in a usable format.
+
+The memo also requires agencies to revisit how they handle data ownership and intellectual property where agency information is used to train or fine-tune an AI system. That clause matters more than it looks. A model fine-tuned on a government's casework is an asset the government paid to create; if the contract does not say otherwise, it may belong to the vendor.
+
+### The enterprise-licence route
+
+Most government generative AI now arrives as seats on a vendor's platform: Copilot in the US and UK, ChatGPT Enterprise in Pennsylvania, Gemini Enterprise in the Philippines. Seat-based adoption is fast and low-risk for drafting work in the "start here" quadrant. It becomes lock-in when agencies build workflows, prompts, knowledge bases and integrations that run on one platform, with usage data only the vendor can analyse. The safeguards are mundane: keep prompts, retrieval indexes and evaluation sets in agency-controlled repositories; insist on exportable logs; and price the cost of switching before renewal, not at it. Singapore's government-built Pair, discussed below, shows the alternative.
+
+### How to measure procurement health
+
+For every AI contract: is there a held-out evaluation set the vendor has never seen? Is there a written exit plan with a data-export format? What is the unit cost per case handled, and how has it moved since signature? How many agency staff can explain how the system works? If the answer to the last question is zero, the agency does not operate the system; the vendor does.
+
+## Deep dive 4: the Philippine context
+
+The Philippines is moving quickly, and the pieces of a credible public-sector AI programme are arriving in roughly the right order.
+
+<Exhibit n={11} title="The Philippines now has strategy, procurement law, a responsible-AI circular and a platform — the remaining gap is measurement" sub="Selected milestones for AI in Philippine public service" source="DTI (2024); Baker McKenzie (2024); WHO (2024, 2025); Inquirer/ANN (2026); Cruz Marcelo (2026); Google Cloud (2026)" sourceUrl="https://cruzmarcelo.com/dict-and-csc-issue-joint-memorandum-circular-establishing-principles-for-the-ethical-and-responsible-development-deployment-and-use-of-artificial-intelligence-in-the-government/">
+  <Timeline items={[
+    { date: "JUL 2024", title: "National AI Strategy Roadmap 2.0 and CAIR launched (DTI)", state: "done" },
+    { date: "JUL 2024", title: "New Government Procurement Act (RA 12009) signed", text: "Names emerging technologies as a route to procurement efficiency.", state: "done" },
+    { date: "DEC 2024", title: "WHO documents PhilHealth’s machine-learning fraud detection", text: "ML to complement, not replace, existing fraud controls.", state: "done" },
+    { date: "NOV 2025", title: "DOH–WHO target 12 million TB screenings by 2026", text: "AI-assisted portable chest X-rays; TB budget ₱4.2B proposed for 2026 vs ₱2.6B in 2025.", state: "done" },
+    { date: "JAN 2026", title: "PhilHealth announces AI-enabled pre-validation of e-claims", text: "Checks whether lab tests match the diagnosis before processing.", state: "done" },
+    { date: "JUN 2026", title: "DICT–CSC Joint Memorandum Circular No. 003 on responsible AI", text: "Ten principles; disclosure; right to contest and request human review.", state: "hl" },
+    { date: "JUN 2026", title: "DICT and Google Cloud: Gemini Enterprise for public servants", text: "50,000+ now, 200,000 within 18 months; Cybershield with 56 agencies onboarded.", state: "hl" },
+  ]} />
+</Exhibit>
+
+### The governance foundation is better than most
+
+The joint memorandum circular issued by the DICT and the Civil Service Commission on 9 June 2026 is, on paper, a strong foundation. It applies from national agencies to local government units and state universities, and sets ten principles, starting with "proportionality and do no harm." It states that AI "shall not displace ultimate human responsibility and accountability," keeps agencies accountable even when AI work is outsourced, requires disclosure when AI is used in government services, and gives affected people the right to contest AI-assisted decisions and request human review. Each agency using AI must form an internal committee with IT and legal representatives and build the requirements into its strategic plan, terms of reference and contracts. Implementing guidelines are due within 90 days of effectivity.
+
+That is close to what this article argues for. Its weak point, as with most principles-based instruments, is that it says what must be true without yet saying how an agency will show it. There is no public inventory equivalent to the US one, and no published baseline for the Gemini rollout. The implementing guidelines may close some of these gaps.
+
+### Health is the clearest win — and the clearest test
+
+Tuberculosis screening is close to an ideal public-sector AI use case. The Philippines accounted for 6.8% of the world's 10.7 million TB cases in 2024, and the government aims to screen 12 million people by 2026 using AI-assisted portable chest X-rays. Screening is high-volume, an AI read prioritises cases for confirmatory testing rather than diagnosing anyone, and a false positive leads to a further test, not a penalty.
+
+PhilHealth's fraud work is the test. The WHO's 2024 review of PhilHealth's machine-learning work found that ML can complement non-ML fraud controls, with potential to classify claims more accurately and catch problems earlier. In January 2026 PhilHealth announced an AI-enabled pre-validation system that would check whether laboratory tests are consistent with the diagnosis on submitted e-claims and flag potentially ineligible claims before processing. I could not find public confirmation of its launch or results. The design question is the one that separated Hack4Health from Robodebt: does a flag send a claim to a trained reviewer with the evidence attached, or does it stop a hospital's payment? Pre-validation that returns a claim for correction with a clear reason is reversible and fair. Pre-validation that silently denies, at volume, against providers who cannot see why, is the top-right quadrant run as if it were the bottom-right.
+
+### The workforce rollout
+
+The DICT–Google partnership will put Gemini Enterprise in front of more than 50,000 public servants, rising to 200,000 within 18 months. For drafting, summarising, translation and internal search, this is the "start here" quadrant at national scale, and I expect real benefits. Two risks deserve attention. Without a baseline and a comparison-group evaluation, the country will be left with self-reported savings of the kind graded above. And once every officer has an assistant, it will drift into casework that touches citizens' rights, whether or not anyone decided it should.
+
+<Note kind="field">
+I ran AI technology trainings for public servants through the DICT in August and November 2025. Any such programme has to answer two practical questions before it teaches a single prompt: what staff are allowed to paste into a chatbot, and who is accountable when a drafted reply is wrong. Those two questions are the governance agenda in miniature — data-handling rules, and a named owner for every output.
+</Note>
+
+## Case examples
+
+**Singapore's Pair: own the product and the telemetry.** Built by the government's Open Government Products team, Pair reported 98,527 monthly active users in Q2 2026, with estimated savings of $28.9 million against a $450,220 development cost. Those are unpublished-method estimates. The real lesson is that an in-house team can see usage, measure value per task and iterate without renegotiating a contract — the benchmark for judging vendor terms.
+
+**The UK's Department for Business and Trade: publish the null result.** DBT published an evaluation that found high satisfaction but no evidence of improved productivity, including that some tasks took longer. Governments rarely publish evaluations that undercut a flagship programme; doing so is what makes the next decision credible.
+
+**PhilHealth's machine-learning review: complement, don't replace.** The WHO's account of PhilHealth's ML fraud work stresses an iterative, locally tailored approach in which ML supports existing claims review rather than replacing it — the right posture for any system in the top half of the framework.
+
+## Counterpoints
+
+<Note kind="counter" label="Objection 1: The productivity numbers are inflated, so the whole case is hype">
+Most of the impressive figures are self-reported or projected. The one randomised trial in this article found people slower while believing they were faster, and the most candid government evaluation found no evidence of improved productivity. If the benefits cannot be measured, governments should not be spending on them.
+</Note>
+
+<Note kind="response">
+The objection is largely right about the evidence and wrong about the conclusion. I graded the evidence harshly in Exhibit 5 because the headline numbers do not support the claims made for them. But the measured result we have — Consult — is strong, and staff consistently report value on drafting and summarising. The response to weak evidence is to fund the measurement: every rollout above a few hundred seats should include a baseline and a comparison-group evaluation. If a programme cannot afford to evaluate itself, it is too large for the evidence behind it.
+</Note>
+
+<Note kind="counter" label="Objection 2: Government should not use generative AI at all">
+Generative models hallucinate, are opaque, are controlled by a handful of foreign companies and are trained on data of unknown provenance. Government decisions require explanation and accountability. The safest course is to keep generative AI out of public administration entirely.
+</Note>
+
+<Note kind="response">
+This is right for one quadrant and wrong for the rest. Generative AI should not decide anything about a person, and the sovereignty and vendor-control risks justify procurement terms like those in M-25-22 as standard. But a blanket ban gives up the bottom-right quadrant, where an error is cheap and caught by the officer who edits the draft. Nor does a ban stop use: staff turn to consumer tools outside any logging or data rules, and DBT found colleagues outside its pilot lacked knowledge of the tools' limitations and security concerns. A governed tool is safer than an ungoverned one used anyway.
+</Note>
+
+<Note kind="counter" label="Objection 3: Humans in the loop just rubber-stamp, so oversight is theatre">
+Green's review of 41 oversight policies found people often cannot perform the oversight those policies assume. Caseworkers under volume targets will click "approve." Calling that a safeguard only legitimises the system.
+</Note>
+
+<Note kind="response">
+I agree that a human in the loop, on its own, is not a control, and selective adherence makes the problem worse than simple deference. But the alternative to bad oversight is designed oversight: evidence rather than scores, reasons for agreement as well as disagreement, monitored override rates, random audits of agreed cases and caseloads small enough for review to be real — plus Green's institutional layer, a public justification before deployment and a regulator or ombudsman able to stop the system. Robodebt was run by a department full of people; the design left the decisive check to a tribunal, the Ombudsman and, eventually, the courts.
+</Note>
+
+## Implications by stakeholder
+
+### Ministers and agency heads
+
+You own the decision that matters most: which quadrant a system may operate in. Approve AI for adverse decisions only with a named accountable official, a published justification, a working appeal route and the four failure-mode metrics on your own dashboard. Ask for evidence grades, not headline savings, and budget for evaluation as a line item — the political cost of a Robodebt dwarfs the cost of measuring.
+
+### CIOs, the DICT and central digital teams
+
+Your leverage is the platform and the contract. Maintain a public inventory of AI use cases with risk tiers. Standardise procurement clauses on held-out evaluation, portability, monitoring and exit. Keep prompts, indexes, evaluation sets and logs in government-controlled repositories so the 200,000-seat rollout does not become 200,000 seats of lock-in. And build a small, permanent evaluation team — one that can run a comparison-group study is worth more than another pilot.
+
+### Frontline staff
+
+You are both the main beneficiary and the last line of defence. Use AI freely on drafting, summarising and searching, and treat every output as a draft you sign. Where a system flags a person, ask to see the evidence behind the flag, and record your reasons whether you agree or disagree. If you cannot see why a case was flagged, say so — that is a design defect, not a personal failing.
+
+### Citizens
+
+Under the Philippine circular, you have a right to know when AI is used in a service and to contest an AI-assisted decision and request human review. Use it. In both great failures, the accountability that worked came from outside the agency — tribunals, journalists, Amnesty, class actions, parliament. Public AI improves when affected people complain in ways that get recorded.
+
+## What to do next: a phased plan
+
+<Exhibit n={12} title="A phased path that earns the right to scale before touching decisions about people" sub="Recommended sequence for an agency starting or resetting its AI programme" note="Author’s framework. Phases can overlap, but no use case should move into the top half of Exhibit 9 before phases 1–3 are complete for it.">
+  <Flow steps={[
+    { title: "1. Inventory and place", text: "List every AI use, including licensed assistants. Place each on the harm–reversibility grid and name an owner." },
+    { title: "2. Baseline", text: "Measure today’s time, quality, overturn and complaint rates for each target process — before any AI." },
+    { title: "3. Contract and controls", text: "Held-out evaluation set, portability and exit terms, logging, data rules and disclosure in place." },
+    { title: "4. Start bottom-right", text: "Deploy on high-volume, reversible work. Evaluate with a comparison group; publish the result, even if null.", hl: true },
+    { title: "5. Triage with evidence", text: "Only then use AI to prioritise high-stakes cases — flags with evidence, named sign-off, real appeal." },
+    { title: "6. Audit and review", text: "Quarterly: override rates, disparity, overturns, vendor performance. Annual public report." },
+  ]} />
+</Exhibit>
+
+In the first **90 days**, an agency can complete phases 1 and 2: inventory, placement, owners and baselines for the two or three processes it most wants to improve. In the **next 90 days**, it can put phase 3 in place — terms of reference with held-out evaluation and exit terms, logging, disclosures — while launching the first bottom-right deployment with a comparison group. Only after **six months**, with an evaluation in hand, should it consider phase 5 for any high-stakes process, with the four failure-mode metrics reported to the agency head from day one.
+
+For the Philippine government specifically, three actions would make the most difference: publish a national AI use-case inventory under the DICT–CSC circular; commission an independent, comparison-group evaluation of the Gemini rollout in at least two agencies; and make the "flag with evidence, named sign-off, real appeal" pattern a condition of any AI used in benefits, health claims or enforcement.
+
+## Limitations and methodology
+
+This article relies on public sources, and they have gaps. Use-case inventories count what agencies chose to report; the US figures exclude defence and intelligence and are not audited. The OECD sample is a curated set of 200 cases, and the NAO survey predates the large UK trials. Most productivity figures are self-reported or government estimates with unpublished methods; I have labelled them, and used METR's trial — of software developers, not civil servants — only to illustrate the gap between perceived and measured speed. Failure scale and cost figures come from a Royal Commission summary, a news report on a settlement and a government dashboard; affected-person counts are estimates defined differently in each country. Robodebt was a simple automated rule rather than machine learning, so I treat both failures as evidence about automated decision design, not about any particular model. My account of the DICT–CSC circular rests on law-firm summaries rather than the official text, and I found no public results for PhilHealth's 2026 pre-validation system. Finally, the harm–reversibility framework is my own: a decision aid, not an empirical finding.
+
+## Augment the many, never automate the verdict
+
+The lesson of the last decade of government AI is that the same technology produces very different outcomes depending on where it is placed. Read 50,000 consultation responses, draft the reply, screen the X-ray for a doctor to confirm: the error is cheap, visible and reversible, and the evidence that AI helps is strongest exactly there. Generate the debt, score the family, deny the claim: the error falls on a citizen, compounds at volume and is reversed, if at all, years later by a commission.
+
+Public-sector AI succeeds where it augments high-volume, reversible work under named human authority, and fails catastrophically where it automates adverse decisions about people — however accurate the model. The Philippines is building its programme at the moment when that lesson is clearest. It would be a waste not to use it.
+
+<Note kind="insight">
+In government, the question is never only "is the model accurate enough?" It is "what happens to the person when it is wrong, how quickly can it be undone, and whose name is on the decision?" Answer those three first, and most of the technology choices make themselves.
+</Note>

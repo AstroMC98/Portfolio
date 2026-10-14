@@ -1,0 +1,19 @@
+---
+/** 10×10 unit chart for a single share — "x in 100". Pairs with a headline number. */
+interface Props {
+  value: number; // 0–100
+  label: string;
+  display?: string;
+}
+const { value, label, display } = Astro.props;
+const on = Math.round(value);
+---
+<div style="display:flex; flex-wrap:wrap; gap:28px; align-items:center;" data-tip={`${label}: ${display ?? value + '%'}`}>
+  <div class="waffle" role="img" aria-label={`${display ?? value + '%'} — ${label}`}>
+    {Array.from({ length: 100 }, (_, i) => <i class:list={{ on: i < on }} style={`--i:${i}`}></i>)}
+  </div>
+  <div style="display:grid; gap:6px; max-width:280px;">
+    <span class="stat__num">{display ?? `${value}%`}</span>
+    <span class="stat__label">{label}</span>
+  </div>
+</div>

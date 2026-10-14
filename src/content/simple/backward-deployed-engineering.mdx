@@ -1,0 +1,124 @@
+---
+dek: "Engineers who go out to build AI for each customer learn a lot, and someone has to bring those lessons back into the product, so the next customer needs less custom work."
+takeaways:
+  - "Sending engineers out to customers wins business, but on its own it keeps a software company working like a consultancy: every customer is a new, hand-built project."
+  - "The fix is a return path: someone whose job is to spot what keeps repeating across customers and turn it into a reusable part of the product."
+  - "That job deserves a name (I call it Upstream Engineering), an owner and one measure: how much custom work the next customer does not need."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Stats from '../../components/blog/Stats.astro';
+import Lines from '../../components/blog/Lines.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Picture a travelling chef who cooks in a different customer's kitchen every month. Each kitchen has odd ovens, missing tools and its own house rules, so the chef improvises. The dinners are great. But if nobody ever writes the tricks down and adds them to the restaurant's cookbook, every new kitchen starts from scratch, and the business never gets easier to run. AI companies have the same problem, and the person who writes the tricks back into the cookbook is the job this piece is about.</p>
+
+People sometimes ask me, half-joking, whether there is such a thing as a "backward deployed engineer." It is a better question than it sounds.
+
+
+A **forward-deployed engineer** (FDE) is a software engineer who goes out to a customer and makes the product work inside that customer's world: their login system, their messy documents, their approval chains. The role was invented at Palantir and has become one of the hottest jobs in technology.
+
+The FDE carries the product *out*. My question is: who carries the lessons *back*?
+
+Here is my argument in one sentence. **The forward-deployed model only pays off like a software business if what engineers learn in the field flows back into the product, and that return trip is a separate job.** I call it Upstream Engineering. It deserves an owner, a budget and one main measure: how much custom work the *next* customer does not need.
+
+## Why this matters now
+
+The FDE role has exploded. Job postings for FDEs grew more than 1,000% in January to August 2026 compared with the same months a year earlier, while all tech postings grew 13%.
+
+<Exhibit
+  n={1}
+  title="Demand for forward-deployed engineers is growing far faster than the supply"
+  sub="Selected signals of FDE demand and supply, 2026"
+  source="Lightcast via Fortune (3 Sep 2026); Salesforce News (18 Mar 2026); Anthropic (2 Oct 2026); Gartner via Channel Dive (5 Oct 2026)"
+  sourceUrl="https://fortune.com/2026/09/03/forward-deployed-engineers-fast-growing-six-figure-silicon-valley-job-integrate-ai-with-customers-tech-careers-palantir/"
+>
+  <Stats items={[
+    { value: ">1,000%", label: "growth in FDE job postings, Jan–Aug 2026 vs. a year earlier", source: "LIGHTCAST · FORTUNE" },
+    { value: "10,000", label: "FDEs Anthropic plans to train at partner firms by end-2027", source: "ANTHROPIC · OCT 2026" },
+    { value: "~2,000", label: "engineers estimated to genuinely fit the role today", source: "GARTNER · OCT 2026" },
+  ]} />
+</Exhibit>
+
+Salesforce says it tripled its FDE team for its AI agent product in six months. So the industry is about to send many thousands of engineers into customer offices, most of them new to the role, each under pressure to make *this* customer happy *this* quarter. That is exactly how every deployment turns into a one-off, hand-built project.
+
+Hand-built projects are fine for a consultancy, which charges for its time. They are a slow disaster for a software company, because investors value it on the promise that customer number fifty costs far less to serve than customer number five.
+
+## Does the return trip really pay?
+
+There is good evidence that companies which started out doing lots of hands-on setup work *can* grow into healthy software businesses. The usual yardstick is **gross margin**: the share of each sale left over after paying the direct cost of delivering it. Software investors treat about 80% as the benchmark.
+
+- ServiceNow went from a 63.2% gross margin when it went public to 79% in 2024.
+- Workday went from 54.1% to 75%.
+- Palantir, the company that invented the FDE, went from 67.4% in 2019 to 82.4% in 2025.
+
+Many of today's fastest-growing AI companies are far below that benchmark. A Bessemer study of 20 high-growth AI startups found its fastest-scaling group averaging only about 25% gross margin, and a steadier group about 60%.
+
+I want to be honest about what this shows. It shows the climb is *possible*. It does not prove *why* it happened: prices, bigger customers and cheaper hosting all play a part, and we only study the companies that made it. And the AI startups' low margins come mostly from the cost of running the AI models, which FDEs do not fix. So my claim is the careful one: **climbing from services to software margins is possible, and it needs something that turns repeated hand-work into product.** The public numbers say that conversion happened. They say almost nothing about who did it. That gap is the job.
+
+## The upstream loop
+
+"Backward deployed" describes a direction, not a job. A better word is *upstream*, the way river engineers use it: working at the source so that everything downstream gets easier.
+
+The idea is easiest to see as a curve. Without a return path, each new customer needs roughly as much custom work as the last. With one, each customer leaves something reusable behind, so the next one needs less.
+
+<Exhibit
+  n={2}
+  title="With a return path, each new customer should need less custom work than the last"
+  sub="Share of each deployment built as custom code, with and without an upstream loop"
+  note="Illustrative, not measured data. The curves show the shape of the argument, not observed values."
+>
+  <Lines yMax={100} unit="%" series={[
+    { name: "No return path", points: [{ x: "Client 1", y: 80 }, { x: "Client 2", y: 78 }, { x: "Client 3", y: 77 }, { x: "Client 4", y: 76 }, { x: "Client 5", y: 75 }, { x: "Client 6", y: 75 }] },
+    { name: "With upstream engineering", points: [{ x: "Client 1", y: 80 }, { x: "Client 2", y: 65 }, { x: "Client 3", y: 50 }, { x: "Client 4", y: 38 }, { x: "Client 5", y: 30 }, { x: "Client 6", y: 25 }] },
+  ]} />
+</Exhibit>
+
+The loop that produces the second curve has five steps.
+
+<Exhibit n={3} title="Going out to customers and bringing lessons back are two halves of one loop" sub="The author’s field-to-product loop, simplified" note="Author’s framework.">
+  <Flow steps={[
+    { title: "Deploy", text: "An FDE makes the product work for one customer." },
+    { title: "Notice", text: "The same workaround shows up at a second and third customer." },
+    { title: "Extract", text: "An upstream engineer turns it into a reusable building block with settings.", hl: true },
+    { title: "Productise", text: "The product team adopts it and supports it." },
+    { title: "Redeploy", text: "The next FDE starts further ahead, and spots the next pattern." },
+  ]} />
+</Exhibit>
+
+Why does this work get neglected? Because a customer going live is a visible event with a happy client attached. Saving three weeks on the *next* customer is invisible unless somebody measures it.
+
+## What travels back, and when
+
+"Lessons from the field" is too vague to manage. In AI projects, five kinds of thing make the trip back: the **glue** that connects to a customer's systems, **connectors** to common business software, **test sets** that define what a good answer looks like, **safety and access rules** that security teams keep asking for, and **prompts** (the written instructions given to the AI).
+
+The hard part is timing. Software engineers have an old rule of thumb called the **rule of three**: when the same thing appears three times, turn it into a reusable piece. Do it after one customer and you build around that customer's quirks, which every later customer then has to fight. As the programmer Sandi Metz put it, "duplication is far cheaper than the wrong abstraction."
+
+So I use two tests before pulling something back: has it appeared at least three times, and can the differences between customers be handled as *settings* rather than new code? If something keeps repeating but every version is too different to capture with settings, that is a sign the product itself has a gap.
+
+<Note kind="field">
+On my evaluation platform for AI systems, the code that grades answers lives in one place, but each customer's definition of a good answer (the grading instructions, weights and pass marks) is stored as settings in a database. A new customer's idea of quality therefore needs a settings change, not new code. Their content differs; the structure does not. So the structure became product.
+</Note>
+
+## Jargon decoder
+
+- **Forward-deployed engineer (FDE):** an engineer who works on-site with a customer to make the product work in their environment.
+- **Upstream Engineering:** my name for the job of bringing field lessons back and turning them into reusable product.
+- **Deployment:** setting up the product for one customer so they can actually use it.
+- **Custom code:** software written for just one customer, which nobody else can reuse.
+- **Gross margin:** the share of revenue left after paying the direct cost of delivering the product.
+- **Primitive:** a reusable building block, such as a connector or a set of access rules.
+- **Configuration (settings):** changing behaviour by filling in options rather than writing new code.
+- **Abstraction:** a general-purpose version of something, built to serve many cases at once.
+
+## Who should own it, and how to measure it
+
+Product managers, platform teams and FDEs each cover part of this loop. Nobody owns all of it by default. That gap is the job.
+
+Three things make the role work. **Name it**, even if it starts as part of a senior engineer's week. **Keep it off sales targets**: someone paid on this quarter's deal will build whatever closes this quarter's deal, which is the opposite of the job. And **measure it on the next customer**: the headline number is how much custom code the next deployment needed. Supporting numbers are days from kick-off to the customer's first real use, and how many new customers actually reuse each building block.
+
+OpenAI's FDE team, formed in early 2025, built this loop in from the start, with regular sessions with its research and product teams and a shared channel for field notes. The team has been described as a big contributor to OpenAI's toolkit for developers building AI agents. That is field work becoming product.
+
+## If you remember one thing
+
+Forward-deployed engineering wins customers. Upstream engineering makes the next customer cheaper. A company with only the first is a consultancy with a software price tag; a company with both is a platform. So maybe the role is not "backward deployed" at all. It is the reason forward deployment works at scale. Give it a name, an owner and one number to watch: how much custom work the next customer does not need.

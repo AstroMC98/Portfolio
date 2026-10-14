@@ -1,0 +1,62 @@
+---
+/**
+ * Build-time highlighted code with per-line `data-n` hooks so the walkthrough
+ * script can light up the lines each step talks about.
+ */
+import { Code } from 'astro:components';
+import type { ShikiTransformer } from 'shiki';
+import { mcTheme } from '../../lib/shikiTheme';
+
+interface Props {
+  code: string;
+  /** Optional explicit line numbers (classic snippets carry their own `n`). */
+  numbers?: number[];
+  /** Lines highlighted on first paint (step 1), so no-JS readers still see the focus. */
+  initial?: number[];
+}
+const { code, numbers, initial = [] } = Astro.props;
+
+const lineHooks: ShikiTransformer = {
+  name: 'mc-line-hooks',
+  line(node, line) {
+    const n = numbers?.[line - 1] ?? line;
+    node.properties['data-n'] = String(n);
+    if (initial.includes(n)) this.addClassToHast(node, 'hl');
+  },
+};
+---
+<div class:list={['pane-code', { 'has-hl': initial.length > 0 }]}>
+  <Code code={code} lang="python" theme={mcTheme} transformers={[lineHooks]} />
+</div>
+
+<style>
+  .pane-code :global(pre) {
+    margin: 0;
+    padding: 14px 0;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    tab-size: 4;
+    overflow: visible !important;
+    background: transparent !important;
+  }
+  .pane-code :global(code) { display: block; min-width: max-content; counter-reset: none; }
+  .pane-code :global(.line) {
+    display: inline-block;
+    width: 100%;
+    padding-inline: 14px 22px;
+    border-left: 2px solid transparent;
+    transition: background-color 0.3s, border-color 0.3s, opacity 0.3s;
+  }
+  .pane-code :global(.line::before) {
+    content: attr(data-n);
+    display: inline-block;
+    width: 34px;
+    margin-right: 14px;
+    text-align: right;
+    color: #34433d;
+    user-select: none;
+  }
+  .pane-code.has-hl :global(.line) { opacity: 0.42; }
+  .pane-code.has-hl :global(.line.hl) { opacity: 1; background: rgb(61 245 167 / 0.08); border-left-color: var(--signal); }
+</style>

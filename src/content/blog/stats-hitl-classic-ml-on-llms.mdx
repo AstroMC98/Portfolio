@@ -1,0 +1,520 @@
+---
+title: "Stats, Classic ML and Human Review Around LLMs: The Upgrade That Beats a Bigger Model"
+dek: "When an LLM system is too expensive, too error-prone or too hard to trust, the usual reflex is a bigger model. The evidence points somewhere less glamorous: a router, a small classifier, a calibrated threshold, a conformal guarantee and a well-sized human review queue. This article covers how each works, what it buys you and where it breaks."
+date: 2026-07-22
+updated: 2026-10-14
+kicker: Engineering
+motif: stack
+tags: [LLMOps, Engineering, Forward Deployed]
+thesis: "The cheapest, most reliable gains in an LLM system come from the statistics, classic machine learning and human review wrapped around the model, not from swapping in a bigger model."
+takeaways:
+  - "Routing pays first. RouteLLM cut cost by more than 85% on MT-Bench while keeping 95% of GPT-4’s quality, and FrugalGPT matched GPT-4 with up to 98% lower cost."
+  - "On narrow labels, fine-tuned small models still beat zero-shot frontier LLMs in two 2024 studies. Use the LLM to label data and a small model to serve it."
+  - "A model saying “I’m 90% sure” is not a probability. Calibrate behavioural scores on held-out data, and check them with a reliability diagram."
+  - "Conformal prediction turns any score into a coverage guarantee a risk team can sign off, as long as you respect its assumptions."
+  - "Put humans where uncertainty and stakes are both high, size the queue with arithmetic, audit a random sample of what you automate, and feed every correction back."
+  - "Report evaluation scores with confidence intervals. A 100-question eval at 80% accuracy carries a ±7.8-point margin, and detecting a 3-point improvement takes roughly 1,000 questions."
+sources:
+  - label: "Chen, Zaharia & Zou — FrugalGPT (2023)"
+    url: "https://arxiv.org/abs/2305.05176"
+  - label: "Ong et al. — RouteLLM: Learning to Route LLMs with Preference Data (2024)"
+    url: "https://arxiv.org/abs/2406.18665"
+  - label: "LMSYS — RouteLLM blog post (1 Jul 2024)"
+    url: "https://lmsys.org/blog/2024-07-01-routellm/"
+  - label: "Anthropic — Models overview and list prices"
+    url: "https://platform.claude.com/docs/en/about-claude/models/overview"
+  - label: "Bucher & Martini — Fine-tuned small LLMs (still) significantly outperform zero-shot generative AI models (2024)"
+    url: "https://arxiv.org/abs/2406.08660"
+  - label: "Edwards & Camacho-Collados — Language models for text classification: is in-context learning enough? (LREC-COLING 2024)"
+    url: "https://arxiv.org/abs/2403.17661"
+  - label: "Wang et al. — Want To Reduce Labeling Cost? GPT-3 Can Help (2021)"
+    url: "https://arxiv.org/abs/2108.13487"
+  - label: "Gilardi et al. — ChatGPT outperforms crowd workers for text-annotation tasks (PNAS, 2023)"
+    url: "https://arxiv.org/abs/2303.15056"
+  - label: "Ein-Dor et al. — Active Learning for BERT: An Empirical Study (EMNLP 2020)"
+    url: "https://aclanthology.org/2020.emnlp-main.638/"
+  - label: "Kadavath et al. — Language Models (Mostly) Know What They Know (2022)"
+    url: "https://arxiv.org/abs/2207.05221"
+  - label: "OpenAI — GPT-4 Technical Report (calibration, Fig. 8)"
+    url: "https://arxiv.org/abs/2303.08774"
+  - label: "Xiong et al. — Can LLMs Express Their Uncertainty? (ICLR 2024)"
+    url: "https://arxiv.org/abs/2306.13063"
+  - label: "Guo et al. — On Calibration of Modern Neural Networks (ICML 2017)"
+    url: "https://arxiv.org/abs/1706.04599"
+  - label: "scikit-learn — Probability calibration (user guide)"
+    url: "https://scikit-learn.org/stable/modules/calibration.html"
+  - label: "Angelopoulos & Bates — A Gentle Introduction to Conformal Prediction (2021)"
+    url: "https://arxiv.org/abs/2107.07511"
+  - label: "Kumar et al. — Conformal Prediction with Large Language Models for Multi-Choice Question Answering (2023)"
+    url: "https://arxiv.org/abs/2305.18404"
+  - label: "Quach et al. — Conformal Language Modeling (ICLR 2024)"
+    url: "https://arxiv.org/abs/2306.10193"
+  - label: "Mohri & Hashimoto — Language Models with Conformal Factuality Guarantees (2024)"
+    url: "https://arxiv.org/abs/2402.10978"
+  - label: "Zheng et al. — Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena (2023)"
+    url: "https://arxiv.org/abs/2306.05685"
+  - label: "Miller — Adding Error Bars to Evals: A Statistical Approach to Language Model Evaluations (2024)"
+    url: "https://arxiv.org/abs/2411.00640"
+  - label: "GOV.UK — Ground-breaking use of AI saves taxpayers money (Consult, 16 Oct 2025)"
+    url: "https://www.gov.uk/government/news/ground-breaking-use-of-ai-saves-taxpayers-money-and-delivers-greater-government-efficiency"
+  - label: "McKinsey — The state of AI: How organizations are rewiring to capture value (Mar 2025)"
+    url: "https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai-how-organizations-are-rewiring-to-capture-value"
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Columns from '../../components/blog/Columns.astro';
+import Lines from '../../components/blog/Lines.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Timeline from '../../components/blog/Timeline.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Before I worked on LLMs, I built classic machine learning: a next-best-action data pipeline and a claims fraud-detection model at an insurer, workforce forecasting at a large outsourcing firm, TF-IDF skill scoring for a labour-market dashboard. When generative AI arrived, it became tempting to set that toolbox aside, as if a model that can write a sonnet made logistic regression obsolete. Anyone who has shipped LLM systems will recognise what usually comes next. The system is too expensive, wrong too often, or impossible to defend to a risk committee, and the proposed fix is a bigger model.</p>
+
+The bigger model sometimes helps. Usually it is the most expensive way to buy a small improvement, and it leaves the underlying problems where they were: the system can’t say which answers to trust, can’t prove its error rate, and can’t learn from the people who correct it.
+
+My thesis is that **the cheapest, most reliable gains in an LLM system come from the statistics, classic machine learning and human review wrapped around the model, not from a bigger model.** Routers and cascades cut cost. Small fine-tuned classifiers beat zero-shot prompting on narrow labels. Calibration and conformal prediction turn vague confidence into numbers a risk team can sign. Well-placed human reviewers catch the errors that matter and generate the training data that makes everything else improve. And honest evaluation statistics tell you whether any of it worked.
+
+The article runs as follows. I start with why this matters now and what the research shows, including where it is thin. Then I set out a reference architecture, the "LLM sandwich", and take each layer in depth: routing economics with a worked cost example, small classifiers and LLM-assisted labelling, calibration, conformal prediction for engineers, human-in-the-loop design, and the statistics of evaluation itself. I close with public and personal case examples, the strongest objections, implications by stakeholder, a 90-day plan and the limits of the evidence.
+
+## Context: why this matters now
+
+Three forces make the surrounding toolbox more valuable in 2026 than it was in 2023.
+
+**Price dispersion is extreme.** FrugalGPT’s authors noted in 2023 that fees across LLM APIs "can differ by two orders of magnitude". That is still true within a single vendor’s lineup. On Anthropic’s published list prices, Claude Opus 5.5 costs $4 per million input tokens and $20 per million output tokens. Claude Haiku 5.5 starts at $0.10 and $0.50, a fortieth of the price. Anthropic itself describes the small model as built "for high-volume, latency-sensitive tasks such as classification, extraction, and routing." When the vendors price routing as a separate job, sending every request to the flagship is a choice to overpay.
+
+**Trust has become the bottleneck, and review practice is uneven.** McKinsey’s March 2025 State of AI survey (1,491 respondents) found that 27% of organisations using generative AI review all of its outputs before use, while a similar share check 20% or less. Reviewing everything doesn’t scale. Reviewing almost nothing is a bet. What’s missing in between is a principled way to decide *which* outputs a human should see. That is a statistics problem.
+
+**Risk owners want numbers, not adjectives.** "The model is usually right" doesn’t get through a model-risk review. A sentence like this one does: "On a held-out set of 2,000 cases, the automated path’s error rate is 1.8% ± 0.6 points, and the system defers the 12% of cases where it can’t meet a 95% coverage guarantee to a human." Producing that sentence takes calibration, conformal methods and evaluation statistics, none of which a bigger model provides.
+
+## The evidence: what the research actually shows
+
+### Routing and cascades cut cost dramatically
+
+FrugalGPT (Chen, Zaharia and Zou, 2023) proposed three strategies for cutting LLM costs: prompt adaptation, LLM approximation, and the LLM cascade. A cascade sends a query to a cheap model first and escalates to a more expensive one only when a learned scorer judges the cheap answer unreliable. On their benchmarks, FrugalGPT could match the best individual model, GPT-4, "with up to 98% cost reduction", or improve accuracy by 4% at the same cost.
+
+RouteLLM (Ong et al., 2024) takes the other route: a router decides *before* generation which model to call. Its routers were trained on human preference data from Chatbot Arena, augmented with golden labels and an LLM judge. The authors compared four router designs: similarity-weighted ranking, matrix factorisation, a BERT classifier and a causal LLM classifier.
+
+<Exhibit
+  n={1}
+  title="Routing easy queries to a cheaper model cut cost by up to 85% while keeping 95% of GPT-4’s quality"
+  sub="Cost reduction from learned routing vs. using GPT-4 alone, at 95% of GPT-4 performance, by benchmark"
+  source="Ong et al., RouteLLM (arXiv 2406.18665); LMSYS blog (1 Jul 2024)"
+  sourceUrl="https://arxiv.org/abs/2406.18665"
+  note="Strong model GPT-4 Turbo, weak model Mixtral 8x7B. MT-Bench figure reported as “over 85%”. FrugalGPT (2023) reported cascades matching GPT-4 with up to 98% cost reduction on its own benchmarks."
+  table={[["Benchmark", "Cost reduction"], ["MT-Bench", ">85%"], ["MMLU", "45%"], ["GSM8K", "35%"]]}
+>
+  <Bars unit="%" max={100} data={[
+    { label: "MT-Bench", sub: "open-ended chat", value: 85, display: ">85%", hl: true },
+    { label: "MMLU", sub: "knowledge, multiple choice", value: 45, display: "45%" },
+    { label: "GSM8K", sub: "grade-school maths", value: 35, display: "35%" },
+  ]} />
+</Exhibit>
+
+The variation across benchmarks is the important detail. On MT-Bench, the best augmented router sent only 14% of calls to GPT-4. On MMLU it still needed 54%. Routing saves the most where traffic is mostly easy and the cheap model is genuinely good at the easy part. It saves the least where most queries really do need the strong model. Your traffic mix, not the paper’s, determines your savings.
+
+### Small, fine-tuned models still win narrow classification
+
+Bucher and Martini (2024) compared fine-tuned BERT-style models with zero-shot GPT-3.5, GPT-4 and Claude Opus on sentiment, approval, emotion and party-position tasks across news, tweets and speeches. Their conclusion was that "fine-tuning with application-specific training data achieves superior performance in all cases." Edwards and Camacho-Collados (LREC-COLING 2024) evaluated 16 classification datasets covering binary, multiclass and multilabel problems, and found that fine-tuning smaller models "can still outperform few-shot approaches of larger language models."
+
+The LLM still has a central role, just a different one: it is an excellent *labeller*. Wang et al. (2021) found that labels from GPT-3 cost 50% to 96% less than human labels for the same downstream performance, and that mixing GPT-3 and human labels did better when budgets were tight. Gilardi et al. (PNAS, 2023) found zero-shot ChatGPT beat crowd workers on four of five annotation tasks over 2,382 tweets, at under $0.003 per annotation, "about twenty times cheaper than MTurk".
+
+<Exhibit
+  n={2}
+  title="Use the LLM to label, a human to check and a small model to serve"
+  sub="Reported cost savings from LLM labelling vs. human labelling"
+  source="Gilardi et al., PNAS (2023); Wang et al. (2021)"
+  sourceUrl="https://arxiv.org/abs/2303.15056"
+  note="Gilardi et al. report ChatGPT annotations at about 1/20th of MTurk cost (shown as ~95%). Wang et al. report GPT-3 labels cost 50–96% less than human labels depending on task; the bar shows the lower bound."
+  table={[["Comparison", "Reported saving"], ["ChatGPT vs. MTurk crowd workers", "~20× cheaper (~95%)"], ["GPT-3 vs. human labels", "50–96%"]]}
+>
+  <Bars unit="%" max={100} data={[
+    { label: "ChatGPT vs. crowd workers", sub: "~20× cheaper per annotation", value: 95, display: "~95%", hl: true },
+    { label: "GPT-3 vs. human labels", sub: "reported range 50–96%", value: 50, display: "50–96%" },
+  ]} />
+</Exhibit>
+
+### Models’ stated confidence is a weak signal
+
+Here the evidence is more nuanced than "LLMs don’t know what they know". Kadavath et al. (2022) found larger pre-trained models "well-calibrated on diverse multiple choice and true/false questions" when the prompt was formatted appropriately. Models could also be trained to predict whether they knew an answer. But the GPT-4 technical report showed that the pre-trained model was well calibrated on a subset of MMLU while "the post-training hurts calibration significantly." Post-training is exactly what turns a base model into the chat model you actually call. And when models *verbalise* confidence, Xiong et al. (ICLR 2024) found they "tend to be overconfident."
+
+<Exhibit
+  n={3}
+  title="Even the better confidence signals barely beat a coin flip at spotting an LLM’s own mistakes"
+  sub="Failure-prediction AUROC in Xiong et al.’s example comparison (0.5 = random)"
+  source="Xiong et al., ICLR 2024 (arXiv 2306.13063)"
+  sourceUrl="https://arxiv.org/abs/2306.13063"
+  note="The abstract reports the white-box vs. black-box gap as “narrow, e.g., 0.522 to 0.605 in AUROC”. Black-box methods include verbalised confidence, sampling and consistency; white-box methods use token probabilities."
+  table={[["Method family", "AUROC"], ["White-box (token probabilities)", "0.605"], ["Black-box (verbalised, sampling, consistency)", "0.522"], ["Random guessing", "0.500"]]}
+>
+  <Bars max={1} data={[
+    { label: "White-box methods", sub: "token probabilities", value: 0.605, display: "0.605", hl: true },
+    { label: "Black-box methods", sub: "e.g. “I am 90% sure”", value: 0.522, display: "0.522" },
+    { label: "Random guessing", value: 0.5, display: "0.500" },
+  ]} />
+</Exhibit>
+
+### LLM judges agree with humans about as often as humans agree with each other, with biases
+
+Zheng et al. (2023) found that strong LLM judges such as GPT-4 achieve "over 80% agreement" with human preferences, about the level at which humans agree with each other. They also documented "position, verbosity, and self-enhancement biases". Automated judges are a useful instrument. They are not a neutral one, and they need calibrating against people.
+
+### What the evidence does not show
+
+Most of these studies use public benchmarks, not enterprise traffic. The classifier comparisons predate the 2025–2026 model generation. The routing savings depend on traffic mix. And few papers report end-to-end business outcomes. The evidence supports the direction of my argument strongly. It doesn’t tell you the size of the gain on your system. Only your own measurement can, which is the point of the last deep dive.
+
+## A framework: the LLM sandwich
+
+I think of a production LLM system as a sandwich. The model is the filling. The statistics and classic ML on both sides are what make it safe to pick up.
+
+<Exhibit n={4} title="The “LLM sandwich”: classic ML and statistics on both sides of the model" sub="Author’s reference architecture" note="Author’s framework.">
+  <Flow steps={[
+    { title: "Route", text: "A cheap classifier or gate decides: skip, small model, big model, or straight to a human." },
+    { title: "Generate", text: "The LLM does the open-ended work, only where it is needed." },
+    { title: "Score", text: "Calibrated scores, judge agreement or conformal sets, never self-reported confidence." },
+    { title: "Review", text: "Low-confidence and high-stakes cases go to a sized human queue; a random sample of the rest is audited.", hl: true },
+    { title: "Learn", text: "Corrections update router labels, classifier training sets, calibration maps, judge weights and eval sets." },
+  ]} />
+</Exhibit>
+
+Each layer answers one question. *Routing:* does this request need the expensive model at all? *Scoring:* how likely is this output to be right, in a number that means what it says? *Review:* who looks at what, and how many people does that take? *Learning:* how does every human decision make the next automated one better? A sixth question, *evaluation*, sits across all of them: how do we know any of this worked?
+
+## Deep dive 1: Routing and cascades, mechanics and economics
+
+**Mechanics.** There are two patterns. A **router** classifies the request up front and sends it to one model. It adds almost no latency, but it must predict difficulty from the request alone. A **cascade** calls the cheap model first, scores its answer, and escalates when the score is below a threshold. It sees the actual answer, so its decisions are better informed, but escalated requests pay for two calls and wait for both. Routers can be classic classifiers (logistic regression on embeddings works surprisingly well), small fine-tuned models, or a cheap LLM asked a yes/no question.
+
+**Economics.** The cost of either pattern is dominated by one number: the share of traffic that reaches the expensive model. The worked example below uses published list prices and simple assumptions.
+
+<Exhibit
+  n={5}
+  title="Routing cost is driven by one number: the share of traffic that reaches the big model"
+  sub="Illustrative monthly cost for 1 million requests (2,000 input + 500 output tokens each), US dollars"
+  source="Prices: Anthropic models overview (Opus 5.5 $4/$20, Haiku 5.5 from $0.10/$0.50 per million input/output tokens)"
+  sourceUrl="https://platform.claude.com/docs/en/about-claude/models/overview"
+  note="Illustrative arithmetic from published list prices — not measured data. Per request: Opus $0.018, Haiku $0.00045. Router: 30% sent to Opus, 70% to Haiku, router cost ignored. Cascade: Haiku answers everything, then the stated share is re-run on Opus. Excludes reasoning tokens, prompt caching and batch discounts, which change absolute figures but not the pattern."
+  table={[["Strategy", "Monthly cost", "vs. all-Opus"], ["All requests to Opus 5.5", "$18,000", "—"], ["Router, 30% to Opus", "$5,715", "−68%"], ["Cascade, 30% escalated", "$5,850", "−68%"], ["Cascade, 50% escalated", "$9,450", "−48%"], ["All requests to Haiku 5.5", "$450", "−98%"]]}
+>
+  <Columns prefix="$" data={[
+    { label: "All Opus", value: 18000, display: "$18,000" },
+    { label: "Cascade 50%", value: 9450, display: "$9,450" },
+    { label: "Cascade 30%", value: 5850, display: "$5,850", hl: true },
+    { label: "Router 30%", value: 5715, display: "$5,715", hl: true },
+    { label: "All Haiku", value: 450, display: "$450" },
+  ]} />
+</Exhibit>
+
+Three conclusions follow from the arithmetic. First, because the small model costs a fortieth of the large one, the cascade’s "wasted" first call barely registers: $450 a month against thousands. Second, the saving is close to the share of traffic you keep away from the big model, so moving escalation from 50% to 30% matters far more than which pattern you use. Third, the all-Haiku column is a reminder that the cheapest option is always available. The real question is how much quality you lose on the hard tail, and only an evaluation on your traffic can answer it.
+
+**Failure modes.** The danger is the hard query routed down. A cascade’s scorer can be confidently wrong, and a router can misjudge difficulty on unfamiliar inputs. Routers also drift as traffic changes, so a router trained on launch traffic degrades with everything else. Latency is the other trap: a cascade that escalates half its traffic makes half your users wait for two models.
+
+**How to measure.** Track three numbers weekly: the escalation (or routed-up) share, quality on a labelled sample of *routed-down* traffic, and cost per request. Plot quality against cost for several thresholds, as RouteLLM does, and choose the operating point deliberately. Don’t let the threshold be whatever someone typed on day one.
+
+<Note kind="field">
+In a hybrid RAG chatbot I built, the "router" was a gate in front of retrieval. A smaller, faster model looked at the recent conversation and answered one question: does the history already contain what is needed to answer this? If yes, the retrieve-and-rerank pipeline (25 candidates from ChromaDB, reranked to five with Cohere) was skipped. On follow-up-heavy conversations that removed roughly 40% of retrieval cost. It wasn’t a new model, just a decision placed in front of an expensive step. The statistical work that makes such a gate trustworthy is measuring the skip rate and checking a sample of skipped turns for answers that needed fresh context.
+</Note>
+
+## Deep dive 2: Small classifiers, and the LLM as labeller
+
+**Mechanism.** For a narrow, stable label set (intent, sentiment, policy category, document type, routing class), a fine-tuned small model learns the decision boundary from your own examples. A zero-shot LLM approximates it from a description. With enough labelled data, the model that has seen the boundary wins. It is also typically far cheaper and faster per call, runs on modest hardware, and produces a probability you can calibrate.
+
+**The pipeline I recommend.** Use the LLM to bootstrap labels, people to check them, and a small model to serve:
+
+1. Write a precise labelling guide, the same one you would give a human annotator.
+2. Have the LLM label a few thousand examples, with a short rationale per label.
+3. Have humans review a stratified sample, oversampling classes the LLM is unsure about and disagreements between two LLM runs.
+4. Train the small model on the corrected labels, and evaluate it on a *human-labelled* held-out set, never on LLM labels alone.
+5. Run active learning. Send the examples the small model is least certain about back to human review, and retrain. Ein-Dor et al. (EMNLP 2020) found active learning "can boost BERT performance, especially in the most realistic scenario": small annotation budgets and skewed classes.
+
+<Exhibit
+  n={6}
+  title="Classic ML wins on narrow, data-rich problems; LLMs win on open-ended ones"
+  sub="Author’s framework for choosing the core of a system"
+  note="Author’s framework."
+>
+  <Matrix
+    x="Labelled data available"
+    y="Task open-endedness"
+    quads={[
+      { title: "LLM + human review", text: "Open-ended, little data: prompt, evaluate, review" },
+      { title: "LLM, distilled over time", text: "Open-ended, lots of data: fine-tune or distil to cut cost" },
+      { title: "LLM labels → small model", text: "Narrow, little data: bootstrap labels with an LLM, check, then train" },
+      { title: "Classic ML", text: "Narrow, lots of data: gradient boosting or a fine-tuned small model", hl: true },
+    ]}
+  />
+</Exhibit>
+
+**Failure modes.** LLM labels carry the LLM’s systematic errors, and a model trained on them inherits those errors at scale. Unless a human-labelled test set exists, nobody will notice. Small classifiers are also brittle when the label set changes: a new product category means relabelling and retraining. The LLM handles that with a prompt edit.
+
+**How to measure.** Use macro-averaged F1 on a human-labelled test set, plus a confusion matrix, compared with the zero-shot LLM on the *same* set. If the small model doesn’t win on your data, keep the LLM. The point is to measure, not to be loyal to either tool.
+
+## Deep dive 3: Calibration, or making scores mean what they say
+
+**What calibration is.** A score is calibrated if, among all the cases scored 0.8, about 80% are actually correct. Accuracy and calibration are different properties. A model can be accurate and badly calibrated (right most of the time, but scoring its wrong answers just as high as its right ones), and then you can’t use its scores to decide what to automate.
+
+**How to see it.** A reliability diagram, which scikit-learn calls a calibration curve, bins predictions by score and plots the average score in each bin against the observed accuracy. Perfect calibration is the diagonal. Overconfident systems sag below it.
+
+<Exhibit
+  n={7}
+  title="A reliability diagram shows at a glance whether “90% confident” means 90% correct"
+  sub="Illustrative: observed accuracy by confidence bin, before and after calibration"
+  note="Illustrative — not measured data. Shows the typical shape of an overconfident system (below the diagonal) and the same scores after a monotonic recalibration fitted on held-out data."
+>
+  <Lines
+    yMin={0}
+    yMax={1}
+    series={[
+      { name: "Perfect calibration", points: [
+        { x: "0.1", y: 0.1 }, { x: "0.2", y: 0.2 }, { x: "0.3", y: 0.3 }, { x: "0.4", y: 0.4 }, { x: "0.5", y: 0.5 }, { x: "0.6", y: 0.6 }, { x: "0.7", y: 0.7 }, { x: "0.8", y: 0.8 }, { x: "0.9", y: 0.9 },
+      ] },
+      { name: "Raw scores", points: [
+        { x: "0.1", y: 0.08 }, { x: "0.2", y: 0.13 }, { x: "0.3", y: 0.19 }, { x: "0.4", y: 0.25 }, { x: "0.5", y: 0.31 }, { x: "0.6", y: 0.38 }, { x: "0.7", y: 0.46 }, { x: "0.8", y: 0.55 }, { x: "0.9", y: 0.66 },
+      ] },
+      { name: "After recalibration", points: [
+        { x: "0.1", y: 0.11 }, { x: "0.2", y: 0.19 }, { x: "0.3", y: 0.31 }, { x: "0.4", y: 0.38 }, { x: "0.5", y: 0.51 }, { x: "0.6", y: 0.58 }, { x: "0.7", y: 0.71 }, { x: "0.8", y: 0.79 }, { x: "0.9", y: 0.88 },
+      ] },
+    ]}
+  />
+</Exhibit>
+
+**Why verbalised confidence fails.** When you ask a chat model for a number, you get text that looks like a probability. It was produced by the same process that produces every other token, shaped by post-training towards sounding helpful and sure. The GPT-4 report’s finding that post-training "hurts calibration significantly", and Xiong et al.’s finding that verbalised confidence is overconfident, both point the same way. Treat a stated confidence as one weak feature, never as a threshold.
+
+**What to calibrate instead.** Use behavioural signals you can compute:
+
+- Token log-probabilities, where the API exposes them.
+- Agreement across several samples or several judges.
+- Retrieval scores, such as the top reranker score or the share of the answer supported by retrieved passages.
+- A small classifier’s probability.
+- A model’s P(True) when asked to verify an answer it has already given, which Kadavath et al. found more informative when the model compares several of its own samples.
+
+Then fit a calibration map on held-out labelled data:
+
+- **Temperature scaling** divides a model’s logits by a single learned parameter. Guo et al. (2017) found this "single-parameter variant of Platt Scaling" surprisingly effective for modern neural networks. Because it doesn’t change which class is top, it doesn’t change accuracy.
+- **Platt (sigmoid) scaling** fits a logistic curve to the scores. It works well with small calibration sets.
+- **Isotonic regression** fits any monotonic curve. It is more flexible but overfits easily. scikit-learn’s guidance is that it does as well as or better than sigmoid only "when there is enough data (greater than ~ 1000 samples)."
+
+The non-negotiable rule, also from the scikit-learn guide, is to fit the calibrator on data *disjoint* from the data used to train the model. Otherwise the scores will be pushed towards 0 and 1, which is overconfidence by construction.
+
+**Failure mode.** Calibration is fitted to a distribution. When traffic drifts, the map drifts with it. Recheck the reliability diagram on fresh labels every month, or whenever your drift monitors fire.
+
+## Deep dive 4: Conformal prediction, explained for engineers
+
+Calibration gives you scores that mean what they say *on average*. Conformal prediction gives you something risk teams value more: a guarantee. Angelopoulos and Bates describe the guarantees as "explicit, non-asymptotic" and valid "even without distributional assumptions or model assumptions", and the method wraps "any pre-trained model, such as a neural network."
+
+**The recipe (split conformal, classification).** Assume you want a 90% coverage guarantee, so α = 0.10.
+
+1. Hold out a calibration set of n labelled examples the model hasn’t trained on. A few hundred to a thousand is typical.
+2. For each one, compute a *nonconformity score*: how badly the model fits the true answer. The simplest is 1 minus the model’s probability for the true label.
+3. Sort the scores and take the ⌈(n + 1)(1 − α)⌉-th smallest as your threshold, q̂. With n = 999 and α = 0.10, that is the 900th smallest score.
+4. At prediction time, include in the *prediction set* every label whose nonconformity score is at most q̂.
+5. The guarantee: the prediction set contains the true label at least 90% of the time, averaged over future cases, provided that future cases are exchangeable with the calibration set (roughly, drawn from the same distribution).
+
+**Why engineers should care: the set size is your routing signal.** If the set has one label, the model is confident in a way that carries a guarantee, so automate. If it has two or three, send it to a human with the shortlist pre-filled. If it is empty or contains everything, something is off-distribution, so escalate. This turns "review the uncertain ones" into a rule you can defend in a sentence.
+
+**Extending it to LLMs.** Three papers show how:
+
+- **Multiple choice.** Kumar et al. (2023) applied conformal prediction to multiple-choice question answering and found its uncertainty estimates "tightly correlated with prediction accuracy". They also probed what happens when questions come from subjects outside the calibration data, which is exactly where exchangeability breaks.
+- **Free-form generation.** Quach et al. (ICLR 2024) sample candidate answers until a calibrated stopping rule says the set is sufficient, with a rejection rule to prune bad candidates. The returned set contains at least one acceptable answer with high probability.
+- **Factuality.** Mohri and Hashimoto (2024) apply the idea to factual claims: the system backs off to less specific statements until a guarantee holds. They report "80-90% correctness guarantees" while keeping "the majority of the LM’s original output".
+
+**Failure modes.** The guarantee is *marginal*: 90% averaged over all cases, not 90% for every subgroup. It can be 99% on easy cases and 70% on a minority segment. The guarantee also depends on exchangeability, which drift breaks. So conformal prediction needs a drift monitor next to it and periodic recalibration, and per-segment checks where fairness matters.
+
+## Deep dive 5: Human-in-the-loop design
+
+Human review is the most expensive component in the sandwich and the one most often designed by accident. Four design decisions matter: where to place humans, how many to hire, what they see, and where their corrections go.
+
+**Where to place humans.** Two dimensions decide it: how uncertain the system is (from calibrated scores or conformal set size) and how costly an error would be.
+
+<Exhibit
+  n={8}
+  title="Spend human attention where uncertainty and stakes are both high, and audit the rest by sampling"
+  sub="Author’s framework for placing human review"
+  note="Author’s framework."
+>
+  <Matrix
+    x="Model uncertainty"
+    y="Cost of an error"
+    quads={[
+      { title: "Human approves", text: "Confident but high-stakes: human signs off, or reviews a large sample in regulated settings" },
+      { title: "Human decides", text: "Uncertain and high-stakes: the model drafts and shortlists; a person makes the call", hl: true },
+      { title: "Automate + audit", text: "Confident and low-stakes: automate, and review a random sample to measure the error rate" },
+      { title: "Automate + learn", text: "Uncertain, low-stakes: fall back gracefully or ask the user; queue for active learning" },
+    ]}
+  />
+</Exhibit>
+
+The bottom-left quadrant is the one teams forget. If you only review what the model is unsure about, you never see its *confident* mistakes, and you can’t estimate the error rate of the automated path. A small random audit fixes that. At 18,800 automated decisions a day, a 2% audit is 376 reviews. That is enough to estimate a 2% error rate to within about ±1.4 points each day (95% interval, normal approximation), and much tighter over a week.
+
+**Queue sizing is arithmetic, not hope.** Suppose 20,000 items arrive a day and the threshold sends 6% to review: 1,200 items. At four minutes each, that is 80 hours of review a day, or about 13 reviewers at six productive hours each. Lower the threshold so 12% go to review and you need about 27. Little’s law (average queue length equals arrival rate times average wait) gives the backlog: at 150 items an hour and a target two-hour wait, expect about 300 items in the queue at any moment. Do this arithmetic before choosing a threshold. The threshold is a staffing decision as much as a statistical one.
+
+**What reviewers see.** Show the model’s answer, its evidence (retrieved passages, the conformal shortlist) and the reason it was flagged. Make agreeing with the model no easier than disagreeing, for example by requiring a reason code either way. Track per-reviewer agreement with the model over time. A reviewer who agrees 100% of the time is either reviewing very easy cases or not really reviewing.
+
+**Where corrections go.** Every human decision is a label. Send it, with versioning, to:
+
+- The router’s training set.
+- The small classifier’s active-learning pool.
+- The calibration set.
+- The evaluation set.
+- The weights of any automated judges.
+
+That last destination is where a little statistics goes a long way.
+
+<Note kind="field">
+On my LLMOps Evaluation Platform, several LLM judges score each output, and an ensemble combines them into a single trust score. Each judge’s contribution is its calibration weight multiplied by its stated confidence. When the judges disagree (a standard deviation across their scores above 0.15), the case is flagged for human review. When a reviewer corrects a score, each judge’s reliability on that case is computed as 1 minus the absolute gap between its score and the human’s. Its weight is then updated as an exponential moving average with α = 0.2. With that α, after ten corrections the starting weight retains only 0.8¹⁰ ≈ 11% of its influence, so a judge’s standing is mostly set by its last ten or so encounters with a human. Judges that agree with reviewers earn influence and judges that drift lose it, with no manual retuning. After calibration the ensemble’s scores reached a Spearman correlation of 0.89 with expert human raters. It is a few lines of statistics.
+</Note>
+
+**Failure modes.** Review queues fail in predictable ways. Thresholds get set without staffing arithmetic, so the backlog grows until someone lowers the bar. Reviewers rubber-stamp under time pressure. Corrections go into a spreadsheet nobody trains on. Each of these is a design flaw, not a reason to abandon human review.
+
+## Deep dive 6: The statistics of evaluation
+
+Every claim in this article, such as "the router kept quality" or "the classifier beat zero-shot", rests on an evaluation score. Most evaluation scores in industry are reported without error bars, which means nobody knows whether a difference is real.
+
+Evan Miller’s *Adding Error Bars to Evals* (2024) argues that "evaluations are experiments" and should be analysed as such. His recommendations are practical:
+
+- **Report a standard error with every score,** and a 95% interval of about ±1.96 standard errors.
+- **Use clustered standard errors** when questions share a passage or source. He shows they "can be over 3X larger than naive standard errors". On one benchmark the clustered figure was 1.34 against 0.44 naive.
+- **Compare models with paired differences** on the same questions, which shrinks the error because scores are correlated.
+- **Resample answers** to reduce within-question noise. Two samples per question cut that variance by a third, and four cut it by half in his example.
+- **Run a power analysis before building an eval.** In his worked example, detecting a 3-point difference with 80% power at the 5% significance level takes roughly 969 questions, and he recommends at least 1,000 for new evaluations.
+
+<Exhibit
+  n={9}
+  title="A 100-question eval cannot tell 80% accuracy from 87%"
+  sub="Half-width of a 95% confidence interval on an accuracy of 80%, by number of evaluation questions (percentage points)"
+  source="Method: Miller, Adding Error Bars to Evals (2024)"
+  sourceUrl="https://arxiv.org/abs/2411.00640"
+  note="Arithmetic illustration using the normal approximation 1.96 × √(p(1 − p)/n) with p = 0.8 and independent questions. Clustered questions widen these intervals; paired comparisons between models narrow the interval on the difference."
+  table={[["Questions", "95% CI half-width (points)"], ["50", "±11.1"], ["100", "±7.8"], ["200", "±5.5"], ["500", "±3.5"], ["1,000", "±2.5"], ["2,000", "±1.8"]]}
+>
+  <Columns unit=" pts" data={[
+    { label: "50", value: 11.1, display: "±11.1" },
+    { label: "100", value: 7.8, display: "±7.8", hl: true },
+    { label: "200", value: 5.5, display: "±5.5" },
+    { label: "500", value: 3.5, display: "±3.5" },
+    { label: "1,000", value: 2.5, display: "±2.5" },
+    { label: "2,000", value: 1.8, display: "±1.8" },
+  ]} />
+</Exhibit>
+
+The implication is uncomfortable. Many teams pick prompts, models and routing thresholds on evaluation sets of 50 to 100 examples, where a 5-point "win" is well inside the noise. Either grow the set, use paired comparisons, or report the decision as a judgement call, not a measurement.
+
+**Failure mode.** Evaluating on data the system was tuned on. Keep a sealed test set that nobody optimises against, and refresh it from production traffic each quarter so it tracks drift.
+
+## Case examples
+
+**UK government’s Consult tool (public).** In October 2025 the UK government reported using its AI tool Consult to analyse more than 50,000 responses to the Independent Water Commission’s call for evidence. The analysis took about two hours, cost £240, and was followed by 22 hours of expert checking. The structure is the sandwich in miniature: the model does the volume, people check, and statistics establish whether the result can be trusted. The government measured agreement against two independent groups of human experts.
+
+<Exhibit
+  n={10}
+  title="Checked against human experts, the AI theme analysis agreed with them more often than the experts agreed with each other"
+  sub="F1 agreement scores on theme assignment, UK government Consult evaluation"
+  source="GOV.UK, 16 Oct 2025"
+  sourceUrl="https://www.gov.uk/government/news/ground-breaking-use-of-ai-saves-taxpayers-money-and-delivers-greater-government-efficiency"
+  note="Government-reported figures; the two Consult scores are its agreement with two separate expert groups. The release also reports Consult agreed with expert groups almost 83% of the time vs. 55% between the two human groups. The “75,000 days / £20m a year” savings figure in the same release is a projection."
+  table={[["Comparison", "F1"], ["Consult vs. expert group (1)", "0.79"], ["Consult vs. expert group (2)", "0.82"], ["Human expert group vs. human expert group", "0.74"]]}
+>
+  <Bars max={1} data={[
+    { label: "Consult vs. experts (1)", value: 0.79, display: "0.79", hl: true },
+    { label: "Consult vs. experts (2)", value: 0.82, display: "0.82", hl: true },
+    { label: "Human vs. human", value: 0.74, display: "0.74" },
+  ]} />
+</Exhibit>
+
+The lesson is not that the AI beat the humans. It is that measuring human–human agreement gave the result meaning. Without that baseline, a 0.79 F1 is an uninterpretable number. With it, the team could say the tool was within the range of expert disagreement, which is the claim a decision-maker needs.
+
+**Claims fraud detection at an insurer (my work).** At AIA Digital+ I built fraud detection for claims, with a projected 25% reduction in claims processing time. Later, at the DOH–DAP Hack4Health 2024 hackathon, I took first place with a fraud-detection platform for unified health data.
+
+<Note kind="field">
+Fraud detection — which I worked on at AIA Digital+ — is the clearest illustration of a principle that carries straight into LLM projects: the model’s job is to rank, and the threshold is a business decision. Investigators have finite hours, so the useful output is not "fraud / not fraud" but a calibrated risk ordering, plus a cut-off set by how many cases the team can review in a day. That is the same queue arithmetic as Deep dive 5, and it applies unchanged when the scorer is an LLM.
+</Note>
+
+**Skill-gap scoring with TF-IDF (my work).** For a labour-market skill-gap dashboard, raw frequency counts of skills in job postings put generic skills like "communication" at the top of every list and buried the technical skills that drive curriculum decisions. Weighting each skill by term frequency times inverse document frequency (TF-IDF), a technique decades older than transformers, surfaced the distinctive skills instead.
+
+<Note kind="field">
+In our comparison against expert assessments, the raw-count ranking disagreed with the experts on 34% of skills and the TF-IDF-weighted ranking on 11%. The weighting is (tf / n) × log(n / (df + 1)), so a skill that appears in every posting is suppressed. A rule-based alias map kept related-but-distinct skills such as "data analysis" and "data engineering" separate, which embedding similarity would have merged. No LLM was needed for the core ranking. An LLM could have helped with extraction, but the statistic did the deciding.
+</Note>
+
+## Counterpoints
+
+<Note kind="counter" label="Objection 1: “Frontier models make classic ML obsolete.”">
+Every model generation closes the gap. The studies showing fine-tuned small models winning used 2023–2024 LLMs. Today’s frontier models, with long context and many-shot prompting, will match a fine-tuned classifier without any training pipeline to maintain.
+</Note>
+
+<Note kind="response">
+Partly right. The accuracy gap on many narrow tasks is narrowing, and for low-volume or fast-changing label sets the LLM’s flexibility is worth more than a few points of F1. I would not build a fine-tuning pipeline for 500 requests a day. But the case for classic ML never rested on accuracy alone. At volume, a small model’s cost and latency are a fraction of a frontier call’s. Its probabilities can be calibrated, and it doesn’t change unless you retrain it. Vendors agree: they price small models specifically for classification and routing. The right test is a measured comparison on your data, with error bars.
+</Note>
+
+<Note kind="counter" label="Objection 2: “Human-in-the-loop doesn’t scale.”">
+The whole point of AI is to remove humans from the loop. If people still review outputs, you’ve built an expensive workflow tool, and the queue will grow with volume until it becomes the bottleneck.
+</Note>
+
+<Note kind="response">
+Reviewing everything doesn’t scale; that much is true. But selective review does, because the reviewed share is a parameter you set. Calibrated scores and conformal set sizes let you choose it, and queue arithmetic lets you staff it. The audit sample is what lets you *shrink* human review safely over time: you can show the automated path’s error rate falling and lower the review share with evidence. Human review isn’t the opposite of automation. It is how you earn more of it.
+</Note>
+
+<Note kind="counter" label="Objection 3: “Calibration doesn’t matter if accuracy is high.”">
+If the system is 97% accurate, fussing over whether its scores are calibrated is academic. Ship it.
+</Note>
+
+<Note kind="response">
+At 1 million decisions, 97% accuracy is 30,000 errors. Calibration decides whether you can find them. If the wrong answers score as high as the right ones, no threshold separates them and every error reaches a customer. If scores are calibrated, a threshold can catch a large share of the errors by reviewing a small share of traffic. The objection is right in one case: when every decision is cheap and easily reversed, nobody needs to find errors in advance. Most enterprise decisions aren’t like that.
+</Note>
+
+<Note kind="counter" label="Objection 4: “LLM judges can replace human reviewers.”">
+If GPT-4-class judges agree with humans over 80% of the time, as often as humans agree with each other, why pay people at all?
+</Note>
+
+<Note kind="response">
+Use judges for volume, absolutely. But the same study documents position, verbosity and self-enhancement biases, and a judge’s errors are correlated with the system it is judging in ways a human’s are not. Judges need an anchor: a stream of human labels that measures their agreement and reweights them. With that anchor, a panel of judges can replace most routine review. Without it, nothing tells you when the judges themselves have drifted.
+</Note>
+
+## Implications by stakeholder
+
+<Exhibit n={11} title="Each role owns a different part of the sandwich" sub="What each stakeholder should do differently" note="Author’s framework.">
+  <Compare
+    cols={["Executives", "Engineering leads", "Practitioners", "Risk & compliance"]}
+    rows={[
+      { k: "Stop", v: ["Approving model upgrades as the default fix", "Choosing thresholds by intuition", "Treating “I’m 90% sure” as a probability", "Accepting accuracy without error bars"] },
+      { k: "Start", v: ["Asking for the cost–quality curve, not one number", "Budgeting review queues with arithmetic", "Calibrating scores on held-out, disjoint data", "Asking for coverage guarantees and audit samples"] },
+      { k: "Fund", v: ["Labelling and reviewer capacity as a product line", "A routing layer and a sealed eval set", "Time to build classifiers where volume justifies it", "Independent checks of human–human agreement baselines"] },
+      { k: "Measure", v: ["Cost per resolved case; automated error rate", "Escalation share; queue wait; drift in calibration", "F1 with intervals; reliability diagrams", "Per-segment coverage; reviewer override rates"] },
+    ]}
+  />
+</Exhibit>
+
+**Executives** should change the question they ask when an AI system disappoints. Instead of "should we upgrade the model?", ask: what share of traffic actually needs the big model, what is the error rate of the automated path, and how do we know? Those answers usually point to cheaper fixes.
+
+**Engineering leads** should treat the router, the calibration map, the review queue and the eval set as first-class components, with owners, versions and tests, not glue code around the model.
+
+**Practitioners** gain the most career leverage. Engineers who can say "here is the reliability diagram and here is the conformal coverage by segment" are rare, and the techniques are learnable in weeks.
+
+**Risk and compliance teams** should ask for guarantees with stated assumptions, not reassurances. "90% coverage, marginal, assuming exchangeability, rechecked monthly against drift" is a statement they can audit.
+
+## What to do next: a 90-day plan
+
+<Exhibit n={12} title="Wrap statistics around an existing LLM system in one quarter" sub="Recommended sequence, starting with measurement" note="Author’s framework.">
+  <Timeline items={[
+    { date: "DAYS 1–30", title: "Measure honestly", text: "Build a sealed, human-labelled eval set of at least several hundred cases (aim for 1,000). Report every score with a 95% interval and compare variants with paired differences. Log behavioural signals per request: token log-probs where available, judge scores, retrieval scores, sample agreement.", state: "done" },
+    { date: "DAYS 31–60", title: "Route and calibrate", text: "Label traffic by difficulty and train a simple router or cascade threshold; plot quality against cost and pick the operating point deliberately. Fit a calibration map (temperature, Platt or isotonic) on disjoint data and publish a reliability diagram. Where labels are narrow and volume is high, bootstrap a small classifier with LLM labels and human checks.", state: "hl" },
+    { date: "DAYS 61–90", title: "Guarantee and learn", text: "Add split-conformal prediction sets and use set size to route to automation, shortlist review or escalation. Size the review queue with arithmetic and add a random audit sample of automated cases. Pipe every human correction into the router, classifier, calibration and eval sets, and reweight judges from human agreement." },
+  ]} />
+</Exhibit>
+
+A simple test tells you it is working. By day 90 you should be able to state, with an interval, the error rate of the automated path, the share of traffic reaching the expensive model, and the coverage guarantee on the review decision. You should also be able to say what each number was 30 days earlier.
+
+## Limitations and methodology
+
+These conclusions rest on evidence with real limits.
+
+- **Benchmarks, not enterprise traffic.** Routing savings (RouteLLM, FrugalGPT) come from public benchmarks with specific model pairs. Your traffic mix and model pair will produce different numbers, possibly much smaller ones.
+- **Model generations.** The classifier comparisons (Bucher and Martini; Edwards and Camacho-Collados) predate the 2025–2026 model generation. The gap may be narrower now, and I haven’t found a comparable study on the newest models.
+- **Calibration findings depend on the model.** The GPT-4 report’s calibration result concerns one model and an MMLU subset. Xiong et al.’s AUROC figures are an example from their abstract, not a universal constant.
+- **Conformal guarantees are conditional on assumptions.** Coverage is marginal and assumes exchangeability. Drift and subgroup differences can break both.
+- **Illustrative exhibits.** The cost exhibit is arithmetic on list prices with stated assumptions, and excludes reasoning tokens, caching and batch discounts. The reliability diagram is illustrative. The confidence-interval exhibit assumes independent questions.
+- **Government figures.** The Consult figures are government-reported, and its savings figure is a projection.
+- **Field notes.** My field notes describe systems I built. Their figures come from my own project records and haven’t been independently audited.
+
+## Closing
+
+The LLM is the most impressive component in any system it sits in, and usually the least controllable. Everything around it can be measured, tested, versioned and improved: the router, the classifier, the calibration map, the conformal threshold, the review queue and the evaluation set. And all of it costs less than an upgrade to the next model tier.
+
+That is the argument in one line. Before you buy a bigger model, build the instruments that tell you what the current one is doing. Usually they will show you a cheaper fix. When they don’t, they will at least show you that the upgrade worked.

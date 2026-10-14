@@ -1,0 +1,351 @@
+---
+/**
+ * "Which one are you?" track picker for career guides.
+ * Without JavaScript every track renders as a stacked section with a jump-link nav.
+ * With JavaScript the jump nav becomes an ARIA tablist (arrow keys, Home/End) and only
+ * the selected track is shown. Each track carries an illustrative 30/60/90-day plan grid.
+ */
+interface Track {
+  id: string;
+  label: string;
+  title: string;
+  start: string;
+  edge: string;
+  path: string;
+  skills: string[];
+  project: string;
+  plan: { when: string; focus: string; text: string }[];
+}
+interface Props {
+  tracks: Track[];
+  label?: string;
+  planNote?: string;
+  /** Prefix for element ids; keeps shareable anchors stable (e.g. #track-panel-student). */
+  idPrefix?: string;
+}
+const {
+  tracks,
+  label = 'Choose your starting point',
+  planNote = 'Illustrative plan by the author. Stretch or compress it to the hours you actually have.',
+  idPrefix = 'track',
+} = Astro.props;
+const uid = idPrefix;
+---
+<div class="tp" data-tp>
+  <div class="tp__tabs" role="tablist" aria-label={label} hidden data-tp-tabs>
+    {tracks.map((t, i) => (
+      <button
+        type="button"
+        class="tp__tab"
+        role="tab"
+        id={`${uid}-tab-${t.id}`}
+        aria-controls={`${uid}-panel-${t.id}`}
+        aria-selected={i === 0 ? 'true' : 'false'}
+        tabindex={i === 0 ? 0 : -1}
+        data-tp-tab={t.id}
+      >
+        <span class="tp__tab-n">{String(i + 1).padStart(2, '0')}</span>
+        <span class="tp__tab-l">{t.label}</span>
+      </button>
+    ))}
+  </div>
+
+  <nav class="tp__jump" aria-label={label} data-tp-jump>
+    {tracks.map((t, i) => (
+      <a href={`#${uid}-panel-${t.id}`}>
+        <span class="tp__tab-n">{String(i + 1).padStart(2, '0')}</span>
+        <span class="tp__tab-l">{t.label}</span>
+      </a>
+    ))}
+  </nav>
+
+  {tracks.map((t, i) => (
+    <section
+      class="tp__panel"
+      id={`${uid}-panel-${t.id}`}
+      aria-labelledby={`${uid}-h-${t.id}`}
+      data-tp-panel={t.id}
+    >
+      <p class="tp__kicker">Track {String(i + 1).padStart(2, '0')} · {t.label}</p>
+      <h3 class="tp__title" id={`${uid}-h-${t.id}`}>{t.title}</h3>
+
+      <dl class="tp__facts">
+        <div class="tp__fact">
+          <dt>Where you are starting</dt>
+          <dd>{t.start}</dd>
+        </div>
+        <div class="tp__fact tp__fact--hl">
+          <dt>Your unfair advantage</dt>
+          <dd>{t.edge}</dd>
+        </div>
+        <div class="tp__fact">
+          <dt>The path that fits</dt>
+          <dd>{t.path}</dd>
+        </div>
+        <div class="tp__fact">
+          <dt>Learn these first</dt>
+          <dd>
+            <ul class="tp__skills">
+              {t.skills.map((s) => <li>{s}</li>)}
+            </ul>
+          </dd>
+        </div>
+        <div class="tp__fact">
+          <dt>Build this</dt>
+          <dd>{t.project}</dd>
+        </div>
+      </dl>
+
+      <p class="tp__plan-h">Your next 90 days</p>
+      <ol class="tp__plan">
+        {t.plan.map((p) => (
+          <li class="tp__step">
+            <span class="tp__when">{p.when}</span>
+            <span class="tp__focus">{p.focus}</span>
+            <span class="tp__text">{p.text}</span>
+          </li>
+        ))}
+      </ol>
+      <p class="tp__note">{planNote}</p>
+    </section>
+  ))}
+</div>
+
+<script>
+  function initTrackPicker(root: HTMLElement) {
+    const tablist = root.querySelector<HTMLElement>('[data-tp-tabs]');
+    const jump = root.querySelector<HTMLElement>('[data-tp-jump]');
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-tp-tab]'));
+    const panels = Array.from(root.querySelectorAll<HTMLElement>('[data-tp-panel]'));
+    if (!tablist || !tabs.length || tabs.length !== panels.length) return;
+
+    tablist.hidden = false;
+    if (jump) jump.hidden = true;
+    root.classList.add('tp--tabs');
+
+    panels.forEach((panel, i) => {
+      panel.setAttribute('role', 'tabpanel');
+      panel.setAttribute('aria-labelledby', tabs[i].id);
+      panel.tabIndex = 0;
+    });
+
+    const select = (index: number, focus = false) => {
+      tabs.forEach((tab, i) => {
+        const on = i === index;
+        tab.setAttribute('aria-selected', on ? 'true' : 'false');
+        tab.tabIndex = on ? 0 : -1;
+        panels[i].hidden = !on;
+      });
+      if (focus) tabs[index].focus();
+    };
+
+    const fromHash = panels.findIndex((p) => `#${p.id}` === window.location.hash);
+    select(fromHash >= 0 ? fromHash : 0);
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(i));
+      tab.addEventListener('keydown', (e) => {
+        let next = -1;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (i + 1) % tabs.length;
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (i - 1 + tabs.length) % tabs.length;
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = tabs.length - 1;
+        if (next >= 0) {
+          e.preventDefault();
+          select(next, true);
+        }
+      });
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-tp]').forEach(initTrackPicker);
+</script>
+
+<style>
+  .tp {
+    margin-block: 2.2em;
+    border: 1px solid var(--line-2);
+    border-radius: 16px;
+    background: var(--ink-2);
+    overflow: hidden;
+    overflow-wrap: break-word;
+  }
+
+  /* Tabs (JS) and jump links (no JS) share one look */
+  .tp__tabs,
+  .tp__jump {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-bottom: 1px solid var(--line-2);
+  }
+  .tp__tabs[hidden],
+  .tp__jump[hidden] { display: none; }
+
+  .tp__tab,
+  .tp__jump a {
+    display: grid;
+    gap: 2px;
+    align-content: start;
+    min-width: 0;
+    padding: 14px 16px 12px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--text-2);
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .tp__tab + .tp__tab,
+  .tp__jump a + a { border-left: 1px solid var(--line); }
+  .tp__tab:hover,
+  .tp__jump a:hover { color: var(--text); background: rgb(255 255 255 / 0.02); }
+  .tp__tab[aria-selected='true'] {
+    color: var(--text);
+    border-bottom-color: var(--emph);
+    background: rgb(61 245 167 / 0.05);
+  }
+  .tp__tab:focus-visible,
+  .tp__jump a:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: -2px;
+  }
+  .tp__tab-n {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    color: var(--emph);
+  }
+  .tp__tab-l {
+    font-family: var(--font-display);
+    font-stretch: 80%;
+    font-weight: 750;
+    font-size: 1.05rem;
+    line-height: 1.15;
+  }
+
+  /* Panels */
+  .tp__panel {
+    padding: 24px 24px 22px;
+    scroll-margin-top: 110px;
+  }
+  .tp__panel + .tp__panel { border-top: 1px solid var(--line-2); }
+  .tp--tabs .tp__panel + .tp__panel { border-top: 0; }
+  .tp__panel:focus-visible { outline: 2px solid var(--signal); outline-offset: -4px; }
+
+  .tp__kicker {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--emph);
+  }
+  .tp .tp__title {
+    margin: 6px 0 0;
+    font-family: var(--font-display);
+    font-stretch: 76%;
+    font-weight: 800;
+    font-size: clamp(1.45rem, 1.2rem + 0.9vw, 1.9rem);
+    line-height: 1.05;
+    color: var(--text);
+  }
+
+  .tp__facts {
+    margin: 18px 0 0;
+    display: grid;
+    gap: 0;
+  }
+  .tp__fact {
+    display: grid;
+    grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+    gap: 4px 20px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+  }
+  .tp__fact dt {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-top: 0.35em;
+  }
+  .tp__fact dd {
+    margin: 0;
+    font-size: 0.98rem;
+    line-height: 1.6;
+    color: var(--text-2);
+  }
+  .tp__fact--hl dt { color: var(--emph); }
+  .tp__fact--hl dd { color: var(--text); }
+  .tp .tp__skills { margin: 0; }
+  .tp .tp__skills li + li { margin-top: 0.25em; }
+
+  /* 90-day plan grid */
+  .tp__plan-h {
+    margin: 22px 0 10px;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .tp .tp__plan {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .tp .tp__step {
+    margin: 0;
+    padding: 14px 16px 16px;
+    display: grid;
+    gap: 6px;
+    align-content: start;
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-top: 2px solid var(--line-2);
+    border-radius: 10px;
+    background: var(--ink);
+  }
+  .tp .tp__step:last-child { border-top-color: var(--emph); }
+  .tp__when {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--emph);
+  }
+  .tp__focus {
+    font-family: var(--font-display);
+    font-stretch: 80%;
+    font-weight: 750;
+    font-size: 1.08rem;
+    line-height: 1.15;
+    color: var(--text);
+  }
+  .tp__text {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--text-2);
+  }
+  .tp__note {
+    margin: 12px 0 0;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  @media (max-width: 720px) {
+    .tp__panel { padding: 20px 16px 18px; }
+    .tp__fact { grid-template-columns: minmax(0, 1fr); }
+    .tp__fact dt { padding-top: 0; }
+    .tp .tp__plan { grid-template-columns: minmax(0, 1fr); }
+    .tp__tab,
+    .tp__jump a { padding: 12px 10px 10px; }
+    .tp__tab-l { font-size: 0.95rem; }
+  }
+</style>

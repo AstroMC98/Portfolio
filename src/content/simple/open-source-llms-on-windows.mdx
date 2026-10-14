@@ -1,0 +1,139 @@
+---
+dek: "You can now run a capable AI model on an ordinary Windows computer for real work, especially when data must stay private, as long as you shrink it the right amount and make sure it actually fits in memory."
+takeaways:
+  - "Running AI on your own machine wins on privacy, working offline and control, not usually on price: a $429 graphics card only pays for itself after roughly 24,000 to 950,000 queries, depending on which cloud model you compare it with."
+  - "Shrinking a model to about 4–5 bits per number costs almost nothing in quality; going below 3 bits falls off a cliff, and newer models are more fragile than older ones."
+  - "Plan memory as the model plus its working memory for the conversation plus a little spare. Pick the biggest model that fits at 4–5 bits, then test it on your own real questions."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">A photo straight off a good camera is a huge file. Save it as a decent JPEG and it shrinks to a fraction of the size, yet on your phone it looks the same. Squeeze it too hard, though, and faces turn into blocks. AI models work the same way. Shrink one carefully and it runs on an ordinary Windows PC with almost no loss; shrink it too far and it quietly gets worse. Whether a model on your own computer is a toy or a serious tool depends far more on that squeeze, and on whether the result fits in memory, than on which model you picked.</p>
+
+That is the argument in one sentence: **for work where data must stay private, or costs must be predictable, a carefully shrunk open model on an ordinary Windows machine is now a credible choice for real use, and success depends less on which model you choose than on how much you shrink it and whether it fits in memory.**
+
+<Note kind="field">
+One of the production systems I have built never talks to the internet. It is an assistant for an organisation whose documents are not allowed to leave the building, so every answer comes from an open model running on the same machine as the user. It uses Ollama to run a Gemma 2 model, stores its document index on local disk, and makes no outbound calls. Because its interface is identical to the cloud version, the only thing that changes between local and hosted is a model name.
+</Note>
+
+## Jargon decoder
+
+- **LLM (large language model):** the kind of AI behind chat assistants. It predicts text one small piece at a time.
+- **Open-weight model:** a model whose files you can download and run yourself, such as Llama, Gemma or Qwen. "Weights" are the millions or billions of numbers the model learned.
+- **Running locally:** the model runs on your own computer instead of a company's servers in the cloud.
+- **Hosted API:** paying a provider per use to run a model on their servers.
+- **Quantization:** storing each of the model's numbers with fewer bits, like saving a photo as a smaller JPEG. "4-bit" means each number uses 4 bits instead of the usual 16.
+- **GGUF, Q4_K_M, Q2_K:** the file format for shrunk models on Windows, and labels for how hard they were squeezed. The digit is roughly the bits per number.
+- **VRAM:** the memory on your graphics card. The model needs to fit here to run fast.
+- **Context and KV cache:** context is how much text the model can consider at once; the KV cache is the working memory it uses to hold that text.
+- **Perplexity:** a quality score for how surprised a model is by real text. When comparing shrunk versions of one model, a bigger increase means more damage.
+- **Token:** a chunk of text, roughly part of a word. Speed is measured in tokens per second.
+
+## Why run a model on your own computer?
+
+There are four good reasons, and only one is cost.
+
+1. **Privacy and data residency.** In health, law, finance and government, sending document text to an outside company is often a compliance question before it is a technical one. A local model removes the question.
+2. **Working offline.** Field teams, ships, clinics with poor connections and sealed-off networks cannot depend on the cloud at all.
+3. **Control.** No usage limits, no surprise retirements of the model you rely on, no queue you do not own.
+4. **Cost**, but only at very high, steady volume. This is the weakest reason.
+
+Why the weakest? Small cloud models have become extraordinarily cheap. Take a typical question with about 3,000 tokens going in and 300 coming out, and a 16 GB graphics card that launched at $429. Here is how many questions it takes before the card has paid for itself in cloud fees you avoided.
+
+<Exhibit
+  n={1}
+  title="On price alone, local rarely wins: a $429 graphics card needs ~950,000 queries to beat the cheapest cloud model"
+  sub="Queries needed for avoided cloud fees to equal the cost of a $429 GPU (thousands)"
+  source="Author's estimate from list prices (Anthropic, Google; Oct 2026) and RTX 5060 Ti 16 GB launch price (PCGamesN)"
+  sourceUrl="https://platform.claude.com/docs/en/about-claude/models/overview"
+  note="Author's estimate. Ignores electricity, the rest of the PC, staff time and the quality gap: a small local model is not equivalent to a top cloud model. The point is the order of magnitude."
+  table={[["Cloud model compared", "Queries to $429"], ["Claude Opus 5.5", "~23,800"], ["Claude Sonnet 5.5", "~47,700"], ["Gemini 3.5 Flash-Lite", "~260,000"], ["Claude Haiku 5.5", "~953,000"]]}
+>
+  <Bars unit="K" data={[
+    { label: "vs a top-tier model", value: 23.8, display: "~24K" },
+    { label: "vs a mid-tier model", value: 47.7, display: "~48K" },
+    { label: "vs a budget model", value: 260, display: "~260K" },
+    { label: "vs the cheapest model", value: 953, display: "~953K", hl: true },
+  ]} />
+</Exhibit>
+
+Against expensive top-tier models, the card pays back within tens of thousands of questions, a few months for a busy internal tool. Against the cheapest, it takes close to a million. So if you are choosing local just to save money on a small workload with no privacy constraint, you are probably making a mistake. The strong case is the first three reasons, where the cloud is not an option at all.
+
+What changed is that model makers now ship models designed to be shrunk. In April 2025 Google released a 4-bit-trained version of its Gemma 3 27B model, cutting it from 54 GB to 14.1 GB, small enough for a single 24 GB gaming card.
+
+## Squeezing the model: how small is too small?
+
+A full-precision model stores each number in 16 bits. The most common shrunk version, called Q4_K_M, uses just under 5, so the file is under a third of the size. It also runs faster: in one published test, an 8-billion-parameter model produced about 72 tokens per second when shrunk, against 29 at full size, roughly 2.5 times faster. Speed matters: a model that types at 60 tokens a second feels instant; one at 5 makes users give up.
+
+But what does the squeeze cost in quality? Here is the extra "surprise" each level adds to Llama 3, compared with the full-size model.
+
+<Exhibit
+  n={2}
+  title="Quality loss is tiny down to about 4 bits, then falls off a cliff"
+  sub="Increase in perplexity vs full precision on Llama-3-8B (lower is better)"
+  source="llama.cpp, tools/quantize/quantize.cpp"
+  sourceUrl="https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/quantize.cpp"
+  table={[["Type", "+ perplexity"], ["Q8_0 (8-bit)", "+0.0026"], ["Q5_K_M (about 5-bit)", "+0.0569"], ["Q4_K_M (about 4-bit)", "+0.1754"], ["Q3_K_M (about 3-bit)", "+0.6569"], ["Q2_K (about 2-bit)", "+3.5199"]]}
+>
+  <Bars data={[
+    { label: "8-bit (Q8_0)", value: 0.0026, display: "+0.003" },
+    { label: "About 5-bit (Q5_K_M)", value: 0.0569, display: "+0.06" },
+    { label: "About 4-bit (Q4_K_M)", value: 0.1754, display: "+0.18", hl: true },
+    { label: "About 3-bit (Q3_K_M)", value: 0.6569, display: "+0.66" },
+    { label: "About 2-bit (Q2_K)", value: 3.5199, display: "+3.52", neg: true },
+  ]} />
+</Exhibit>
+
+Read it like the photo: nearly free down to about 5 bits, a small tax at 4, and a cliff below 3.
+
+There is a twist. For years the popular rule was "take the bigger model at fewer bits". On older models it held: every squeezed version of the 13-billion-parameter LLaMA-1, even at 2 bits, beat the smaller 7-billion one at full size. Newer models are more fragile. The same squeeze costs Llama 3 roughly three to four times as much quality as it cost LLaMA-1, and at 2 bits the damage jumps from 0.87 to 3.52. A likely explanation, though not a proven one, is that newer models are trained on far more text and pack more into every number, leaving less slack to throw away.
+
+So the rule for today: **run the largest model that fits at 4–5 bits, and never go below about 3.5 bits without testing it on your own work.**
+
+## The suitcase problem: will it fit?
+
+Think of your graphics card's memory as a suitcase. Three things must go in: the model itself, the working memory for the conversation (the KV cache), and about half a gigabyte to a gigabyte of spare room for the software.
+
+People forget the second item. The longer the text you let the model consider at once, the bigger its working memory gets, and at long lengths it can be as large as the model.
+
+<Exhibit
+  n={3}
+  title="At long context, a model's working memory can be as large as the model itself"
+  sub="Memory needed for Llama 3.3 70B: 4-bit model file vs its working memory (KV cache) at two context lengths (GB)"
+  source="Model file: bartowski GGUF repo (Hugging Face); working memory: author's calculation from the model config"
+  sourceUrl="https://huggingface.co/bartowski/Llama-3.3-70B-Instruct-GGUF"
+  note="Working memory is for one conversation at a time; serving several people at once multiplies it."
+  table={[["Item", "GB"], ["Model file at 4-bit (Q4_K_M)", "42.5"], ["Working memory at 8K context", "2.7"], ["Working memory at 128K context", "43.0"]]}
+>
+  <Bars unit=" GB" data={[
+    { label: "The model (4-bit)", value: 42.5, display: "42.5 GB" },
+    { label: "Working memory, 8K", value: 2.7, display: "2.7 GB" },
+    { label: "Working memory, 128K", value: 43.0, display: "43.0 GB", hl: true },
+  ]} />
+</Exhibit>
+
+The same thing happens to small models. An 8-billion-parameter model at 4 bits is about 4.9 GB, but set it to read 128K tokens at once "because it can" and its working memory adds about 17 GB, roughly four times the model. For most document-answering tools, 8K–16K is enough: you are sending the few most relevant passages, not the whole library.
+
+What happens if it does not fit? The software quietly moves part of the model into the computer's ordinary memory. It still works, so nobody notices, except that it becomes much slower. On Ollama, a command called `ollama ps` shows how much of the model is on the graphics card; anything less than 100% on a tool where speed matters is a bug.
+
+That is why I decide in this order: is there a good reason to run locally at all; how much memory is left once working memory is counted; what is the minimum squeeze I will accept; and only then, which is the biggest model that fits. Then I test it on 50–100 real questions against a cloud model. The quality score in Exhibit 2 is useful for comparing versions of one model, but it cannot tell you whether a model follows your instructions or admits when it does not know.
+
+## Running it safely
+
+Three tools cover almost everything on Windows: **Ollama** (a background service, good for a shared internal tool), **LM Studio** (a desktop app, good for comparing versions side by side) and **llama.cpp** (the engine underneath, for full control). All three speak the same language as OpenAI's cloud service, so existing software can switch between local and cloud models by changing an address. That is worth designing for, because the right choice changes as prices and models move.
+
+Most of the work of running it for real is not about the model:
+
+- **Lock the door.** Ollama has no built-in password and is only reachable from your own machine by default. Open it to a network without adding protection and anyone can use it. In September 2025, Cisco researchers found 1,139 Ollama servers exposed on the public internet, 214 of them running models.
+- **Treat model files like programs.** A flaw found in 2024 meant a specially crafted model file could run code on your machine. Download from known publishers, record each file's fingerprint (a hash), and keep the software updated.
+- **Read the licence.** "Open" is not one licence. Many models use Apache-2.0; Llama models use Meta's own terms, including a requirement to display "Built with Llama".
+- **Set limits on purpose.** Choose the context length and the number of people served at once deliberately, and test at those limits.
+
+<Note kind="insight">
+In a tool that answers from your documents, finding the right passages usually matters more than model size. A small model at around 4 bits, answering from the right three passages, will beat a larger model answering from the wrong ten.
+</Note>
+
+## If you remember one thing
+
+Yes, you can run a real AI model on a Windows PC, and with the right squeeze it is fast enough to use. The better question is whether you should, and how to fit it. Decide in the right order: a real reason to stay local, the memory you have, a floor of about 4 bits, then the biggest model that fits. Lock down the endpoint like any other service. And let your own test questions, not a leaderboard, have the final word.

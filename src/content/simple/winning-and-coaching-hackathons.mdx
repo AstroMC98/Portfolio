@@ -1,0 +1,145 @@
+---
+dek: "Hackathon judges only have a few minutes per team, so the winners are not the teams that build the most — they are the teams that think first, build something small that really works, and explain why it matters before they show what it does."
+takeaways:
+  - "Spend the first half thinking, not building, then scope down to one small thing you can actually finish — an unfinished big idea does not count."
+  - "Judges get two to four minutes per team, so lead with the why (who it helps and what hurts) and then show one part that really works."
+  - "Give each of four teammates one clear job — Builder, Doer, Talker, Support — and let the Talker ask the mentors for advice while the others build."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Columns from '../../components/blog/Columns.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Picture a cooking competition with a hundred contestants. The judges cannot eat a full meal from every kitchen. They take one spoonful, ask one or two questions, and move on. The cook who wins is not the one who made the most dishes. It is the one whose single spoonful was clearly finished, clearly for someone, and clearly good. Hackathons work the same way.</p>
+
+A hackathon is a short contest — often a weekend — where small teams build a working prototype of an idea and then show it to judges. I have finished on the podium at four of them, and since late 2023 I have also run hackathons and mentored teams as an instructor at CIIT and Eskwelabs. The big lesson from both sides is simple: **winning teams build less and prove more.**
+
+## The judges have about three minutes
+
+Hackathons can be huge. NASA's Space Apps Challenge had more than 114,000 participants in 2025 and judged more than 11,500 projects — for ten global awards. Even in smaller events with 13 or 100 teams, judges see a lot of projects in one day.
+
+So each team gets very little time. Major League Hacking (MLH), the biggest student hackathon league, suggests judges spend about two minutes watching each team present and demo, plus a minute for questions.
+
+<Exhibit
+  n={1}
+  title="Most teams get two to four minutes to show their idea"
+  sub="Time to present or demo, minutes"
+  source="MLH Judging Plan; Google Chrome AI Challenge 2025 rules; ETHGlobal; UN Big Data Hackathon"
+  sourceUrl="https://guide.mlh.com/general-information/judging-and-submissions/judging-plan.md"
+  table={[['Organiser', 'Minutes'], ['MLH (live)', '2'], ['Google Chrome AI Challenge (video)', 'under 3'], ['ETHGlobal (live demo)', '4'], ['UN hackathon (video)', 'up to 10']]}
+>
+  <Bars unit=" min" data={[
+    { label: 'MLH (live)', value: 2, display: '2 min', hl: true },
+    { label: 'Google Chrome AI (video)', value: 3, display: '< 3 min' },
+    { label: 'ETHGlobal (live)', value: 4, display: '4 min' },
+    { label: 'UN hackathon (video)', value: 10, display: '≤ 10 min' },
+  ]} />
+</Exhibit>
+
+Every hackathon also publishes "judging criteria" — the list of things judges give points for. The wording changes, but they keep asking the same questions: Is it a real problem? Is the idea fresh? Does it work *now*? Would someone use it? Can the judge see all this quickly? Notice what is *not* on the list: how much you built.
+
+## My four rules
+
+These are the rules I follow when I compete, and the same ones I give the teams I mentor.
+
+**1. Think before you build.** I spend about half of a hackathon brainstorming — talking it out, discussing, even arguing — until the idea is in its best shape. That feels slow when the clock is ticking. But it only works because of rule 2.
+
+**2. Scope down.** "Scope" means how much you decide to build. Hackathons have a hard deadline, and an unfinished big idea is not a valid entry. So pick something small enough to finish, and that someone could actually use in real life without big changes. A short, focused solution beats a giant platform that ends up as one of many.
+
+**3. Don't be afraid to pivot.** If a sharper, simpler idea appears — even hours before the deadline — it can be worth switching.
+
+**4. Lead with the why.** When you pitch, first tell a short story: who has the problem, and why it hurts. Then show your solution. If you show your screen before the judges understand the problem, they are looking at an answer with nothing to hang it on.
+
+<Note kind="insight">
+A simple three-minute plan: the why, as a short story, in the first 30 seconds; the working demo until about 1:40; one piece of evidence; then the next step.
+</Note>
+
+## Give everyone one job
+
+My ideal team has four people with four different jobs:
+
+- **The Main Builder** makes the core technical part — the model or engine. They need quiet time to focus, so everyone else protects it.
+- **The Doer** does everything around the core — the screens, the connections, preparing data, fixing whatever breaks — so there is something to show.
+- **The Talker** owns the problem, the story and the pitch. They also go and talk to the mentors and organisers while the others keep building. Mentors know the judging criteria and things you don't. Some advice will miss, but you lose nothing.
+- **Support** fills the gaps: research, slides, testing, notes, recording a backup video of the demo, and keeping everyone fed and sane.
+
+Is four the magic number? Honestly, research does not say so. A study of hackathon projects found that team size made no real difference to whether projects kept going. What did matter was having a **mix of different skills** that fit the project — which is exactly what four distinct jobs give you.
+
+## The four-layer stack
+
+To stand out from other teams that also meet the basic criteria, build your project in four layers, like floors of a building.
+
+<Exhibit
+  n={2}
+  title="Four layers that make a hackathon project stand out"
+  sub="The differentiation stack, in plain words"
+  note="Framework by the author. The highlighted step is the one most teams skip when they run short of time."
+>
+  <Flow steps={[
+    { title: 'A sharp user', text: 'One real person and one job they find hard. Not “everyone”.' },
+    { title: 'Real data', text: 'Proof the problem exists, and that your tool does something with it.' },
+    { title: 'One path that works', text: 'One task, start to finish, working live. The rest can be a sketch.', hl: true },
+    { title: 'A next step', text: 'Who would try it first, and how you would know it worked.' },
+  ]} />
+</Exhibit>
+
+"A hospital claims officer who has to choose which claims to check" is a sharp user. "The healthcare sector" is not. And you do not need a finished product — just one task working from start to finish, in front of the judge.
+
+## What doesn't work
+
+- **Building to impress investors.** A hackathon is not a pitch competition. A bold idea with nothing working loses to a small idea that works.
+- **Building big.** Ten half-finished features look worse than one finished one.
+- **Not knowing your judges.** The same project lands differently with different judges. Find out who they are and what they care about.
+- **Cool tech with no user.** The judge keeps wondering who it is for.
+- **Too many slides.** MLH's rules actually say pitches and presentations are "discouraged" — they want a demo.
+- **Ignoring the rules.** Some contests have a pass/fail first round. A missing required video can knock you out before anyone looks.
+- **Buzzword stacking.** Listing every AI tool you used is not explaining what your project does. Research found jargon makes information harder to take in, even when it is explained.
+- **No backup.** Wi-Fi fails. Record a short video of your demo, just in case.
+
+Judges are also human: research has found that scores can drift depending on when you present and who presents. You cannot control that. You can put such clear evidence on screen that there is less room for guesswork — and, as investor research found, looking *prepared* matters more than looking excited.
+
+## What happens after the hackathon
+
+Most hackathon projects stop almost immediately. A study of 592 projects from 73 hackathons tracked whether teams kept working on their code.
+
+<Exhibit
+  n={3}
+  title="Most hackathon projects stop within a week"
+  sub="Share of projects where the team kept working on the code"
+  source="Nolte, Chounta & Herbsleb (2020)"
+  sourceUrl="https://par.nsf.gov/servlets/purl/10284449"
+  note="Measured by updates to each project’s code online. Some projects may have continued somewhere else."
+  table={[['When', 'Share still being worked on'], ['Any time after', '35%'], ['By day 6', '17%'], ['After 5 months', 'under 4%']]}
+>
+  <Columns unit="%" data={[
+    { label: 'Any time after', value: 35.3, display: '35%' },
+    { label: 'By day 6', value: 17.06, display: '17%' },
+    { label: 'After 5 months', value: 3.55, display: '<4%', hl: true },
+  ]} />
+</Exhibit>
+
+Winning gave projects a short burst of activity, but not a long life. The projects that survived had **a mix of skills on the team** and **a plan to reach real users, partners or funding**. That is why I care so much about simple, usable solutions: you will sometimes lose to something flashier, but simple is what lives on after the event. One of my winning projects, a fraud-detection tool for health data from the DOH-DAP Hack4Health 2024, was later presented as BANT.AI at a Department of Health research forum.
+
+## Jargon decoder
+
+<Compare
+  cols={['What it means in plain words']}
+  rows={[
+    { k: 'Hackathon', v: ['A short contest where teams build a prototype and show it to judges'] },
+    { k: 'Judging criteria', v: ['The published list of things the judges give points for'] },
+    { k: 'Demo', v: ['Showing your project actually working, not just describing it'] },
+    { k: 'Demo path', v: ['The one task you show working from start to finish'] },
+    { k: 'Pitch', v: ['Your short talk explaining the idea to the judges'] },
+    { k: 'Scope', v: ['How much you decide to build; “scoping down” means building less'] },
+    { k: 'Pivot', v: ['Switching to a different or sharper idea part-way through'] },
+    { k: 'Prototype', v: ['An early working version, not a finished product'] },
+  ]}
+/>
+
+## If you remember one thing
+
+Nobody wins a hackathon for what they *almost* built. Think first. Scope down to one small thing that works and could really be used. Give everyone one job. When you pitch, start with why it matters — then show what it does.
+
+If you are coaching a team, your job is not to write their code. It is to ask those questions early, push them to cut scope, and time the pitch before the judges do.

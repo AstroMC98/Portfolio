@@ -1,0 +1,148 @@
+---
+dek: "Letting an AI write code you never read is fine for quick experiments that can’t hurt anyone and will be thrown away, but the moment the project touches real people, real data or real money, someone has to read it and check it properly."
+takeaways:
+  - "Most experiments in a company never become real products (one MIT study found only 5% of custom AI tools made it), so spending weeks making an experiment perfect is usually wasted effort."
+  - "Before you let the AI build freely, ask two questions: who gets hurt if this breaks, and how long will people rely on it? If the answer to both is “nobody” and “not long”, go fast."
+  - "Before an experiment meets real users or real data, it has to pass six checks. The most important two: a person has actually read the code, and strangers cannot see other people’s data."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Columns from '../../components/blog/Columns.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Before an architect draws proper blueprints, they sketch. The sketch is quick and messy, and nobody checks it against the building code, because nobody is going to live in a sketch. Its only job is to find out whether the idea is worth drawing properly. Nobody would move into the sketch, though. Vibe coding is sketching with software, and the whole debate about it comes down to one question: is this still a sketch, or are people about to move in?</p>
+
+Here is the argument in one sentence: **for a quick experiment, learning fast matters more than tidy code, so letting the AI build freely is the right call when little can go wrong and the code will be thrown away, and the real skill is knowing exactly when to stop.**
+
+## What vibe coding actually is
+
+In February 2025, the AI researcher Andrej Karpathy described a new way of building software. You tell an AI what you want in plain English. It writes the code. You click “Accept All” without reading what it changed, and if something breaks, you paste the error back in and let it try again. He called it vibe coding, and said it was “not too bad for throwaway weekend projects.”
+
+That last part matters, and people forget it. The term took off anyway. By November 2025, Collins Dictionary had named it its Word of the Year, though with a much looser meaning: basically any use of AI to help write code.
+
+This piece uses the strict meaning. **Vibe coding means using code the AI wrote without reading it.** If a person reads the AI’s code, checks it and could explain it to a colleague, that is not vibe coding. That is normal software work that happened to start with AI.
+
+Most professional developers already draw that line. In Stack Overflow’s 2025 survey of developers, 84% said they use or plan to use AI tools, but more than three in four said vibe coding is not part of their professional work.
+
+## Jargon decoder
+
+<Compare
+  cols={["In plain words"]}
+  rows={[
+    { k: "Vibe coding", v: ["Letting an AI write code and using it without reading it"] },
+    { k: "Proof of concept (POC)", v: ["A quick experiment to find out if an idea works at all"] },
+    { k: "Blast radius", v: ["Who or what gets hurt if the thing breaks: data, money, people"] },
+    { k: "Lifespan", v: ["How long people will depend on the code: an afternoon or years"] },
+    { k: "Production", v: ["The real, live version that real people use"] },
+    { k: "Database", v: ["Where an app keeps its information, such as user names and orders"] },
+    { k: "Row-level security (RLS)", v: ["Rules that let each user see only their own records in the database"] },
+    { k: "API key / secret", v: ["A password that lets software use a paid or private service"] },
+    { k: "Agent", v: ["An AI that doesn’t just suggest code but runs commands on your computer or accounts"] },
+  ]}
+/>
+
+## Why a messy experiment is fine
+
+Most experiments are supposed to fail. That is what experiments are for. The numbers on this are blunt.
+
+A 2025 report from MIT’s Project NANDA looked at how companies were using AI. Of organisations that looked at custom AI tools for their business, only a small share got one into real use. Gartner, a research firm, predicted that at least 30% of generative AI projects would be dropped after the experiment stage by the end of 2025.
+
+<Exhibit
+  n={1}
+  title="Most AI experiments never become real products"
+  sub="Share of organisations reaching each stage with custom AI tools, 2025 (%)"
+  source="MIT NANDA, The GenAI Divide: State of AI in Business 2025"
+  sourceUrl="https://webberwentzel.com/News/Documents/2025/MIT1757411281972.pdf"
+  note="Based on interviews with companies; the authors call the figures directionally accurate rather than exact."
+  table={[["Stage", "Share of organisations"], ["Looked at a tool", "60%"], ["Tried it in a pilot", "20%"], ["Actually using it", "5%"]]}
+>
+  <Columns unit="%" max={100} data={[
+    { label: "Looked at it", value: 60, display: "60%" },
+    { label: "Tried it", value: 20, display: "20%" },
+    { label: "Using it", value: 5, display: "5%", hl: true },
+  ]} />
+</Exhibit>
+
+Software engineers have an old rule for this: **YAGNI**, short for “You Aren’t Gonna Need It.” Don’t build things before you know you need them. The writer Martin Fowler points out that this has several costs. There is the time spent building something nobody uses. There is the delay before you learn the answer you actually wanted. And extra code makes everything after it harder to change.
+
+So if an AI can build a working experiment in an afternoon, and a careful engineer would take a week, and most experiments end in “no, not worth it”, then reading every line of the experiment is a bad deal. Save the careful week for the ideas that survive.
+
+## Where the speed is real, and where it isn’t
+
+AI really can make building faster, but it depends on the job.
+
+In a 2022 experiment, developers asked to build a small web server from scratch finished 55.8% faster with an AI assistant: about 71 minutes instead of 161. In a 2025 study by the research group METR, experienced developers working on big projects they already knew well were 19% *slower* with AI. The strangest part: they believed it had made them 20% faster.
+
+<Exhibit
+  n={2}
+  title="AI helped most on a small fresh project, and slowed experts down on big familiar ones"
+  sub="Effect of AI tools on how long tasks took, two different studies (% faster)"
+  source="Peng et al. (2022 experiment, published 2023); METR (Jul 2025)"
+  sourceUrl="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/"
+  note="Different studies with different tools and people. METR’s later 2026 follow-up with newer tools pointed to a speed-up, but METR says that evidence is weak."
+  table={[["Setting", "Effect"], ["Small new project", "55.8% faster"], ["Big familiar projects", "19% slower"]]}
+>
+  <Bars unit="%" data={[
+    { label: "Small new project", value: 55.8, display: "+55.8%", hl: true },
+    { label: "Big familiar projects", value: 19, display: "−19%", neg: true },
+  ]} />
+</Exhibit>
+
+Notice the pattern. AI saved the most time on small, fresh, clearly described tasks, and that is exactly what a quick experiment looks like. The places where vibe coding is fastest are also the places where the code matters least. And because people misjudge their own speed, “it feels faster” is not good evidence.
+
+## Where it goes wrong
+
+Code that runs is not the same as code that is safe. The security company Veracode tests AI-written code every year. In its 2026 report, almost all of the code worked, but only about 56% passed its security tests, about the same as the year before.
+
+Vibe coding hides exactly this problem. The only check is “does it work when I click it?”, and nobody asks “can a stranger get in?” The real-world mistakes follow that pattern:
+
+- **Lovable apps (2025).** Researchers checked 1,645 apps built with Lovable, an AI app builder, and found 170 of them, about one in ten, leaking information such as emails, payment details and API keys. The cause was usually missing or broken row-level security, so the database didn’t stop strangers reading other people’s records.
+- **Moltbook (2026).** The founder of this social network for AI agents said he “didn’t write a single line of code.” A security firm found its database wide open, with about 1.5 million API keys and 35,000 email addresses that anyone could read or change.
+- **Replit (2025).** During an experiment in vibe coding, an AI agent deleted a live database holding records on more than 1,200 executives, even though it had been told to freeze all changes. The data was recovered, and Replit added a separation between test and live databases.
+
+In every case, a quick build was fine as a quick build. The trouble started when it was connected to real people and real data, and nobody changed how they were working.
+
+## The two questions to ask first
+
+Before you let the AI build freely, ask two questions.
+
+1. **Who gets hurt if this breaks?** Look at the most dangerous thing the code can touch: real personal data, real money, real passwords, real customers, or anything you can’t undo. Count the AI agent too, because it can delete things while it is still building.
+2. **How long will people rely on it?** One demo this afternoon, or a tool the team uses every day for a year?
+
+<Exhibit n={3} title="Go fast only when little can go wrong and the code won’t last" sub="Author’s framework, simplified: the vibe zone">
+  <Matrix
+    x="How long it will be used"
+    y="Who gets hurt if it breaks"
+    quads={[
+      { title: "Fake data only", text: "Quick, but close to something real. Use pretend data and spare keys." },
+      { title: "Build it properly", text: "Real people and real data for a long time. Someone reads and tests everything." },
+      { title: "Go fast", text: "Demos, experiments, hackathons. Speed of learning is all that matters.", hl: true },
+      { title: "Go fast, then read", text: "Harmless tools that stick around. Read them before you depend on them." },
+    ]}
+  />
+</Exhibit>
+
+Watch for drift. Experiments rarely jump into the risky corner in one go. They slide there: someone asks for a login, a real customer list gets uploaded, a real password gets pasted in. Each of those is a signal to stop accepting the AI’s changes unread.
+
+<Note kind="field">
+Hackathons are the purest form of “go fast”. My teams have won or placed in several, including first place at DOH-DAP Hack4Health 2024 against more than 100 teams. Those builds were time-boxed experiments whose job was to prove an idea before a deadline. In my contracting work I take AI systems from early prototypes into real company use, and that step, not the first build, is where most of the real work goes.
+</Note>
+
+## The six checks before it goes live
+
+Before a vibe-coded experiment touches real users, data, money or passwords, it must pass six checks:
+
+1. **Read.** A named person has read the important code and can explain it. This is the check that ends vibe coding.
+2. **Secrets.** No passwords or keys hidden in the app where anyone can find them. Change any that ever leaked.
+3. **Permissions.** Log in as a stranger and try to see someone else’s data. If you can, stop.
+4. **Tests.** Automatic checks on the few things that must never break, such as sign-up and payment.
+5. **Undo.** Test and live versions kept apart, backups that actually restore, and no AI agent allowed to change the live system.
+6. **Alarms.** If it breaks, someone finds out.
+
+These are cheap for small projects and get bigger as the stakes grow. If an experiment can’t pass them, it goes back to being an experiment, or it gets rebuilt properly.
+
+## If you remember one thing
+
+Vibe coding is a pencil sketch. Sketch freely: it is the fastest way to find out whether an idea deserves to exist, and most ideas don’t. But nobody moves into a sketch. The moment real people, real data or real money are involved, someone has to read the code and check who can get in. **Vibe the question, engineer the answer.**

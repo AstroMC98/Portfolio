@@ -1,0 +1,143 @@
+---
+import { PROFILE } from '../data/profile';
+import { SECTORS } from '../data/deploy';
+
+const rows: { k: string; v?: string; href?: string; chips?: string[]; links?: { href: string; label: string }[] }[] = [
+  { k: 'Role', v: 'Forward-deployed AI engineer — currently Lead AI Engineer at Intelligent AI Solutions (UK), delivering into client environments' },
+  { k: 'Shipped into', chips: SECTORS },
+  { k: 'Delivery', v: 'Discover → Scope → Ship → Harden → Hand over', href: '#approach' },
+  { k: 'Experience', v: `${PROFILE.years} years in AI / data science · ${PROFILE.projects} production-level projects` },
+  { k: 'Focus', chips: PROFILE.focus },
+  { k: 'Core stack', chips: PROFILE.topStack },
+  { k: 'Education', v: PROFILE.education.map((e) => `${e.degree}, ${e.school} (${e.year})`).join(' · ') },
+  { k: 'Research', v: '3 peer-reviewed publications — SARS-CoV-2 genomics, protein-interaction networks' },
+  { k: 'Based', v: PROFILE.location },
+  {
+    k: 'Links',
+    links: [
+      { href: PROFILE.linkedin, label: 'LinkedIn' },
+      { href: PROFILE.github, label: 'GitHub' },
+      { href: `mailto:${PROFILE.email}`, label: PROFILE.email },
+    ],
+  },
+];
+---
+<section class="section spec" id="spec" aria-labelledby="spec-title">
+  <span class="coord">§02 · datasheet</span>
+  <div class="wrap spec__grid">
+    <div class="spec__intro" data-reveal>
+      <p class="eyebrow"><span class="idx">02</span> The 30-second version</p>
+      <h2 id="spec-title" class="spec__title">Researcher turned <em>forward-deployed</em> AI engineer.</h2>
+      <p class="spec__body">
+        I started in genomics research at UP Diliman and the Philippine Genome Center, moved through data science at
+        AIA and AI leadership at TDCX in Singapore, and now lead enterprise LLM delivery for a UK consultancy — working inside
+        each client’s stack, data and constraints.
+      </p>
+      <p class="spec__body">
+        What I care about is the gap between <span class="hl">“it works in a notebook”</span> and
+        <span class="hl">“it runs reliably at scale”</span> — async pipelines, evaluation, rate-limiting, governance and drift
+        detection.
+      </p>
+      <a class="btn btn--primary" href={PROFILE.resume} download>
+        Full résumé (PDF) <span class="arrow arrow--down" aria-hidden="true">↓</span>
+      </a>
+    </div>
+
+    <div class="sheet panel" data-reveal>
+      <header class="sheet__head mono">
+        <span>PART NO. MC-AI-LEAD</span>
+        <span>REV {new Date().getFullYear()}</span>
+      </header>
+      <dl class="sheet__rows">
+        {rows.map((r) => (
+          <div class="sheet__row">
+            <dt class="mono">{r.k}</dt>
+            <dd>
+              {r.v && (r.href ? <a class="link-arrow" href={r.href}>{r.v}</a> : <span>{r.v}</span>)}
+              {r.chips && <span class="sheet__chips">{r.chips.map((c) => <span class="chip">{c}</span>)}</span>}
+              {r.links && (
+                <span class="sheet__links">
+                  {r.links.map((l) => (
+                    <a class="link-arrow" href={l.href} target={l.href.startsWith('http') ? '_blank' : undefined} rel="noopener">
+                      {l.label} <span aria-hidden="true">↗</span>
+                    </a>
+                  ))}
+                </span>
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <footer class="sheet__foot" aria-hidden="true">
+        <span class="sheet__barcode"></span>
+        <span class="mono">STATUS: SHIPPING TO PRODUCTION</span>
+      </footer>
+    </div>
+  </div>
+</section>
+
+<style>
+  .spec__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(40px, 6vw, 96px);
+    align-items: start;
+  }
+  .spec__intro { position: sticky; top: 110px; display: grid; gap: 22px; justify-items: start; }
+  .spec__title {
+    font-family: var(--font-display);
+    font-stretch: 72%;
+    font-size: var(--fs-2xl);
+    font-weight: 650;
+    letter-spacing: -0.008em;
+  }
+  .spec__title em { font-style: normal; font-weight: inherit; color: var(--signal); }
+  .spec__body { color: var(--text-2); font-size: var(--fs-md); max-width: 520px; }
+  .hl { color: var(--text); font-style: normal; font-family: var(--font-display); font-size: 1.05em; }
+
+  .sheet { overflow: hidden; }
+  .sheet__head, .sheet__foot {
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    padding: 14px 24px;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    background: var(--ink-3);
+  }
+  .sheet__head { border-bottom: 1px solid var(--line); }
+  .sheet__foot { border-top: 1px solid var(--line); }
+  .sheet__row {
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr);
+    gap: 20px;
+    padding: 18px 24px;
+    border-top: 1px solid var(--line);
+    transition: background-color 0.2s;
+  }
+  .sheet__row:first-child { border-top: 0; }
+  .sheet__row:hover { background: rgb(61 245 167 / 0.03); }
+  .sheet__row dt {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--signal);
+    padding-top: 3px;
+  }
+  .sheet__row dd { color: var(--text); line-height: 1.5; }
+  .sheet__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sheet__links { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+  .sheet__barcode {
+    width: 120px; height: 18px;
+    background: repeating-linear-gradient(90deg, var(--muted) 0 1px, transparent 1px 3px, var(--muted) 3px 5px, transparent 5px 6px, var(--muted) 6px 7px, transparent 7px 10px);
+    opacity: 0.6;
+  }
+
+  @media (max-width: 960px) {
+    .spec__grid { grid-template-columns: 1fr; }
+    .spec__intro { position: static; }
+  }
+  @media (max-width: 560px) {
+    .sheet__row { grid-template-columns: 1fr; gap: 8px; padding: 16px 18px; }
+    .sheet__head, .sheet__foot { padding-inline: 18px; }
+  }
+</style>

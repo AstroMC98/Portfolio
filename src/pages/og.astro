@@ -1,0 +1,51 @@
+---
+// Source for /og.png (1200×630). Regenerate by screenshotting this page at that size.
+import Base from '../layouts/Base.astro';
+import Logo from '../components/Logo.astro';
+---
+<Base title="Marc Castro — OG card" noindex>
+  <div class="og">
+    <div class="og__copy">
+      <p class="og__eyebrow">Marc Castro · Lead AI Engineer</p>
+      <h1>I build AI systems that survive <em>production.</em></h1>
+      <ul class="og__stats">
+        <li><b>95%</b><span>less FTE · AIA</span></li>
+        <li><b>10–30×</b><span>doc throughput</span></li>
+        <li><b>~40%</b><span>retrieval cost cut</span></li>
+      </ul>
+    </div>
+    <div class="og__hub">
+      <div class="og__disk"></div>
+      <div class="og__mark"><Logo size={210} /></div>
+    </div>
+    <p class="og__url">portfolio.marccastro.solutions</p>
+  </div>
+</Base>
+
+<style>
+  :global(body) { margin: 0; overflow: hidden; }
+  :global(body::after), :global(.skip-link) { display: none; }
+  .og {
+    position: relative;
+    width: 1200px; height: 630px;
+    padding: 64px 72px;
+    display: grid; grid-template-columns: 1fr 380px; align-items: center; gap: 24px;
+    background:
+      radial-gradient(700px 500px at 85% 60%, rgb(61 245 167 / 0.16), transparent 70%),
+      radial-gradient(circle at 1px 1px, rgb(236 239 234 / 0.06) 1px, transparent 0) 0 0 / 24px 24px,
+      var(--ink);
+    overflow: hidden;
+  }
+  .og__eyebrow { font-family: var(--font-mono); font-size: 18px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--signal); }
+  h1 { margin-top: 22px; font-family: var(--font-display); font-stretch: 72%; font-weight: 700; font-size: 76px; line-height: 0.98; letter-spacing: -0.01em; }
+  h1 em { font-style: normal; font-weight: inherit; color: var(--signal); }
+  .og__stats { display: flex; gap: 40px; margin-top: 40px; }
+  .og__stats li { display: grid; gap: 4px; }
+  .og__stats b { font-family: var(--font-display); font-stretch: 72%; font-weight: 800; font-size: 46px; color: var(--signal); line-height: 1; letter-spacing: -0.01em; }
+  .og__stats span { font-family: var(--font-mono); font-size: 15px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+  .og__hub { position: relative; width: 380px; height: 380px; }
+  .og__disk { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid rgb(61 245 167 / 0.6); background: radial-gradient(circle at 70% 75%, rgb(61 245 167 / 0.22), #0d1311 70%); }
+  .og__mark { position: absolute; inset: 0; display: grid; place-items: center; }
+  .og__mark :global(.logo__out) { filter: drop-shadow(0 0 6px #3df5a7); }
+  .og__url { position: absolute; left: 72px; bottom: 40px; font-family: var(--font-mono); font-size: 16px; color: var(--muted); letter-spacing: 0.08em; }
+</style>

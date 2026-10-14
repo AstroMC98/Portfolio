@@ -1,0 +1,99 @@
+---
+import { STACK, TOOLING } from '../data/skills';
+import { PROJECTS } from '../data/projects';
+import Integrations from './Integrations.astro';
+
+const titleOf = new Map(PROJECTS.map((p) => [p.id, p.title]));
+---
+<section class="section stack" id="stack" aria-labelledby="stack-title">
+  <span class="coord">§07 · system layers</span>
+  <div class="wrap">
+    <header class="section-head" data-reveal>
+      <p class="eyebrow"><span class="idx">07</span> Capability stack</p>
+      <h2 id="stack-title">Full-stack AI engineering, <em>model to metal.</em></h2>
+      <p>Mapped the way an AI system is actually built — and linked to the case files where each layer was put to work.</p>
+    </header>
+
+    <Integrations />
+
+    <ol class="layers">
+      {STACK.map((l, i) => (
+        <li class="layer" data-reveal style={`--i:${i}`}>
+          <div class="layer__bus" aria-hidden="true"><span class="layer__node"></span></div>
+          <div class="layer__card">
+            <div class="layer__head">
+              <span class="layer__id mono">{l.layer}</span>
+              <div>
+                <h3 class="layer__name">{l.name}</h3>
+                <p class="layer__blurb">{l.blurb}</p>
+              </div>
+            </div>
+            <ul class="layer__items">{l.items.map((it) => <li class="chip">{it}</li>)}</ul>
+            <div class="layer__used">
+              <span class="mono">Proven in</span>
+              {l.projects.map((id) => (
+                <a class="layer__case" href={`/work/${id}/`}>{titleOf.get(id)}</a>
+              ))}
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+
+    <p class="tooling" data-reveal>
+      <span class="mono">Daily tooling</span>
+      {TOOLING.map((t) => <span class="chip">{t}</span>)}
+    </p>
+  </div>
+</section>
+
+<style>
+  .layers { display: grid; gap: 12px; }
+  .layer { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 0 16px; }
+  .layer__bus { position: relative; display: grid; justify-items: center; }
+  .layer__bus::before { content: ''; position: absolute; top: -12px; bottom: -12px; width: 1px; background: var(--line-2); }
+  .layer:first-child .layer__bus::before { top: 50%; }
+  .layer:last-child .layer__bus::before { bottom: 50%; }
+  .layer__node {
+    position: relative; align-self: center;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--ink); border: 2px solid var(--signal);
+    box-shadow: 0 0 0 5px var(--ink);
+    transition: background-color 0.3s, box-shadow 0.3s;
+  }
+  .layer__card {
+    display: grid;
+    grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.6fr);
+    gap: 14px 32px;
+    padding: 22px 26px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(90deg, rgb(61 245 167 / calc(0.012 * (5 - var(--i)))), transparent 60%), var(--ink-2);
+    transition: border-color 0.3s, transform 0.4s var(--ease-out);
+  }
+  .layer:hover .layer__card { border-color: rgb(61 245 167 / 0.45); transform: translateX(6px); }
+  .layer:hover .layer__node { background: var(--signal); box-shadow: 0 0 0 5px var(--ink), 0 0 18px var(--signal); }
+  .layer__head { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; grid-row: span 2; }
+  .layer__id { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--line-2); border-radius: 10px; font-size: 12px; color: var(--signal); }
+  .layer__name { font-family: var(--font-display); font-stretch: 84%; font-weight: 650; font-size: 1.35rem; letter-spacing: -0.01em; }
+  .layer__blurb { margin-top: 6px; color: var(--muted); font-size: 0.9rem; }
+  .layer__items { display: flex; flex-wrap: wrap; gap: 6px; align-content: start; }
+  .layer__used { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+  .layer__used .mono { font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .layer__case { font-size: 0.82rem; color: var(--text-2); border-bottom: 1px dashed var(--line-2); padding: 2px 0; transition: color 0.2s, border-color 0.2s; }
+  .layer__case:hover { color: var(--signal); border-color: var(--signal); }
+
+  .tooling { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 28px; padding-left: 56px; }
+  .tooling .mono { font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-right: 6px; }
+
+  @media (max-width: 900px) {
+    .layer__card { grid-template-columns: 1fr; }
+    .layer__head { grid-row: auto; }
+  }
+  @media (max-width: 560px) {
+    .layer { grid-template-columns: 1fr; }
+    .layer__bus { display: none; }
+    .layer__card { padding: 18px; }
+    .tooling { padding-left: 0; }
+  }
+</style>

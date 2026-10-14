@@ -1,0 +1,42 @@
+---
+/** Slope chart: before → after for a few items. Emphasis item in mint, others neutral. */
+interface Item {
+  label: string;
+  a: number;
+  b: number;
+  hl?: boolean;
+}
+interface Props {
+  items: Item[];
+  left: string;
+  right: string;
+  unit?: string;
+  max?: number;
+  min?: number;
+}
+const { items, left, right, unit = '', max, min = 0 } = Astro.props;
+const W = 640;
+const H = 300;
+const P = { l: 200, r: 200, t: 30, b: 20 };
+const top = max ?? Math.max(...items.flatMap((i) => [i.a, i.b]));
+const Y = (v: number) => P.t + (1 - (v - min) / (top - min)) * (H - P.t - P.b);
+---
+<svg class="svgchart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={items.map((i) => `${i.label}: ${i.a}${unit} → ${i.b}${unit}`).join('; ')}>
+  <g class="axis">
+    <text x={P.l} y="14" text-anchor="middle">{left}</text>
+    <text x={W - P.r} y="14" text-anchor="middle">{right}</text>
+  </g>
+  <g class="grid"><line x1={P.l} x2={P.l} y1={P.t - 6} y2={H - P.b} /><line x1={W - P.r} x2={W - P.r} y1={P.t - 6} y2={H - P.b} /></g>
+  {items.map((it) => {
+    const c = it.hl ? 'var(--emph)' : 'var(--neutral-2)';
+    return (
+      <g>
+        <line class="series draw" x1={P.l} y1={Y(it.a)} x2={W - P.r} y2={Y(it.b)} stroke={c} pathLength="1000" style="--len:1000" />
+        <circle class="dot" cx={P.l} cy={Y(it.a)} r="6" fill={c} data-tip={`${it.label} · ${left}: ${it.a}${unit}`} />
+        <circle class="dot" cx={W - P.r} cy={Y(it.b)} r="6" fill={c} data-tip={`${it.label} · ${right}: ${it.b}${unit}`} />
+        <text class:list={['lbl', { 'lbl--muted': !it.hl }]} x={P.l - 14} y={Y(it.a) + 4} text-anchor="end">{it.label} · {it.a}{unit}</text>
+        <text class:list={['lbl', { 'lbl--muted': !it.hl }]} x={W - P.r + 14} y={Y(it.b) + 4}>{it.b}{unit}</text>
+      </g>
+    );
+  })}
+</svg>

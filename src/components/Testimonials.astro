@@ -1,0 +1,29 @@
+---
+import { TESTIMONIALS } from '../data/engagements';
+---
+{TESTIMONIALS.length > 0 && (
+  <section class="section quotes" id="references" aria-labelledby="quotes-title">
+    <div class="wrap">
+      <header class="section-head" data-reveal>
+        <p class="eyebrow">References</p>
+        <h2 id="quotes-title">From the people I <em>shipped with.</em></h2>
+      </header>
+      <ul class="quotes__grid">
+        {TESTIMONIALS.map((t) => (
+          <li class="quote panel" data-reveal>
+            <blockquote>“{t.quote}”</blockquote>
+            <p class="quote__by"><b>{t.name}</b><span class="mono">{t.role}</span></p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+)}
+
+<style>
+  .quotes__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+  .quote { padding: 28px; display: grid; gap: 22px; align-content: space-between; }
+  .quote blockquote { font-size: 1.08rem; line-height: 1.55; color: var(--text); }
+  .quote__by { display: grid; gap: 4px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .quote__by .mono { font-size: 11px; letter-spacing: 0.06em; color: var(--muted); }
+</style>

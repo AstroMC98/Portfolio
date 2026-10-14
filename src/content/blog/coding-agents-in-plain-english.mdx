@@ -1,0 +1,637 @@
+---
+title: "ELI5, Intern or Caveman: How to Talk to Coding Agents Without Shipping Code You Don't Understand"
+dek: "Coding agents now speak fluent jargon: tool calls, subagents, compaction, MCP. The way you talk to them, and the way you make them talk back, decides whether you understand what ships. This piece sets out three registers, when to use each, and what the evidence says about understanding, trust and token costs."
+date: 2026-08-14
+updated: 2026-10-14
+kicker: "AI Engineering"
+motif: dialogue
+tags: ["AI Engineering", "Coding Agents", "Claude Code", "Prompting"]
+thesis: "The register you choose with a coding agent is a control, not a style preference: ELI5 to understand, intern to delegate, caveman to go fast. The failure mode is letting the agent's vocabulary outrun your understanding of what will ship."
+takeaways:
+  - "Feeling fast is not being fast: in METR's 2025 trial, experienced developers took 19% longer with AI tools yet believed afterwards that they had been 20% faster."
+  - "Delegating without understanding has a measurable cost: in Anthropic's 2026 trial, engineers learning a new library with AI help scored 17% lower on a comprehension quiz. The biggest gap was in debugging."
+  - "Brief every agent like a capable intern (context, goal, constraints, definition of done, an 'ask before' list). Then choose how it answers you, from ELI5 to caveman, by how well you understand the change and how costly a mistake would be."
+  - "Caveman works but is oversold. The repo advertises cutting 65% of tokens, while JetBrains measured 8.5% fewer output tokens on 82 paired agentic tasks with no detectable quality loss. On the repo's own benchmark, plain 'Answer concisely.' gets most of the way."
+  - "Output tokens cost five times as much as uncached input on Claude Opus 5.5, Sonnet 5.5 and Haiku 5.5 (October 2026 list prices), but they are a small share of an agent session. Context, caching and effort settings usually matter more to the bill than the agent's tone."
+  - "Jargon slows understanding even when terms are defined. Ask the agent to replace jargon rather than gloss it, and make 'explain it back' the gate before anything risky merges."
+sources:
+  - label: "METR — Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity (10 Jul 2025)"
+    url: "https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/"
+  - label: "METR — We are Changing our Developer Productivity Experiment Design (24 Feb 2026)"
+    url: "https://metr.org/blog/2026-02-24-uplift-update/"
+  - label: "Stack Overflow — 2025 Developer Survey: AI (Jul 2025)"
+    url: "https://survey.stackoverflow.co/2025/ai"
+  - label: "Stack Overflow — 2026 Developer Survey: AI (Oct 2026)"
+    url: "https://survey.stackoverflow.co/2026/ai"
+  - label: "IT Brief UK — Stack Overflow survey shows developers trust AI with caveats (6 Oct 2026)"
+    url: "https://itbrief.co.uk/story/stack-overflow-survey-shows-developers-trust-ai-with-caveats"
+  - label: "Anthropic — How AI assistance impacts the formation of coding skills (29 Jan 2026)"
+    url: "https://www.anthropic.com/research/AI-assistance-coding-skills"
+  - label: "O'Reilly Radar — Addy Osmani, Comprehension debt: the hidden cost of AI-generated code (13 Apr 2026)"
+    url: "https://www.oreilly.com/radar/comprehension-debt-the-hidden-cost-of-ai-generated-code/"
+  - label: "Julius Brussee — Caveman: why many token when few do trick, GitHub README (accessed 14 Oct 2026)"
+    url: "https://github.com/JuliusBrussee/caveman"
+  - label: "Caveman — Honest numbers, GitHub docs (accessed 14 Oct 2026)"
+    url: "https://github.com/JuliusBrussee/caveman/blob/main/docs/HONEST-NUMBERS.md"
+  - label: "JetBrains AI Blog — Denis Shiryaev, Does Speaking to Agents Like Cavemen Really Save 65% of Tokens? We Test (6 Jul 2026)"
+    url: "https://blog.jetbrains.com/ai/2026/07/speak-to-ai-agents-like-cavemen-tosave-tokens/"
+  - label: "arXiv — Adeyemi, Rossi & Dernoncourt, CAVEWOMAN: How LLMs Behave Under Linguistic Input and Output Compression (23 Jun 2026)"
+    url: "https://arxiv.org/abs/2606.24083"
+  - label: "Claude Code Docs — Output styles (accessed 14 Oct 2026)"
+    url: "https://code.claude.com/docs/en/output-styles"
+  - label: "Claude Code Docs — Best practices for Claude Code (accessed 14 Oct 2026)"
+    url: "https://code.claude.com/docs/en/best-practices"
+  - label: "Claude Code Docs — Common workflows: plan before editing (accessed 14 Oct 2026)"
+    url: "https://code.claude.com/docs/en/common-workflows"
+  - label: "Claude Code Docs — Manage costs effectively (accessed 14 Oct 2026)"
+    url: "https://code.claude.com/docs/en/costs"
+  - label: "Claude Code Docs — Glossary (accessed 14 Oct 2026)"
+    url: "https://code.claude.com/docs/en/glossary"
+  - label: "Anthropic — Claude API pricing (accessed 14 Oct 2026)"
+    url: "https://platform.claude.com/docs/en/about-claude/pricing"
+  - label: "Anthropic — Prompting best practices (accessed 14 Oct 2026)"
+    url: "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices"
+  - label: "Anthropic — Claude platform glossary: tokens (accessed 14 Oct 2026)"
+    url: "https://platform.claude.com/docs/en/about-claude/glossary"
+  - label: "GitHub Docs — Getting the best results from Copilot coding agent (accessed 14 Oct 2026)"
+    url: "https://docs.github.com/en/copilot/tutorials/coding-agent/get-the-best-results"
+  - label: "Cursor Docs — Plan Mode (accessed 14 Oct 2026)"
+    url: "https://cursor.com/docs/agent/modes"
+  - label: "OpenAI — Custom instructions with AGENTS.md, Codex docs (accessed 14 Oct 2026)"
+    url: "https://learn.chatgpt.com/docs/agent-configuration/agents-md"
+  - label: "Public Understanding of Science — Bullock, Colón Amill, Shulman & Dixon, Jargon as a barrier to effective science communication (2019)"
+    url: "https://doi.org/10.1177/0963662519865687"
+  - label: "Journal of Language and Social Psychology — Shulman et al., The Effects of Jargon on Processing Fluency, Self-Perceptions, and Scientific Engagement (29 Jan 2020)"
+    url: "https://doi.org/10.1177/0261927X20902177"
+  - label: "Cognitive Science — Rozenblit & Keil, The misunderstood limits of folk science: an illusion of explanatory depth (Sep 2002)"
+    url: "https://doi.org/10.1207/s15516709cog2605_1"
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Stats from '../../components/blog/Stats.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Columns from '../../components/blog/Columns.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">A coding agent will tell you, in perfectly confident prose, that it "spawned a subagent to grep the monorepo, hit a stale cache, compacted context and patched the hook so the MCP tool call no longer races the migration." You nod and press Enter. Ten minutes later something you cannot explain is in a pull request with your name on it. The fix is not to learn every term first. It is to decide, before every conversation, how you will talk to the agent and how you will make it talk back.</p>
+
+My argument is this: **the register you choose with a coding agent is a control, not a style preference. Use ELI5 to understand, intern to delegate and caveman to go fast. The failure mode is letting the agent's vocabulary outrun your understanding of what will ship.** Each register is useful. Each is dangerous in the wrong place. And the evidence (randomised trials, developer surveys, vendor documentation and some hard-nosed token accounting) points to the same conclusion: *how* you converse with an agent changes what you understand, what you trust, and what you pay.
+
+The article starts with why this is urgent: the gap between how productive AI makes developers feel and how productive it makes them. It then sets out a framework, the register matrix, and five deep dives: ELI5 as an approval gate, the jargon problem, the intern brief, the caveman trend, and the economics of verbosity at October 2026 prices. It closes with public cases, four objections, implications by reader, a two-week plan with copy-paste prompts, and the limits of the evidence.
+
+## Context: why this matters now
+
+Coding agents stopped being autocomplete some time ago. They read files, run commands, edit code and loop until a check passes. Claude Code's own glossary describes agentic coding as a workflow where the AI "can read files, run commands, and make changes autonomously while you watch, redirect, or step away." Cursor, GitHub Copilot's agent mode and OpenAI's Codex work in the same way. The human's job has shifted from typing code to *directing and approving* it, and the main tool for both is conversation.
+
+That shift would be harmless if people judged their own understanding and productivity accurately. They do not.
+
+<Exhibit
+  n={1}
+  title="Four numbers that explain why register matters"
+  sub="Selected findings on AI-assisted development, 2025–2026"
+  source="METR (Jul 2025); Stack Overflow Developer Survey 2025 and 2026; Anthropic (Jan 2026)"
+  sourceUrl="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/"
+  note="Different studies, populations and methods; shown together to frame the problem, not to be combined. Details and caveats for each appear in the text."
+>
+  <Stats items={[
+    { value: '19%', label: 'longer to finish tasks with AI, for experienced open-source developers who believed they were 20% faster', source: 'METR · RCT · JUL 2025' },
+    { value: '46%', label: 'of developers distrust the accuracy of AI tools; 33% trust it', source: 'STACK OVERFLOW · 2025' },
+    { value: '48%', label: 'trust AI output mainly when it is easy to verify', source: 'STACK OVERFLOW · OCT 2026' },
+    { value: '17%', label: 'lower comprehension-quiz score for engineers who learned a library with AI help', source: 'ANTHROPIC · RCT · JAN 2026' },
+  ]} />
+</Exhibit>
+
+### Feeling fast is not being fast
+
+The most cited evidence is METR's randomised controlled trial, published in July 2025. Sixteen experienced open-source developers worked on 246 real issues in large, mature repositories averaging more than 22,000 stars and over a million lines of code. Each issue was randomly assigned to allow or forbid AI tools, mostly Cursor Pro with Claude 3.5 and 3.7 Sonnet. When AI was allowed, tasks took **19% longer** (confidence interval +2% to +39%). Before starting, the developers expected AI to speed them up by 24%. After finishing, they *still believed* it had sped them up by 20%.
+
+<Exhibit
+  n={2}
+  title="Developers expected and believed a speed-up; the stopwatch recorded a slowdown"
+  sub="Effect of AI tools on task completion time, experienced open-source developers, early 2025"
+  source="METR, Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity (10 Jul 2025)"
+  sourceUrl="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/"
+  note="16 developers, 246 issues. Measured effect: tasks took 19% longer with AI (95% CI +2% to +39%). Positive bars are perceived speed-ups; the negative bar is the measured change. METR's later data on late-2025 tools is discussed in the text."
+  table={[['Measure', 'Effect on speed'], ['Developers’ forecast before the study', '24% faster'], ['Developers’ estimate after the study', '20% faster'], ['Measured', '19% slower (tasks took 19% longer)']]}
+>
+  <Bars unit="%" data={[
+    { label: 'Forecast before the study', value: 24, display: '+24% faster' },
+    { label: 'Belief after the study', value: 20, display: '+20% faster' },
+    { label: 'Measured', value: -19, display: '19% slower', hl: true, neg: true },
+  ]} />
+</Exhibit>
+
+This is not proof that AI slows everyone down, and METR says so. Its participants knew their codebases intimately, which is exactly where an assistant adds least. In February 2026 METR reported a follow-up on late-2025 tools. It estimated task times about 18% shorter for returning developers (CI −38% to +9%) and 4% shorter for new recruits (CI −15% to +9%). It also warned that selection effects made those numbers unreliable: 30% to 50% of developers said they were choosing not to submit some tasks, and more developers were unwilling to work without AI at all. METR now believes developers are probably sped up more than in early 2025, but calls its own data "only very weak evidence for the size of this increase."
+
+The durable finding is not the slowdown. It is the **perception gap**. Even people with years of experience in a codebase misjudged what the agent was doing for them. If experts can be wrong about *speed*, which they could time with a watch, they can certainly be wrong about *understanding*, which they cannot.
+
+### Trust is conditional, and that is healthy
+
+Developers seem to sense this. In Stack Overflow's 2025 Developer Survey, more respondents distrusted the accuracy of AI tools (46%) than trusted it (33%), and only about 3% said they trusted it highly. The most common frustration, cited by 66%, was "AI solutions that are almost right, but not quite." Another 45% said debugging AI-generated code takes more time.
+
+<Exhibit
+  n={3}
+  title="More developers distrusted AI accuracy than trusted it"
+  sub="“How much do you trust the accuracy of the output from AI tools?” Share of respondents, 2025"
+  source="Stack Overflow Developer Survey 2025, AI section (33,244 responses to this question)"
+  sourceUrl="https://survey.stackoverflow.co/2025/ai"
+  note="The remaining ~22% of respondents chose neither option. Combined: 32.7% trust, 45.7% distrust."
+  table={[['Response', 'Share'], ['Highly trust', '3.1%'], ['Somewhat trust', '29.6%'], ['Somewhat distrust', '26.1%'], ['Highly distrust', '19.6%']]}
+>
+  <Columns unit="%" data={[
+    { label: 'Highly trust', value: 3.1, display: '3.1%' },
+    { label: 'Somewhat trust', value: 29.6, display: '29.6%' },
+    { label: 'Somewhat distrust', value: 26.1, display: '26.1%' },
+    { label: 'Highly distrust', value: 19.6, display: '19.6%', hl: true },
+  ]} />
+</Exhibit>
+
+The 2026 survey, published on 6 October 2026 with 30,903 responses from 169 countries, shows how that scepticism has settled. Some 48% of respondents trust AI output mainly when they can easily verify it, and IT Brief's coverage of the results reports that only 6.6% would trust it for important decisions. Notice what this implies. Trust now depends on verification, and verification depends on understanding. You cannot verify a change you cannot explain.
+
+### Comprehension debt
+
+Addy Osmani gave this risk a useful name: *comprehension debt*, "the growing gap between how much code exists in your system and how much of it any human being genuinely understands." Unlike technical debt it gives no warning: the tests pass, the dashboards stay green, and nobody can safely change the code six months later. His point about speed is the important one. AI produces code faster than humans can evaluate it, so review, which used to double as the way teams learned their own codebase, becomes a bottleneck that people quietly skip.
+
+Conversation register is the cheapest place to intervene. Every exchange with an agent either builds your understanding or spends it. The rest of this article is about choosing which, deliberately.
+
+## A framework: the register matrix
+
+Linguists use *register* for the way speakers adjust vocabulary and formality to the situation. A doctor talks differently to a colleague, a patient and a child. The same applies to coding agents, with one twist: there are **two channels**, and they need different rules.
+
+- **The input channel**, what you say to the agent. Here the right register is almost always the same: brief it like a capable intern. Give context, a goal, constraints, a definition of done and a list of things to ask about first.
+- **The output channel**, what the agent says to you. This is the dial you turn. Set it to ELI5 when you need to understand, to the default when you are collaborating, and to caveman when you already understand and want speed.
+
+The distinction matters because compressing the two channels has opposite effects. A June 2026 study, *CAVEWOMAN*, tested caveman-style compression across eight models and five datasets. Compressing the model's **output** cut realised cost on most API models by 1.4 to 2.4 times per model. Compressing the user's **input** was what the authors call "a strict lose-lose": it raised net cost by about 1.15 times on average, and by up to 2.7 times under stronger compression, because the models compensated with longer responses while accuracy collapsed. Terse prompts are false economy. Terse replies, chosen carefully, are not.
+
+So the decision you make in each conversation is how to set the output dial. Two questions settle it: **How well do I understand the change?** And **how costly is a mistake?**
+
+<Exhibit
+  n={4}
+  title="Pick the register by your understanding and the cost of a mistake"
+  sub="Author’s framework: the register matrix for the agent’s output channel. The input channel is always an intern-grade brief."
+  note="Framework by the author. “Cost of a mistake” covers blast radius (production, data, security, money) and how hard the change is to reverse."
+>
+  <Matrix
+    x="How well I understand the change"
+    y="Cost of a mistake"
+    quads={[
+      { title: 'ELI5, then intern', text: 'Unfamiliar code, real stakes. Plan mode, a plain-English plan, explain it back before approving.', hl: true },
+      { title: 'Intern', text: 'Familiar code, real stakes. A precise brief, an ask-before list, evidence of verification.' },
+      { title: 'ELI5 to learn', text: 'Unfamiliar code, low stakes. Explanatory or Learning style; ask why, not just what.' },
+      { title: 'Caveman', text: 'Familiar code, low stakes. Terse output; result first; full sentences only for warnings.' },
+    ]}
+  />
+</Exhibit>
+
+**Why these axes?** Understanding decides whether you can catch an error. Cost decides whether an uncaught error matters. When both are favourable, you are the bottleneck and verbosity is waste, so go caveman. When understanding is low, the agent's output is your only window into what is happening, and it needs to be written for you, not for a senior engineer you are not. When cost is high, you need the discipline of a written brief and explicit permission boundaries whatever your expertise. The top-left quadrant needs both: first understand, then delegate.
+
+Two refinements make the matrix usable in practice.
+
+**The quadrant changes within a session.** Most real tasks move through several. You might start top-left (a payment flow you have never read), learn enough in plan mode to move top-right, and finish bottom-right while the agent runs the test suite and fixes lint errors. A good session *changes register on purpose* at those points rather than staying in whatever voice it started in.
+
+**"How well I understand" is easy to overrate.** The illusion of explanatory depth, documented by Rozenblit and Keil in 2002, shows that people feel they understand mechanisms "with far greater precision, coherence, and depth than they really do." The illusion is strongest where mechanisms are visible, which describes a fluent agent explaining its work. So the test for the x-axis is not "does this explanation make sense?" but "could I explain it back without looking?"
+
+<Exhibit
+  n={5}
+  title="Three registers, three jobs"
+  sub="Author’s framework: what each register is for, how to invoke it, and how it fails"
+  note="Framework by the author. Built-in features as documented on 14 Oct 2026; Claude Code also has Default and Proactive output styles. The table scrolls sideways on small screens."
+>
+  <Compare
+    cols={['ELI5', 'Intern', 'Caveman']}
+    hlCol={0}
+    rows={[
+      { k: 'Job', v: ['Understand before you approve', 'Delegate with clear boundaries', 'Go fast when you already understand'] },
+      { k: 'Channel', v: ['Agent → you', 'You → agent', 'Agent → you'] },
+      { k: 'Built-in support', v: ['Plan mode; Explanatory and Learning styles', 'CLAUDE.md / AGENTS.md; plan mode; permission modes', 'Concise output style; community caveman skill'] },
+      { k: 'Signal it is working', v: ['You can explain the change back in two sentences', 'The agent asks before crossing a boundary you named', 'You read less and miss nothing'] },
+      { k: 'How it fails', v: ['A fluent explanation creates false confidence', 'A vague brief invites broad, costly exploration', 'Terse output hides a decision you did not know was made'] },
+      { k: 'Cost profile', v: ['More output tokens, fewer reworks', 'More input tokens up front', 'Fewer output tokens; rules add input'] },
+    ]}
+  />
+</Exhibit>
+
+## Deep dive 1: ELI5 — understand before you approve
+
+"Explain like I'm five" sounds like a request for baby talk. In practice it is a request for **mechanism without vocabulary**: what changes, why, what it touches, and what could go wrong, in words that do not assume you already know the answer.
+
+### The evidence that it matters
+
+The strongest evidence comes from Anthropic's own randomised trial, published in January 2026. Fifty-two mostly junior engineers, all weekly Python users who had never used the Trio async library, implemented two Trio features and then took a quiz. Half had an AI assistant in a sidebar that could write correct code on request. The AI group finished about two minutes faster, a difference that was not statistically significant, and scored **about 50% on the quiz against 67%** for those who coded by hand. The researchers reported that gap as 17% lower, with an effect size of d = 0.738 (p = 0.01). The largest gap was on debugging questions, which is precisely the skill you need when an agent's change breaks in production.
+
+The more useful finding is *how* people used the assistant. The researchers grouped participants by interaction pattern. Those who delegated code-writing wholesale, slid into progressive reliance, or used AI to debug without trying to understand averaged **below 40%**. Those who asked conceptual questions, requested code together with explanations, or generated code and then interrogated it averaged **65% or higher**. The largest high-scoring group, conceptual inquiry, was also the second-fastest overall.
+
+<Exhibit
+  n={6}
+  title="Asking the agent to explain kept comprehension close to coding by hand"
+  sub="Average comprehension-quiz score after learning a new Python library, by condition and interaction pattern"
+  source="Anthropic, How AI assistance impacts the formation of coding skills (29 Jan 2026)"
+  sourceUrl="https://www.anthropic.com/research/AI-assistance-coding-skills"
+  note="52 participants. Pattern groups are small (2–7 people each) and the authors describe them as associations, not causes. The pattern bars show the thresholds the study reports (65% or higher; below 40%), not exact means."
+  table={[['Group', 'Average quiz score'], ['Hand-coding (no AI)', '~67%'], ['AI-assisted, all', '~50%'], ['Explanation-seeking patterns (conceptual inquiry, hybrid code-explanation, generation-then-comprehension)', '65% or higher'], ['Delegation patterns (AI delegation, progressive reliance, iterative AI debugging)', 'below 40%']]}
+>
+  <Bars unit="%" data={[
+    { label: 'Hand-coding, no AI', value: 67, display: '~67%' },
+    { label: 'AI, explanation-seeking', value: 65, display: '≥65%', hl: true },
+    { label: 'AI-assisted, all', value: 50, display: '~50%' },
+    { label: 'AI, delegation patterns', value: 40, display: 'below 40%' },
+  ]} />
+</Exhibit>
+
+The study measured learning a library, not shipping production code, and the subgroups are small. But the mechanism is plausible and fits METR's perception gap: when the agent does the thinking *and* the explaining is skipped, people come away with working code and a false sense of having understood it. Anthropic's recommendation was specific. Use the learning modes AI tools provide, and name Claude Code's Learning and Explanatory styles. GitHub makes the same point from the other side: its guidance for Copilot's coding agent lists "learning tasks", where "the developer wants to learn to achieve a deeper understanding", among the work you may prefer to do yourself.
+
+### What ELI5 looks like in a real tool
+
+Claude Code's documentation (as of 14 October 2026) lists four built-in output styles alongside the Default. Two are ELI5 tools:
+
+- **Explanatory** does the task as usual and adds short `Insight` blocks "that explain the choices behind the code it writes". The docs suggest it when "you're getting to know a codebase or want the reasoning along with the change."
+- **Learning** adds the same insights and then leaves small, real design decisions for you to write, marked `TODO(human)`.
+
+Switching is one command (`/output-style explanatory`) or one setting (`"outputStyle": "Explanatory"`, which is case-sensitive). The docs are explicit about the cost: Explanatory and Learning "produce longer responses than Default by design, which increases output tokens."
+
+The other ELI5 tool is **plan mode**, a permission mode in which the agent "reads files and proposes a plan but makes no edits until you approve." You enter it with `Shift+Tab` or `/plan`, and `Ctrl+G` opens the plan in your editor. Cursor has an equivalent Plan Mode that asks clarifying questions, searches the codebase and drafts a plan you can edit before you click to build. A plan is the cheapest moment to understand a change, because nothing has happened yet.
+
+<Note kind="field">
+I designed and built this portfolio site with Claude Code, and I ran it in the Explanatory output style so that the agent explained its implementation choices as it worked. The site's deploy workflow pins a third-party action to a commit SHA and scopes each job's permissions (build: contents read; deploy: pages write and id-token write). A caveman summary would compress that to "pinned action, scoped perms". That is fine if you know why those lines exist and dangerous if you don't.
+</Note>
+
+### Making ELI5 an approval gate
+
+A fluent explanation is not understanding; it can manufacture the illusion of it. So ELI5 has to end with a check *on you*, not on the agent. The simplest is teach-back: before approving, explain the plan back in two sentences, and ask the agent to correct you. Here is a template that builds that in.
+
+```text
+Before you change anything, explain this to me as if I'm new to this codebase.
+
+1. In plain words, what is the problem and what will you change?
+   Avoid jargon. If you must use a technical term, replace it with a plain
+   phrase; only keep the term if I'll need it later, and define it in one line.
+2. Which files will you touch, and what does each change mean for a user?
+3. What could break? Name the riskiest line and how we would notice.
+4. What are you deliberately NOT changing?
+
+Then ask me to explain the plan back in two sentences, correct anything
+I get wrong, and do not edit files until I say "approved".
+```
+
+Two smaller ELI5 prompts are worth keeping to hand for the moments when a session's vocabulary gets ahead of you:
+
+```text
+Pause. Re-explain your last message without any of these words: [paste terms].
+Use an analogy if it helps, then tell me what decision you need from me.
+```
+
+```text
+Walk me through this diff file by file. For each hunk: what it did before,
+what it does now, and one way it could be wrong. Flag anything irreversible.
+```
+
+## Deep dive 2: the jargon problem — decode, then replace
+
+Agent jargon is not a character flaw in the tools. It is the vocabulary of a new kind of software, and much of it is precise. Claude Code's official glossary defined **52 terms** on 14 October 2026, from *agentic harness* and *compaction* to *system reminder* and *worktree isolation*. It also points elsewhere for model-level concepts such as tokens, and lists four renamed terms (custom commands, for instance, are now skills). Nobody new to these tools holds all of that in their head, and many experienced users do not either.
+
+### What the research says about jargon
+
+The research on jargon comes mostly from science communication, but its mechanism transfers. In an experiment with 650 participants, Bullock and colleagues (2019) found that the presence of jargon "impairs people's ability to process scientific information". That impairment led to greater resistance to persuasion, higher perceived risk and lower support for the technology described. A follow-up by the same group (Shulman et al., 2020, also N = 650) found that jargon disrupted fluent processing **"even when definitions for the jargon terms are provided"**, and that it lowered people's sense of understanding and their identification with the expert community.
+
+The second finding is the one that matters for agents. A glossary helps, but it does not remove the cost of reading jargon. The better move is to have the agent **replace** terms with plain descriptions when you are in ELI5 mode. Keep a term only when you will need it again, and learn those few deliberately.
+
+### A jargon decoder for coding agents
+
+The decoder below covers the terms that most often appear in agent output and that most often hide a decision you should know about. The definitions follow the vendors' documentation, rewritten in plain words.
+
+<Exhibit
+  n={7}
+  title="Jargon decoder: what coding agents mean, and the question each term should prompt"
+  sub="Fourteen common terms in plain words. Definitions follow the Claude Code and Claude platform glossaries; equivalent concepts exist in Cursor, Codex and Copilot."
+  source="Claude Code Docs, Glossary; Claude platform glossary (accessed 14 Oct 2026)"
+  sourceUrl="https://code.claude.com/docs/en/glossary"
+  note="Plain-language wording and the questions are the author’s. The table scrolls sideways on small screens."
+>
+  <Compare
+    cols={['In plain words', 'Ask yourself']}
+    rows={[
+      { k: 'Token', v: ['The unit the model reads and writes, roughly a short chunk of a word. You pay per token.', 'Is this answer worth its length?'] },
+      { k: 'Context window', v: ['The agent’s working memory for this session: chat, files read, command output, instructions.', 'Is it full of stuff that no longer matters?'] },
+      { k: 'Compaction', v: ['When memory fills up, older parts are summarised to make room. Details can get lost.', 'Did an instruction I gave earlier survive?'] },
+      { k: 'Tool call', v: ['An action the agent takes: read a file, run a command, search, edit.', 'Did it act, or only say it acted?'] },
+      { k: 'Diff', v: ['The exact lines added and removed. The change itself, not the description of it.', 'Have I read the diff, or only the summary?'] },
+      { k: 'Plan mode', v: ['The agent looks around and proposes a plan without editing anything.', 'Do I understand the plan well enough to approve it?'] },
+      { k: 'Permission mode', v: ['How much the agent may do without asking you first.', 'What can it do right now without me?'] },
+      { k: 'Subagent', v: ['A helper the agent sends off on a side task; it reports back a summary.', 'What did the helper see that I did not?'] },
+      { k: 'MCP server', v: ['A plug-in that connects the agent to an outside system: a database, Slack, a browser.', 'What can it reach, and with whose access?'] },
+      { k: 'Hook', v: ['A script that runs automatically at set moments, such as after every edit. It does not depend on the model.', 'What runs every time without asking?'] },
+      { k: 'Skill', v: ['A saved set of instructions the agent loads when a task matches it.', 'Which playbook is steering this answer?'] },
+      { k: 'CLAUDE.md / AGENTS.md', v: ['A file of standing instructions the agent reads at the start of every session.', 'Are my house rules written down there?'] },
+      { k: 'Checkpoint', v: ['An automatic save point you can rewind to. It does not cover everything that shell commands change.', 'Can I undo this, and how far?'] },
+      { k: 'Effort / thinking', v: ['How hard the model reasons before replying. Thinking is billed like output.', 'Does this task deserve deep thought?'] },
+    ]}
+  />
+</Exhibit>
+
+Three of these terms deserve special attention, because they are where the agent's vocabulary most often hides a decision.
+
+**Compaction** means the agent's memory of your conversation has been summarised. Claude Code's glossary is candid that "instructions given only in conversation may be lost", while CLAUDE.md and auto memory are reloaded from disk. If you told the agent "never touch the migrations folder" in chat three hours ago, that instruction may not survive. Put standing rules in the file, not the chat.
+
+**Subagent** means some of the reading and reasoning happened in a separate context that you did not see; only a summary came back. That is a feature, since it keeps your main context clean, but it means "I checked the auth flow" may rest on a summary of a summary.
+
+**MCP server** means the agent can reach an outside system. Claude Code's glossary describes MCP as "an open standard for connecting AI tools to external data sources and services". When an agent says it "used the database tool", the plain-English version is "I ran a query against your database with whatever credentials that connection has."
+
+<Note kind="insight">
+Jargon is not the enemy; *unexamined* jargon is. Each term in the decoder names a place where the agent made a decision on your behalf. In ELI5 mode, your job is to turn every one of those terms back into a decision you can see.
+</Note>
+
+## Deep dive 3: Intern — delegate like a manager, not a search box
+
+If ELI5 is about how the agent talks to you, the intern register is about how you talk to the agent. Anthropic's prompting guide puts it almost exactly this way: "Think of Claude as a brilliant but new employee who lacks context on your norms and workflows. The more precisely you explain what you want, the better the result." Its "golden rule" is a test any manager will recognise: show your prompt to a colleague with minimal context; "if they'd be confused, Claude will be too."
+
+The vendors converge on the same anatomy of a good brief:
+
+- **Context and motivation.** Anthropic's guide notes that explaining *why* an instruction matters "can help Claude better understand your goals and deliver more targeted responses."
+- **Scope and pointers.** Claude Code's best-practice guide contrasts "add tests for foo.py" with "write a test for foo.py covering the edge case where the user is logged out. avoid mocks", and recommends pointing to an existing file as the pattern to follow.
+- **Acceptance criteria.** GitHub's guidance for Copilot's coding agent says a well-scoped issue has "a clear description of the problem," "complete acceptance criteria on what a good solution looks like," and "directions about which files need to be changed."
+- **A way to verify.** Claude Code's docs are blunt: "Claude stops when the work looks done. Without a check it can run, 'looks done' is the only signal available, and you become the verification loop."
+- **Standing rules.** OpenAI's Codex reads `AGENTS.md` files "before doing any work". Its examples include working agreements such as asking before adding production dependencies. Claude Code reads CLAUDE.md, and, from v2.1.277, an AGENTS.md if no CLAUDE.md exists.
+
+Vague briefs are not only worse; they are more expensive. Claude Code's cost guide warns that "vague requests like 'improve this codebase' trigger broad scanning," while specific requests "let Claude work efficiently with minimal file reads."
+
+### The anatomy of an intern brief
+
+```text
+Context:  [what the app does, who uses it, where this lives: @paths]
+Goal:     [the outcome in one sentence, from the user's point of view]
+Why:      [why this matters now; what happens if we get it wrong]
+Pattern:  Follow how [@path/to/similar_file] does it.
+Constraints:
+  - Use only libraries already in the project.
+  - [performance / security / accessibility rules that apply]
+Definition of done:
+  - [tests that must pass] and [command to run], with the output shown to me
+  - [screenshot / sample response / log line that proves it works]
+Ask me before you:
+  - add or upgrade a dependency
+  - change a database schema or migration
+  - delete or rename files
+  - touch auth, payments, secrets or CI config
+  - change anything outside [directory]
+Out of scope: [what not to fix, even if you notice it]
+Start in plan mode. Show me the plan in plain English, then wait.
+```
+
+The "ask me before" list is the heart of the intern register. A good intern is not someone who never acts alone. It is someone who knows exactly which actions need a second signature. Some of those boundaries can be enforced rather than requested. Claude Code's docs distinguish instructions, which the model follows but nothing enforces, from **hooks** and **permission rules**, which run deterministically. For the irreversible items on the list, use the enforced version.
+
+<Exhibit
+  n={8}
+  title="A well-run agent session changes register on purpose"
+  sub="Author’s framework: where each register belongs in a typical change, from brief to merge"
+  note="Framework by the author. Steps 3 and 6 are the approval gates; skipping them is how the agent’s vocabulary outruns your understanding."
+>
+  <Flow steps={[
+    { title: 'Brief (intern)', text: 'Context, goal, constraints, definition of done, ask-before list. Start in plan mode.' },
+    { title: 'Plan (agent)', text: 'The agent reads and proposes; nothing is edited yet.' },
+    { title: 'Explain back (ELI5)', text: 'Plain-English plan; you restate it in two sentences before approving.', hl: true },
+    { title: 'Build (caveman)', text: 'Terse progress while it edits and runs checks you already understand.' },
+    { title: 'Verify (evidence)', text: 'Test output, commands and screenshots, not “done!”.' },
+    { title: 'Review diff (ELI5)', text: 'Hunk by hunk on risky files; anything irreversible is flagged.', hl: true },
+  ]} />
+</Exhibit>
+
+### Scale the brief to the stakes
+
+An intern brief can sound like bureaucracy for a one-line fix, and the vendors agree it can be. Claude Code's guidance is that plan mode "adds overhead," and that "if you could describe the diff in one sentence, skip the plan." The register matrix says the same thing: a familiar, low-stakes change goes straight to the bottom-right quadrant. The brief grows with the cost of a mistake, not with the size of the diff. A two-line change to an authorisation check deserves the full template. A two-hundred-line rename does not.
+
+For larger features, both Claude Code's guide and Cursor's Plan Mode flip the direction: let the agent interview *you*. Claude Code suggests asking it to "interview me in detail" about implementation, edge cases and trade-offs, write a spec, and then start a fresh session to execute it. This is the intern register at its best: the agent asks the questions a good new hire would ask before starting.
+
+## Deep dive 4: Caveman — fast, cheap, and easy to oversell
+
+At the other end of the dial is caveman: make the agent answer in clipped, article-free fragments so you read less and pay for fewer output tokens.
+
+### What caveman actually is
+
+Caveman is an open-source project by **Julius Brussee**, created on 4 April 2026. Its README says it "started as a joke". Its tagline, "why use many token when few token do trick", got it to the top of Hacker News (904 points, per the README) and GitHub Trending. On 14 October 2026 the repository had **111,526 stars** under an Apache-2.0 licence. It began as a skill that rewrites the agent's replies in telegraphic English. The README's example turns a 63-token explanation of a React re-render into 20 tokens: "New object ref each render, so React re-renders. Wrap the prop in `useMemo`." Harsher variants exist (`/ultracave`, and `/megacave`, which answers in classical Chinese).
+
+Version 4.0 grew well beyond the voice into six components the README calls "rocks". They include input compression for logs and JSON, an "Auto" router that picks the model and effort per request, and reusable scripts. The voice rules are more careful than the joke suggests. Code, commands, paths and error messages stay verbatim, and negations and numbers are never dropped. Security warnings, irreversible actions and confused users get full sentences. And caveman deliberately **never rewrites your prompts**, citing the *CAVEWOMAN* finding that compressing input backfires.
+
+Two practical cautions for anyone deploying it in an organisation. First, the skill alone "runs on your machine and sends nothing", but the CLI sends usage statistics by default (not prompts or code), and the optional Auto router sends recent prompts and context to Caveman Cloud. Read the privacy section before installing the full package on a client codebase. Second, the built-in alternative now exists. Claude Code's **Concise** output style, added in v2.1.237, leads with the result, omits "preamble, narration, and recaps", and still writes in full for error reports, failing tests, security warnings and destructive-action confirmations.
+
+### What it saves: advertised versus measured
+
+The repository's About line says caveman "cuts 65% of tokens." The measured numbers are more modest, and, to the project's credit, the README and its "Honest numbers" page publish most of them.
+
+<Exhibit
+  n={9}
+  title="On the repo’s own benchmark, “Answer concisely.” delivers most of caveman’s saving"
+  sub="Total output tokens across ten developer questions on Claude Opus 5.5, by instruction"
+  source="Caveman README, benchmark measured on the 3.1.0 rules (accessed 14 Oct 2026)"
+  sourceUrl="https://github.com/JuliusBrussee/caveman"
+  note="Counts use OpenAI’s tiktoken o200k tokeniser, not Claude’s, so absolute numbers are approximate. Single run, n = 10, not re-run on current rules. Reductions vs. no instruction are the author’s calculation from the totals: −37.9%, −41.0% and −61.4%. The README reports /caveman 3% and /ultracave 35% shorter than “Answer concisely.” at the median."
+  table={[['Instruction', 'Output tokens', 'vs. no instruction'], ['None', '6,983', '—'], ['“Answer concisely.”', '4,334', '−37.9%'], ['/caveman', '4,119', '−41.0%'], ['/ultracave', '2,693', '−61.4%']]}
+>
+  <Bars data={[
+    { label: 'No instruction', value: 6983, display: '6,983' },
+    { label: '“Answer concisely.”', value: 4334, display: '4,334', hl: true },
+    { label: '/caveman', value: 4119, display: '4,119' },
+    { label: '/ultracave', value: 2693, display: '2,693' },
+  ]} />
+</Exhibit>
+
+The README says so itself: "'Be concise' is the real baseline; new models already know it." Against that baseline the default caveman voice saves about 3% at the median, and the harsher `/ultracave` about 35%.
+
+The most rigorous independent test came from JetBrains, published on 6 July 2026. Denis Shiryaev ran a paired A/B benchmark on 86 of SkillsBench's 87 tasks, using headless Claude Code with Claude Sonnet 5 at low effort, over three runs costing about $106. With caveman forced on for every reply, output tokens fell **8.5%** (from about 592,000 to 542,000 across 82 clean pairs). The author calls that "the ceiling, not the usual-case result." An early 29.5% saving on a ten-task run did not replicate. Quality did not detectably change: of 82 paired tasks, 64 tied, 8 scored higher with caveman and 10 lower (sign test p = 0.82). The verdict: "Safe, honest about style, oversold on savings."
+
+<Exhibit
+  n={10}
+  title="Advertised: 65%. Measured on real agentic tasks: 8.5%."
+  sub="Reduction in output tokens attributed to caveman, by source and baseline"
+  source="Caveman README and Honest numbers page; JetBrains AI Blog (6 Jul 2026)"
+  sourceUrl="https://blog.jetbrains.com/ai/2026/07/speak-to-ai-agents-like-cavemen-tosave-tokens/"
+  note="Different baselines: the 41% compares against no instruction on ten Q&A prompts; the 8.5% compares stock Claude Code against forced caveman on multi-step coding tasks; the 3% compares against “Answer concisely.” at the median. Output reductions are not bill reductions; see Deep dive 5."
+  table={[['Source and baseline', 'Output-token reduction'], ['Repo tagline (advertised)', '65%'], ['Repo benchmark vs. no instruction (author’s calc.)', '41%'], ['JetBrains A/B, agentic tasks, forced on', '8.5%'], ['Repo benchmark vs. “Answer concisely.” (median)', '3%']]}
+>
+  <Bars unit="%" data={[
+    { label: 'Advertised (repo tagline)', value: 65, display: '65%' },
+    { label: 'Repo bench vs. no prompt', value: 41, display: '41%' },
+    { label: 'JetBrains, agentic tasks', value: 8.5, display: '8.5%', hl: true },
+    { label: 'Repo bench vs. “be concise”', value: 3, display: '3%' },
+  ]} />
+</Exhibit>
+
+Why the gap? JetBrains' answer is structural: agent output is "mostly tool call, file edit, code", and the caveman voice compresses only the narration between them. Code, diffs and exact error strings are left alone, and should be. The Honest numbers page adds more red rows. With a CLAUDE.md that already asked for terse replies, one user measured caveman's net effect on the bill across 662 sessions as "within ±0.2%". Another saw billed output fall 44.1% while total cost rose 0.06%. And on per-request billing such as GitHub Copilot, a shorter answer is the same request, so caveman "cannot lower Copilot credit use."
+
+### When caveman is the right register
+
+None of this makes caveman pointless. Its real benefit is often **attention, not money**. A developer reading terse progress updates during a long, well-understood refactor reads less and notices anomalies faster. That is the bottom-right quadrant: you know the code, you know what "tests green, 3 files, lint fixed" means, and verbosity only gets in the way. JetBrains' finding that quality did not measurably degrade is genuinely reassuring for that use.
+
+The danger is caveman's mirror image of ELI5's. Terse output removes the sentences in which an agent says *why*, and "why" is where unexpected decisions surface. A clipped "migrated schema, dropped col" is fine if you asked for it and a disaster if you did not. Hence the rule the caveman project itself follows, and a rule worth enforcing whatever tool you use: **full sentences for anything irreversible, anything security-related and anything the agent is unsure about.**
+
+```text
+Output register: terse. Lead with the result. No preamble, no recap,
+no narration between tool calls. One idea per sentence.
+Keep exact: code, commands, file paths, error messages, numbers, and the words
+"not", "never", "only".
+Switch to full sentences, and stop for my answer, for: security issues,
+irreversible or destructive actions, schema or dependency changes,
+anything you are unsure about, or whenever I ask "why".
+```
+
+In Claude Code, `/output-style concise` gives you most of this without installing anything. If you want the community version, the README documents a skill-only install. Try it against "Answer concisely." on your own sessions before you assume it saves you money.
+
+## Deep dive 5: the economics of verbosity
+
+Register has a price, so it is worth knowing what that price is. Anthropic's list prices for the Claude 5.5 family, checked on 14 October 2026 (USD per million tokens), are as follows:
+
+- **Claude Opus 5.5:** $4 input, $20 output, $0.20 for cache hits.
+- **Claude Sonnet 5.5:** $2 input, $10 output, $0.10 for cache hits.
+- **Claude Haiku 5.5** (prompts up to 100,000 tokens): $0.10 input, $0.50 output, $0.01 for cache hits.
+
+Two ratios follow. Output costs **five times** as much as uncached input on all three models. Because cache hits on Opus 5.5 and Sonnet 5.5 are priced at 0.05 times base input, output costs **a hundred times** as much as cached input on those two models. Per token, words the agent writes are by far the most expensive thing in a session.
+
+But agents read far more than they write. Every turn re-sends the conversation, the files read and the tool output, mostly from cache. Claude Code's cost guide shows an example session of 1.2k input, 5.3k output, 940k cache-read and 50k cache-write tokens. Output is about half a percent of those tokens. Re-priced at Sonnet 5.5 rates, it is about a fifth of the cost.
+
+<Exhibit
+  n={11}
+  title="Output is 0.5% of tokens in a typical session but about a fifth of the cost"
+  sub="Share of cost by token type for the example session in Claude Code’s cost docs, re-priced at Claude Sonnet 5.5 list prices"
+  source="Claude Code Docs, Manage costs effectively (token mix); Anthropic pricing (accessed 14 Oct 2026)"
+  sourceUrl="https://platform.claude.com/docs/en/about-claude/pricing"
+  note="Author’s calculation. Token mix from the docs’ /usage example (1.2k input, 5.3k output, 940k cache read, 50k cache write). Prices: input $2, output $10, cache read $0.10, 5-minute cache write $2.50 per million tokens. Total ≈ $0.27. One-hour cache writes would raise the cache-write share. Thinking tokens are billed as output."
+  table={[['Token type', 'Tokens', 'Share of tokens', 'Cost', 'Share of cost'], ['Cache writes', '50,000', '5.0%', '$0.125', '45.6%'], ['Cache reads', '940,000', '94.3%', '$0.094', '34.3%'], ['Output', '5,300', '0.5%', '$0.053', '19.3%'], ['Uncached input', '1,200', '0.1%', '$0.002', '0.9%']]}
+>
+  <Bars unit="%" data={[
+    { label: 'Cache writes', value: 45.6, display: '45.6%' },
+    { label: 'Cache reads', value: 34.3, display: '34.3%' },
+    { label: 'Output (incl. thinking)', value: 19.3, display: '19.3%', hl: true },
+    { label: 'Uncached input', value: 0.9, display: '0.9%' },
+  ]} />
+</Exhibit>
+
+Three implications follow for register.
+
+**First, the caveman voice works on the smallest part of the right line.** "Output" in the bill includes thinking, which Claude Code's docs say is "billed as output tokens", and on Opus 5.5, Sonnet 5.5 and Haiku 5.5 extended thinking cannot be turned off. A style instruction shortens the visible prose but not the reasoning. The bigger output lever is the **effort level**: lower effort means fewer thinking tokens on simple tasks. Tellingly, caveman's own "Auto" benchmark attributes most of its 54% saving to "lowering effort on easy asks," not to the voice.
+
+**Second, context discipline beats tone.** Clearing between unrelated tasks, delegating log-heavy work to subagents and keeping CLAUDE.md short all shrink the cached context that made up about 80% of the cost in the example above. Claude Code's docs put typical enterprise spend at about $13 per developer per active day and $150–250 per developer per month, and trace "unexpectedly high spend" mostly to long, uncleared sessions and to using Opus where Sonnet would do.
+
+**Third, ELI5's extra tokens are cheap insurance.** Take the caveman README's benchmark at Opus 5.5 output prices. The ten unprompted answers cost about 14 cents and the "Answer concisely." versions about 9 cents. Caveman's further 215-token saving over "Answer concisely." is worth less than half a cent. Its rules add about 1,160 input tokens, roughly a quarter of a cent across ten requests if cached, or nearly 5 cents if not. Set those fractions of a cent against one rework cycle caused by approving something you did not understand. Verbosity is rarely what makes a session expensive. Misunderstanding often is.
+
+<Note kind="warn">
+None of this means tokens do not matter. On metered API use at scale, a few percent of output across thousands of sessions is real money. But optimise in this order: context (what the agent reads), effort (how hard it thinks), model choice, and only then voice.
+</Note>
+
+## Case examples
+
+**METR: experts who misjudged their own speed.** METR's participants were not novices. They were maintainers working in repositories they knew deeply, which on the register matrix is the right-hand side. They still overestimated their speed with AI by about 39 percentage points: they believed they were 20% faster and were 19% slower. METR examined 20 possible contributing factors and found evidence for five. *The lesson:* high understanding of a codebase does not protect you from misreading what an agent is doing for you. The perception gap is a reason to make verification and explanation explicit even in the caveman quadrant: evidence, not vibes.
+
+**Anthropic: the explanation-seekers kept their skills.** In Anthropic's Trio study, participants who used the assistant for conceptual questions and explanations scored like those who coded by hand, and the largest such group was also among the fastest. Those who delegated scored lowest. *The lesson:* ELI5 is not a slower way of using an agent. Used as conceptual inquiry, it is a different way of using one, and it preserved the debugging skill that delegation eroded.
+
+**JetBrains: caveman, measured honestly.** JetBrains tested a viral claim with a paired design, published the outlier that briefly made the caveman arm look *more* expensive (one dependency-audit task crossed a long-context pricing tier), and reported a ceiling rather than a best case. It found 8.5% fewer output tokens and no detectable quality loss. *The lesson:* a terse output register is safe to use when you understand the work. Just do not expect it to change your bill much, and measure before you mandate it.
+
+**Stack Overflow 2026: trust that waits for verification.** Of more than 30,000 developers surveyed in 2026, 48% trust AI output mainly when it is easy to verify, and IT Brief reports that 6.6% would trust it for important decisions. *The lesson:* developers have already adopted the logic of the register matrix informally. Trust follows the ability to check, and the ability to check follows understanding. The registers turn that instinct into a habit.
+
+## Counterpoints
+
+<Note kind="counter" label="Objection 1: ELI5 is for beginners; professionals should just read the code">
+Experienced engineers can read a diff. Asking an agent to explain its work in plain words is a crutch that slows experts down and fills the screen with prose nobody needs.
+</Note>
+
+<Note kind="response">
+Reading the code is the gold standard, and for small diffs in familiar code it is exactly what the matrix recommends (the caveman quadrant). But the evidence says expertise does not protect against the perception gap: METR's experienced maintainers misjudged their speed by about 39 points. The illusion of explanatory depth is strongest where mechanisms are visible. ELI5 is not about the reader's seniority; it is about the reader's familiarity with *this change*. A staff engineer reviewing an agent's first pass at an unfamiliar payment provider is in the top-left quadrant. The teach-back step is cheap, and it is the only part of the process that checks you rather than the agent.
+</Note>
+
+<Note kind="counter" label="Objection 2: Caveman is a gimmick; it saves nothing">
+JetBrains measured 8.5%, one user saw no change across 662 sessions, and the README admits the default voice is only 3% shorter than "be concise". Why bother?
+</Note>
+
+<Note kind="response">
+On cost, the objection is mostly right, and Deep dive 5 explains why: output, including thinking, is a small share of tokens, and the voice cannot touch thinking. But cost was never caveman's best argument. Attention is. In the bottom-right quadrant, where you already understand the work, shorter updates are easier to scan and anomalies stand out. JetBrains found no measurable quality loss. The practical answer is to use the built-in Concise style or "Answer concisely" first, and to adopt caveman only if your own A/B test shows it helps. Never let any terse mode suppress warnings about irreversible actions.
+</Note>
+
+<Note kind="counter" label="Objection 3: Writing intern-grade briefs takes longer than doing the work">
+A full brief with context, constraints, a definition of done and an ask-before list is a mini-spec. For most tasks it would be faster to write the code yourself.
+</Note>
+
+<Note kind="response">
+For small, familiar, reversible changes, yes, and the vendors agree: Claude Code's guidance is to skip planning when you could describe the diff in one sentence. The brief should scale with the cost of a mistake, not the size of the task. But vague briefs have hidden costs. They "trigger broad scanning" that fills context and the bill, they produce "almost right" solutions (66% of developers' top frustration in 2025), and they push verification back onto you. The ask-before list is written once, in CLAUDE.md or AGENTS.md, and reused for every session. The marginal cost of a good brief falls fast.
+</Note>
+
+<Note kind="counter" label="Objection 4: Agent explanations can be wrong, so ELI5 gives false comfort">
+A model that can write a plausible bug can write a plausible explanation of it. Asking for a plain-English account may just add a second layer of confident fiction.
+</Note>
+
+<Note kind="response">
+This is the strongest objection, and the right response is to agree with its premise. *CAVEWOMAN* found that surface text can diverge from what a model would otherwise say even when the answer is correct, and Rozenblit and Keil show how persuasive visible mechanisms are. An explanation is not evidence. That is why the session flow in Exhibit 8 pairs every ELI5 step with something that does not depend on the agent's prose: teach-back tests *your* understanding, and verification demands test output, commands and screenshots. ELI5 tells you what to check. Evidence tells you whether it is true. Used without verification, ELI5 really is false comfort.
+</Note>
+
+## Implications by stakeholder
+
+<Exhibit
+  n={12}
+  title="Everyone who works with coding agents needs a default register and a rule for switching"
+  sub="Author’s framework: what the register matrix means for each group"
+  note="Framework by the author. The table scrolls sideways on small screens."
+>
+  <Compare
+    cols={['Individual developers', 'Tech leads and managers', 'Learners and instructors', 'Non-engineer builders']}
+    rows={[
+      { k: 'Default output register', v: ['Default or Concise on familiar code', 'Set per repo in shared settings', 'Explanatory or Learning', 'Explanatory, always'] },
+      { k: 'When to switch', v: ['ELI5 for unfamiliar code and risky diffs', 'ELI5 required for auth, data and payments', 'Caveman only after you can explain it back', 'Never caveman on anything that ships'] },
+      { k: 'The intern brief lives in', v: ['A personal prompt snippet', 'CLAUDE.md / AGENTS.md, reviewed like code', 'Exercise templates', 'A checklist with an expert on call'] },
+      { k: 'Gate before merge', v: ['Read the diff; evidence of checks', 'Author can explain the change unaided', 'Teach-back, then hand-written tests', 'An engineer reviews anything irreversible'] },
+      { k: 'Mistake to avoid', v: ['Approving summaries instead of diffs', 'Mandating caveman to cut costs', 'Delegating the hard parts of the exercise', 'Mistaking fluent prose for correctness'] },
+    ]}
+  />
+</Exhibit>
+
+### For individual developers
+
+Make register switching a habit, not a mood. Keep the three prompt snippets where you can paste them in a keystroke, and switch at the gates: before approving a plan and before approving a diff. When a message contains three terms you could not define, that is your cue to ask for the ELI5 version, not to press Enter.
+
+### For tech leads and engineering managers
+
+Treat register as team configuration: the ask-before list and verification commands belong in a checked-in CLAUDE.md or AGENTS.md, with the irreversible items enforced by hooks or permission rules. Make one review question standard: "Can the author explain this change without the agent's summary?" It measures comprehension debt directly. Resist mandating caveman to cut costs; Deep dive 5 shows context, effort and model choice move the bill far more.
+
+### For learners, juniors and instructors
+
+The Anthropic study is the clearest guide: conceptual questions preserve learning, while delegation erodes it, especially debugging skill. Use Learning mode for exercises, and no caveman on anything you could not have written yourself. Instructors should grade the explanation as well as the artefact.
+
+### For non-engineer builders
+
+Product managers, analysts and founders who build with agents work mostly in the top half of the matrix: they rarely know the code deeply, and production mistakes are costly. ELI5 is their default. Because a fluent explanation is not proof, anything irreversible (data deletion, payments, permissions, deployment) needs an engineer's review.
+
+## What to do next: a two-week register reset
+
+**Days 1–3: set your defaults.**
+1. Pick a default output style per repository. Use Explanatory for unfamiliar code and Default or Concise for your home turf. In Claude Code, run `/output-style` or set `outputStyle` in `.claude/settings.local.json`.
+2. Write the ask-before list in CLAUDE.md or AGENTS.md: dependencies, schemas and migrations, deletions, auth, payments, secrets, CI, and anything outside the task's directory.
+3. Turn the riskiest items into hooks or deny rules, so they are enforced rather than requested.
+
+**Days 4–7: practise the gates.**
+1. Start every non-trivial task in plan mode with the intern brief.
+2. Before approving any plan, explain it back in two sentences and let the agent correct you.
+3. For every diff touching a risky file, run the hunk-by-hunk ELI5 prompt from Deep dive 1.
+4. Each time a term in agent output stops you, add it to a personal decoder in plain words.
+
+**Days 8–14: measure, then go fast where you have earned it.**
+1. Check `/usage` (or your tool's equivalent) at the end of sessions. Note where cost sits: context, cache, output.
+2. Try terse output on familiar, low-stakes work. Compare "Answer concisely." and the Concise style with caveman on your own tasks before adopting anything.
+3. Review the fortnight. Which approvals could you not have explained a week later? Those tell you where your matrix boundaries really are.
+
+## Limitations and methodology
+
+- **The framework is mine.** The register matrix, the session flow and the stakeholder table are tools for thinking, built from the evidence cited and from practice. They have not been validated as instruments.
+- **The trials are small and specific.** METR studied 16 experienced developers on their own repositories with early-2025 tools, and its 2026 follow-up is undermined by selection effects that METR itself describes. Anthropic's study had 52 mostly junior engineers learning one library, measured comprehension shortly after the task, and its interaction-pattern groups contain two to seven people each.
+- **Surveys measure attitudes.** Stack Overflow's trust figures are self-reported, from self-selected respondents. The 6.6% figure for important decisions comes from IT Brief's coverage rather than the survey page.
+- **The jargon research is not about developers.** Bullock et al. and Shulman et al. studied lay audiences reading about emerging science. I apply the mechanism (processing fluency) by analogy. It has not been tested on agent output.
+- **Caveman's numbers are partly self-reported.** The README benchmark is a single run of ten questions on older rules, counted with OpenAI's tiktoken rather than Claude's tokeniser. The Honest numbers page relays user reports I could not inspect. JetBrains' study is the most rigorous, but it used one model at low effort on one benchmark.
+- **Prices and features are date-stamped.** Model prices, output styles, version numbers and the glossary count were checked on 14 October 2026 and will change. The cost-share exhibit re-prices an illustrative token mix from the docs. It is not a measurement of real sessions, and cache-write duration and thinking volume shift the shares considerably.
+- **One first-person fact.** My only personal claim is that I built this site with Claude Code in the Explanatory style. I make no claim about measured outcomes from doing so.
+
+## Speak plainly, read honestly
+
+Coding agents will keep getting more capable and more fluent, and their vocabulary will keep growing. Fifty-two glossary terms today will be more tomorrow. That is not a problem in itself. The problem is the moment when you approve something because the explanation *sounded* right, in words you could not have used yourself.
+
+So choose your register on purpose. Brief every agent like a capable intern. Make it explain like you are five whenever you do not yet understand the change or cannot afford to be wrong. Let it grunt only when you already know what it is going to say.
+
+<Note kind="insight">
+Never let the agent's vocabulary outrun your understanding of what ships. If you cannot explain the change in plain words, you are not ready to approve it — whatever register it was written in.
+</Note>

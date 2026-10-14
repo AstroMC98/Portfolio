@@ -1,0 +1,139 @@
+---
+dek: "A forward deployed engineer is the person who goes into a customer's business and makes the AI actually work there; it is a real and valuable job, but most companies hiring one need a different role or a better product."
+takeaways:
+  - "Demand has exploded: job postings for forward deployed engineers rose more than 1,000% in a year while tech jobs overall grew 13%, yet only about 2,000 engineers are estimated to genuinely fit the role."
+  - "The job exists because AI that takes actions only creates value once it is wired into a customer's own systems. It pays off only when what engineers learn in the field becomes part of the product."
+  - "You need one only when customers' problems are unclear AND their systems are hard to connect to. Real ones talk about what broke and what they cut; fakes talk about tools and demos."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Buying a kettle is easy: you take it home, plug it in, and it works. Buying a dishwasher for a busy restaurant is different. Someone has to connect it to the water, the drains and the power, fit it into how the kitchen runs, train the staff, and stay until it survives a Saturday night. A chatbot is a kettle. An AI that files claims, updates tickets or reconciles invoices is the restaurant dishwasher. The forward deployed engineer, or FDE, is the person who installs it, and in 2026 that became the hottest job title in tech.</p>
+
+I have been doing this job for years, long before anyone gave me the title: sitting with a client's team, working out what they actually needed, building it inside their systems, and staying until it ran on a Monday morning without me. So here is my argument, in plain words: **the FDE is a real response to a real problem, AI products that only create value once they are connected to a customer's systems, but most companies now hiring one actually need a solutions engineer, an integration engineer or a better product instead.**
+
+The role is not a fad. But it is expensive, rare and easy to fake. Hiring one to cover up the wrong problem is one of the costliest mistakes an AI company can make.
+
+## Jargon decoder
+
+- **Forward deployed engineer (FDE):** an engineer who works inside a customer's organisation, builds the solution in their environment, and owns it until the customer runs it alone.
+- **Integration:** connecting new software to the systems a business already uses, such as its logins, databases and approval steps.
+- **Solutions engineer or consultant:** helps customers understand and set up a product, usually before or around the sale. Lighter on building.
+- **Integration engineer:** builds the connections between systems when the problem is clear but the plumbing is hard.
+- **Production:** real use by real people, as opposed to a demo.
+- **Go-live:** the day a system starts being used for real.
+- **Handover:** passing a working system to the customer's own team so they can run it without you.
+- **Gross margin:** the share of each sale left after the direct cost of delivering it. Software companies usually expect it to be high.
+- **Moat:** an advantage that makes it hard for competitors to take your customers.
+
+## Why everyone suddenly wants one
+
+The numbers are startling, even for the AI boom.
+
+<Exhibit
+  n={1}
+  title="FDE job postings grew roughly 75 times faster than the tech job market"
+  sub="Growth in job postings, January–August 2026 vs the same months of 2025"
+  source="Lightcast data via Fortune, 3 Sep 2026"
+  sourceUrl="https://fortune.com/2026/09/03/forward-deployed-engineers-fast-growing-six-figure-silicon-valley-job-integrate-ai-with-customers-tech-careers-palantir/"
+  note="FDE figure reported as 'more than 1,000%'; shown at 1,000% as a floor. Growth is from a small base, so the number of actual jobs is modest."
+  table={[["Segment", "Posting growth, Jan–Aug 2026 vs 2025"], ["Forward deployed engineer", ">1,000%"], ["All tech postings", "13%"]]}
+>
+  <Bars unit="%" data={[
+    { label: "Forward deployed engineer", value: 1000, display: ">1,000%", hl: true },
+    { label: "All tech job postings", value: 13, display: "13%" },
+  ]} />
+</Exhibit>
+
+The money followed. The median advertised FDE salary is over $188,000, against about $145,000 for traditional software engineers. The biggest AI companies are not just hiring individuals; they are building whole deployment businesses. In May 2026 OpenAI launched a Deployment Company with more than $4 billion from 19 firms and agreed to buy a firm called Tomoro for its roughly 150 FDEs. In June 2026 AWS committed $1 billion to a forward deployed unit. In October 2026 Anthropic committed $100 million to train 10,000 "Frontier Deployed Engineers" at partner firms by the end of 2027.
+
+Now the catch. A Gartner analyst estimates only about **2,000 engineers** today genuinely fit the role, and that the industry could absorb four times that. When demand outruns real supply like this, two things happen. Companies rename existing jobs as "FDE" to attract candidates, and candidates rename themselves. The title starts to mean less, which is why the rest of this piece is about what the job is, not what it is called.
+
+Why now? Because the product changed shape. A chatbot that answers questions can be sold as a subscription. An AI agent that takes actions has to be connected to the places where the claims, tickets and invoices live, with the right permissions, on the right data, inside the customer's security rules. Somebody has to do that wiring.
+
+## Where the job came from, and why the money works
+
+The role is not new. The data company Palantir created it in the early 2010s and called these engineers "Deltas". A neat way to describe the difference: a normal product engineer works on "one capability, many customers"; a Delta works on "one customer, many capabilities." Until around 2016 Palantir had more of them than regular software engineers. Then it launched a product called Foundry, and many of them moved into building it.
+
+That sequence is the whole business logic in miniature. Engineers went into customers, saw the same problems again and again, and the repeated solutions became a product. The field work was paid research for the product.
+
+The venture firm a16z calls this trading margin for moat. Companies that do heavy customer setup start with thin profits, but once they own the place where a customer's data and workflows enter, it is hard to dislodge them, and margins grow. Its examples: ServiceNow went from a 63.2% gross margin at its stock-market debut to 79% in 2024; Workday went from 54.1% to 75%.
+
+The catch is important: it only works if the field work **flows back into the product**. A company whose engineers build one-off code for every customer, with no route back, is not building a moat. It is running a consultancy and hoping for software profits.
+
+## What the job actually is
+
+Strip away the hype and the job is a loop of six steps. The last one is the one most job ads forget.
+
+<Exhibit
+  n={2}
+  title="The FDE loop has two outputs: a working system for the customer, and a lesson for the product"
+  sub="Author's framework: the six steps of forward deployed work"
+  note="Framework by the author. Step 6 is what makes the business economics work."
+>
+  <Flow steps={[
+    { title: "Discover", text: "Find the real problem behind the request." },
+    { title: "Scope", text: "Cut it down to something that moves one number the customer already tracks." },
+    { title: "Build in place", text: "Connect to their logins, data and approvals, on their systems." },
+    { title: "Harden", text: "Survive real use: odd file formats, permissions, traffic spikes." },
+    { title: "Hand over", text: "Training, instructions, monitoring; their team runs it now.", hl: true },
+    { title: "Feed the product", text: "Turn what repeated into a feature others can use.", hl: true },
+  ]} />
+</Exhibit>
+
+Each step has a typical way to fail. Discovery fails when the engineer builds what was asked for instead of what was needed. Building fails when the work happens on a laptop with sample data instead of in the customer's real environment. Handover fails when the engineer quietly becomes a permanent member of the customer's team. And the last step fails silently: nobody notices until the third customer needs the same thing built from scratch.
+
+<Note kind="field">
+On an enterprise knowledge-assistant platform I led, the hard part was never "a chatbot over our documents." It was making search respect each person's access rights from the company's login system, plus per-user spending limits enforced everywhere. Nobody writes that into a job spec. It is the job.
+</Note>
+
+## Do you actually need one?
+
+Two questions decide it. **How unclear are your customers' problems?** And **how hard are their systems to connect to?**
+
+<Exhibit
+  n={3}
+  title="Hire an FDE only when problems are unclear and connecting is hard"
+  sub="Author's framework: matching the role to the customer's situation"
+  note="Framework by the author."
+>
+  <Matrix
+    x="How hard it is to connect to their systems"
+    y="How unclear the problem is"
+    quads={[
+      { title: "Solutions consultant", text: "Unclear problems, standard systems: discovery and setup, light code" },
+      { title: "Forward deployed engineer", text: "Unclear problems in complex systems: scope, build, harden, own the outcome", hl: true },
+      { title: "Customer success / support", text: "Clear problems, standard systems: training and playbooks" },
+      { title: "Integration engineer", text: "Clear problems, complex systems: connectors and data pipelines" },
+    ]}
+  />
+</Exhibit>
+
+Unclear problems call for discovery; hard-to-connect systems call for engineering. An FDE is the expensive combination of both. If every customer wants roughly the same thing on clean, modern software, an FDE will be bored and costly. You need one when both are high, usually in regulated, data-heavy organisations.
+
+The most expensive mistake I see is hiring FDEs to make up for an unfinished product. Every deal needs heroics, so the company hires heroes, and the heroics become permanent because nobody has time to turn them into product. The giveaway: work done for one customer never gets reused for a second. If that is you, hire a product engineer and fix the product.
+
+## How to spot a fake
+
+A tenfold jump in postings guarantees a wave of rebranded CVs. The words are public; anyone can learn to say "agents" and "evals". What a course cannot teach is the texture of real deployments: the permission error that only appears for one department, the file format nobody mentioned, the usage limit that only bites at month-end.
+
+So listen for the difference. Real FDEs describe a customer, a constraint, a shipped system and a number that moved; fakes describe a list of tools. Real FDEs can explain what they cut and why the client agreed; fakes built everything asked for. Ask "what broke?" and a real one gives you a specific incident, its cause and the fix. Their answers get **more** specific when you dig; a fake's get vaguer.
+
+The single best interview question I know: **"Tell me about the first week after go-live."** People who have done the job light up, because that week is when the real problems arrive. People who have not just describe the launch.
+
+<Note kind="field">
+On a document-processing pipeline I built, many workers could hit the AI provider at the same instant, which is exactly the burst that trips usage limits. The fix, a small piece of code that spaces out requests, is easy; knowing to look for it is the experience.
+</Note>
+
+Do not over-correct by hiring only people who already have the title. With about 2,000 genuine FDEs in the market, that pool barely exists. Salesforce filled 40–50% of its FDE moves with internal transfers. Look for the behaviour, whatever the person was called before. And once you have them, keep them in small teams tied to the product team, keep them off sales quotas, and reward them for handing systems over, not for becoming indispensable.
+
+## If you remember one thing
+
+The FDE exists because AI that acts inside a business only creates value once someone wires it into that business: its data, its logins, its approvals, its odd document formats. That is why the role has lasted at Palantir for well over a decade. But real demand for the work does not mean every company needs the title. Most need a solutions consultant, an integration engineer or a better product.
+
+<Note kind="insight">
+The FDE title will dilute. The behaviour won't. Hire people who can show you a system running in someone else's environment, and tell you, in detail, how it broke.
+</Note>

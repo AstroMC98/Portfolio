@@ -1,0 +1,33 @@
+---
+/** Horizontal bars with direct value labels; highlight one or more bars (emphasis vs neutral). */
+interface Bar {
+  label: string;
+  value: number;
+  display?: string;
+  sub?: string;
+  hl?: boolean;
+  neg?: boolean;
+}
+interface Props {
+  data: Bar[];
+  max?: number;
+  unit?: string;
+  prefix?: string;
+}
+const { data, max, unit = '', prefix = '' } = Astro.props;
+const top = max ?? Math.max(...data.map((d) => Math.abs(d.value)));
+---
+<div class="hbars" role="list">
+  {data.map((d) => {
+    const text = d.display ?? `${prefix}${d.value}${unit}`;
+    return (
+      <div class:list={['hbar', { 'hbar--hl': d.hl, 'hbar--neg': d.neg }]} role="listitem" data-tip={`${d.label}: ${text}`}>
+        <span class="hbar__label">{d.label}{d.sub && <small>{d.sub}</small>}</span>
+        <span class="hbar__track">
+          <span class="hbar__fill" style={`width:${Math.max(1.5, (Math.abs(d.value) / top) * 82)}%`}></span>
+          <span class="hbar__val">{text}</span>
+        </span>
+      </div>
+    );
+  })}
+</div>

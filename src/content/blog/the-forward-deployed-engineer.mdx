@@ -1,0 +1,450 @@
+---
+title: "The Forward Deployed Engineer: Why Everyone Is Hiring One, When You Actually Need One, and How to Spot a Fake"
+dek: "FDE job postings grew more than tenfold in a year, and the biggest AI companies are committing billions to put engineers inside their customers. The role is a real answer to a real problem — but most companies hiring one have a different problem. A field guide from someone who does the job."
+date: 2026-10-06
+kicker: Forward Deployed
+motif: deploy
+featured: true
+tags: [Forward Deployed, Hiring, Careers]
+thesis: "The forward deployed engineer is a structural response to AI products that only create value once they are wired into a customer's systems — and most companies now hiring one actually need a solutions engineer, an integration engineer or a better product instead."
+takeaways:
+  - "Demand is real: FDE postings rose more than 1,000% year on year in January–August 2026 (Lightcast), while overall tech postings grew 13% — and OpenAI, AWS and Anthropic have committed billions to deployment capacity."
+  - "Supply is not: Gartner estimates only ~2,000 engineers genuinely fit the role today. Announced training and hiring pledges alone would multiply that pool several times over, which guarantees title inflation."
+  - "The FDE exists because AI products only create value once integrated. The economics work only if field work flows back into the product — the margin-for-moat trade a16z describes, and the move Palantir made with Foundry."
+  - "Hire an FDE when your customers' problems are ambiguous AND their environments are hard to integrate. If only one is true, you need a solutions consultant or an integration engineer. If neither, fix the product."
+  - "Real FDEs talk in constraints, incidents and adoption numbers; fakes talk in frameworks, demos and model names. Interview with a messy scoping exercise and a stakeholder role-play, and score against explicit anchors."
+  - "Structure FDEs in small pods tied to product engineering, keep them off sales quotas, and give them a career ladder that rewards handover and product absorption — not hours on site."
+sources:
+  - label: "Fortune — Forward-deployed engineers: the fast-growing six-figure job (Lightcast data, 3 Sep 2026)"
+    url: "https://fortune.com/2026/09/03/forward-deployed-engineers-fast-growing-six-figure-silicon-valley-job-integrate-ai-with-customers-tech-careers-palantir/"
+  - label: "The Pragmatic Engineer — Forward deployed engineers (12 Aug 2025)"
+    url: "https://newsletter.pragmaticengineer.com/p/forward-deployed-engineers"
+  - label: "a16z — Trading Margin for Moat: Why the Forward Deployed Engineer Is the Hottest Job in Startups (4 Jun 2025)"
+    url: "https://a16z.com/services-led-growth/"
+  - label: "Salesforce News — Forward deployed engineers are making AI jobs more human (18 Mar 2026)"
+    url: "https://www.salesforce.com/news/stories/forward-deployed-engineers-making-ai-jobs-more-human/"
+  - label: "Channel Dive — Anthropic, AWS and forward-deployed engineer certifications; Gartner estimate (5 Oct 2026)"
+    url: "https://www.channeldive.com/news/anthropic-aws-forward-deployed-engineer-certifications/832157/"
+  - label: "Anthropic — Claude Frontier Academy (2 Oct 2026)"
+    url: "https://www.anthropic.com/news/claude-frontier-academy"
+  - label: "Constellation Research — OpenAI launches OpenAI Deployment Company, acquires Tomoro (11 May 2026)"
+    url: "https://www.constellationr.com/insights/news/openai-launches-openai-deployment-company-acquires-tomoro"
+  - label: "Constellation Research — AWS launches forward deployed engineering unit with $1 billion investment (30 Jun 2026)"
+    url: "https://www.constellationr.com/insights/news/aws-launches-forward-deployed-engineering-unit-1-billion-investment"
+  - label: "Lightcast — AI skills in job postings, data for the Stanford AI Index 2026 (13 Apr 2026)"
+    url: "https://lightcast.io/resources/blog/stanford-ai-2026"
+  - label: "Palantir — Forward Deployed Software Engineer job posting (Lever)"
+    url: "https://jobs.lever.co/palantir/bf718bd3-b2ef-451e-8033-cb4d2d9c094b"
+  - label: "Anthropic — Forward Deployed Engineer job posting, London (via General Catalyst jobs board)"
+    url: "https://jobs.generalcatalyst.com/companies/anthropic/jobs/93102649-forward-deployed-engineer"
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Stats from '../../components/blog/Stats.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Slope from '../../components/blog/Slope.astro';
+import Waffle from '../../components/blog/Waffle.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Timeline from '../../components/blog/Timeline.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">The first time someone introduced me as a "forward deployed engineer," I had been doing the job for years without the title. I was the person who sat with the client's team, figured out what they actually needed, built it inside their stack, and stayed until it ran on a Monday morning without me. In 2026 that job description became the hottest title in tech. That is good for people who do the work — and a problem for everyone trying to hire them.</p>
+
+My argument is this: **the forward deployed engineer is a structural response to AI products that only create value once they are wired into a customer's systems — and most companies now hiring one actually need a solutions engineer, an integration engineer or a better product instead.** The role is not a fad. But it is expensive, scarce and easy to fake, and hiring one to paper over the wrong problem is one of the most costly mistakes an AI company can make this year.
+
+This article works through the case in order. It starts with the market — why postings exploded and where the money is going. It then looks at the origin and economics of the role, from Palantir's "Deltas" to the margin-for-moat argument, and at what the supply data really says. It sets out a model of what the job actually consists of, then goes deep on four practical questions: when to hire one, how to spot a fake, how to interview and score candidates, and how to structure an FDE team so it does not quietly turn into an unprofitable consultancy. After a handful of public cases, it takes on the three strongest objections, spells out the implications for founders, hiring managers and engineers, and closes with a 90-day action plan and an honest list of what the evidence cannot tell us.
+
+## Context: why this matters now
+
+The numbers are startling even by AI-boom standards. Lightcast data reported by *Fortune* shows forward-deployed engineer postings up **more than 1,000%** in January–August 2026 versus the same period a year earlier — and more than 4,600% versus 2023 — while the overall tech job market grew 13%. Microsoft, Meta, Google, OpenAI and Anthropic were all hiring, and Palantir alone had around four dozen open FDE roles.
+
+<Exhibit
+  n={1}
+  title="FDE job postings grew roughly 75 times faster than the tech job market"
+  sub="Growth in job postings, January–August 2026 vs. the same period of 2025"
+  source="Lightcast data via Fortune, 3 Sep 2026"
+  sourceUrl="https://fortune.com/2026/09/03/forward-deployed-engineers-fast-growing-six-figure-silicon-valley-job-integrate-ai-with-customers-tech-careers-palantir/"
+  note="FDE figure reported as 'more than 1,000%'; shown at 1,000% as a floor. Growth is from a small base."
+  table={[['Segment', 'Posting growth, Jan–Aug 2026 YoY'], ['Forward deployed engineer', '>1,000%'], ['All tech postings', '13%']]}
+>
+  <Bars unit="%" data={[
+    { label: 'Forward deployed engineer', value: 1000, display: '>1,000%', hl: true },
+    { label: 'All tech job postings', value: 13, display: '13%' },
+  ]} />
+</Exhibit>
+
+The money followed. The median advertised FDE salary in the same data is **over $188,000, against about $145,000** for traditional software engineers, with some frontier-lab roles reaching $400,000. Anthropic's London FDE posting advertises £225,000–255,000. And supply has not caught up: a Gartner analyst estimates only around **2,000 engineers** today genuinely fit the role — and that the industry could absorb four times that.
+
+<Exhibit
+  n={2}
+  title="The FDE premium: higher pay, thin supply"
+  sub="Median advertised salary and estimated talent pool, US, 2026"
+  source="Lightcast/Dice via Fortune (salaries); Gartner via Channel Dive (supply)"
+  sourceUrl="https://www.channeldive.com/news/anthropic-aws-forward-deployed-engineer-certifications/832157/"
+  note="Salaries are advertised medians, not realised pay. The supply figure is an analyst estimate; its method is not published."
+>
+  <Stats items={[
+    { value: '$188K', label: 'median advertised FDE salary', source: 'LIGHTCAST · DICE · 2026' },
+    { value: '$145K', label: 'median for traditional software engineers', source: 'LIGHTCAST · DICE · 2026' },
+    { value: '~2,000', label: 'engineers estimated to genuinely fit the FDE role today', source: 'GARTNER · OCT 2026' },
+    { value: '4×', label: 'how many more the industry could absorb, per the same estimate', source: 'GARTNER · OCT 2026' },
+  ]} />
+</Exhibit>
+
+Why now? Because the product changed shape. A chatbot that answers questions can be sold as a subscription. An agent that files a claim, updates a ticket or reconciles an invoice has to be connected to the systems where claims, tickets and invoices live — with the right permissions, on the right data, inside the customer's security rules. Lightcast found that agentic-AI skills went from 0.06% of US job postings in 2024 to 0.23% in 2025. Every one of those agents needs somebody to wire it in. That is the structural demand behind the title, and it is why the largest AI companies have moved from hiring individual FDEs to building whole deployment businesses.
+
+<Exhibit n={3} title="From a Palantir internal title to a multi-billion-dollar deployment race" sub="Selected milestones" source="The Pragmatic Engineer; a16z; Salesforce; Constellation Research; Fortune; Anthropic" sourceUrl="https://newsletter.pragmaticengineer.com/p/forward-deployed-engineers">
+  <Timeline items={[
+    { date: 'EARLY 2010s', title: 'Palantir creates the role', text: 'Engineers embedded with customers, internally called “Deltas”; until about 2016 they outnumbered regular software engineers.', state: 'done' },
+    { date: '2016', title: 'Palantir launches Foundry', text: 'Many FDEs move into core product engineering as field work becomes a platform.', state: 'done' },
+    { date: 'EARLY 2025', title: 'OpenAI stands up an FDE team', text: 'Starts with two engineers; more than ten by mid-2025, per The Pragmatic Engineer.', state: 'done' },
+    { date: 'JUN 2025', title: 'a16z: “the hottest job in startups”', text: 'Argues services-led growth trades gross margin for a moat.', state: 'done' },
+    { date: 'MAR 2026', title: 'Salesforce triples its Agentforce FDE team', text: 'In six months; 40–50% of moves into the role are internal transfers.', state: 'done' },
+    { date: 'MAY 2026', title: 'OpenAI launches the Deployment Company', text: '$4B from 19 firms; agrees to acquire Tomoro for a base of about 150 FDEs.', state: 'done' },
+    { date: 'JUN 2026', title: 'AWS commits $1B to a forward deployed unit', text: 'Starting with hundreds of engineers on fixed, outcome-based pricing.', state: 'done' },
+    { date: 'OCT 2026', title: 'Anthropic launches Claude Frontier Academy', text: 'A $100M commitment to train 10,000 “Frontier Deployed Engineers” at partner firms by end of 2027.', state: 'hl' },
+  ]} />
+</Exhibit>
+
+## Origin and economics: why the role exists at all
+
+The FDE is not new. Palantir created it in the early 2010s, and internally the engineers were called "Deltas". *The Pragmatic Engineer*'s account of the role captures the distinction neatly: a Palantir product developer works on "one capability, many customers"; a Delta works on "one customer, many capabilities." Until around 2016, Palantir employed more FDEs than conventional software engineers. Then it launched Foundry, and many of those FDEs moved into core product engineering.
+
+That sequence is the whole economic logic of the role in miniature. Palantir's customers — government agencies and large enterprises with messy, sensitive, siloed data — could not get value from software that was not integrated into their environment. So Palantir sent engineers to do the integrating. Those engineers saw the same problems repeat across customers, and the repeated solutions became a product. The FDE was not the business model; it was the *research and development* function for the business model, paid for by customers.
+
+### The margin-for-moat trade
+
+Venture firm a16z made this argument explicit in June 2025. Implementation-heavy software companies start with lower gross margins and higher burn because every customer needs customisation. But once a company owns the place where a customer's data and workflows enter the system, it gains a moat — the ability to raise prices and build a partner ecosystem — and margins rise over time. a16z's examples were ServiceNow, which went public with a 63.2% gross margin and reported 79% in 2024, and Workday, which went from 54.1% to 75%.
+
+<Exhibit
+  n={4}
+  title="Implementation-heavy software companies started with thin margins and grew into software-like ones"
+  sub="Gross margin at IPO vs. 2024"
+  source="a16z, Trading Margin for Moat (4 Jun 2025)"
+  sourceUrl="https://a16z.com/services-led-growth/"
+  note="Two companies chosen by a16z to illustrate its argument — not a representative sample. Survivorship bias applies: companies whose margins never recovered are not shown."
+  table={[['Company', 'Gross margin at IPO', 'Gross margin 2024'], ['ServiceNow', '63.2%', '79%'], ['Workday', '54.1%', '75%']]}
+>
+  <Slope left="At IPO" right="2024" unit="%" max={85} min={50} items={[
+    { label: 'ServiceNow', a: 63.2, b: 79, hl: true },
+    { label: 'Workday', a: 54.1, b: 75 },
+  ]} />
+</Exhibit>
+
+The a16z piece also offered a useful snapshot of how seriously the frontier labs took this: at the time of writing, 22 of the 311 open roles on OpenAI's careers page were in forward deployed or solutions engineering — roughly one in fourteen jobs at the company most associated with the model itself.
+
+<Exhibit
+  n={5}
+  title="Roughly one in fourteen open roles at OpenAI was forward deployed or solutions engineering"
+  sub="Share of OpenAI open roles in forward deployed or solutions engineering, mid-2025"
+  source="a16z, Trading Margin for Moat (4 Jun 2025)"
+  sourceUrl="https://a16z.com/services-led-growth/"
+  note="22 of 311 open roles, about 7%. A point-in-time count of a careers page, not headcount."
+>
+  <Waffle value={7} display="22 of 311" label="OpenAI open roles in forward deployed or solutions engineering at the time of a16z’s count" />
+</Exhibit>
+
+Notice what the economics require. The trade only works if the field work *flows back into the product*. A company whose FDEs build bespoke code for each customer, with no route back to a shared platform, is not trading margin for moat. It is running a consultancy with software-company expectations — and it will not get software-company margins.
+
+## The evidence: demand is real, supply is thin, and the gap will be filled with titles
+
+Three things are true at once, and the nuance matters for anyone hiring.
+
+**Demand is concentrated and well-funded.** The postings growth in Exhibit 1 is real, but the more telling signal is capital. In May 2026 OpenAI launched the OpenAI Deployment Company with more than $4 billion from 19 investment firms, consultancies and systems integrators, led by TPG, and agreed to acquire the applied-AI firm Tomoro to give it a base of about 150 forward deployed engineers. In June 2026 AWS committed $1 billion to a forward deployed engineering unit starting with hundreds of engineers. In October 2026 Anthropic committed $100 million to train 10,000 "Frontier Deployed Engineers" at partner firms including Accenture, Bain, Capgemini, Deloitte and McKinsey by the end of 2027.
+
+**Supply is thin.** Set those commitments against Gartner's estimate of about 2,000 engineers who genuinely fit the role today, and an absorbable market of roughly four times that.
+
+<Exhibit
+  n={6}
+  title="Announced training pledges alone would dwarf today’s estimated pool of real FDEs"
+  sub="Estimated FDE talent pool vs. selected announced capacity, number of engineers"
+  source="Gartner via Channel Dive (pool, absorbable); Anthropic (training target); Constellation Research (Tomoro)"
+  sourceUrl="https://www.channeldive.com/news/anthropic-aws-forward-deployed-engineer-certifications/832157/"
+  note="Different kinds of number, shown together to make one point. The 8,000 figure is derived from Gartner’s “four times” estimate. The 10,000 is a training target, not trained engineers. Tomoro’s ~150 is an acquired team."
+  table={[['Measure', 'Engineers'], ['Tomoro team acquired by OpenAI (May 2026)', '~150'], ['Engineers who genuinely fit the role today (Gartner)', '~2,000'], ['Market the industry could absorb (Gartner, 4×)', '~8,000'], ['Anthropic training target by end-2027', '10,000']]}
+>
+  <Bars data={[
+    { label: 'Tomoro team (OpenAI)', value: 150, display: '~150' },
+    { label: 'Genuine FDEs today (Gartner)', value: 2000, display: '~2,000', hl: true },
+    { label: 'Absorbable demand (Gartner, 4×)', value: 8000, display: '~8,000' },
+    { label: 'Anthropic training target', value: 10000, display: '10,000' },
+  ]} />
+</Exhibit>
+
+**The gap will be filled with titles.** When demand outruns genuine supply by this margin, two things happen. Companies rename existing roles — solutions engineers, sales engineers, technical account managers — as FDEs to compete for candidates. And candidates rename themselves. *The Pragmatic Engineer* lists Agent Engineer, Solutions Architect, Sales Engineer and Technical Delivery Engineer as titles for similar roles, and notes that some companies use FDEs mainly to help close deals while others treat the job as technical consulting. The word now covers several different jobs. That is precisely why the rest of this article focuses on function rather than title.
+
+A caution on the data: the 1,000% growth figure is from a small base, so even large percentage swings involve modest absolute numbers. The Gartner estimate is a single analyst's view with no published method. And the capital commitments are company announcements — intentions, not outcomes.
+
+## A framework: what the job actually consists of
+
+Strip away the hype and the job is a loop. I describe it in six steps, and the sixth is the one most job descriptions leave out.
+
+<Exhibit
+  n={7}
+  title="The FDE loop has two outputs: a working system for the customer, and a lesson for the product"
+  sub="Author's framework: the six steps of forward deployed work"
+  note="Framework by the author. Step 6 is the one that makes the economics in Exhibit 4 possible."
+>
+  <Flow steps={[
+    { title: 'Discover', text: 'Find the real problem behind the brief: the process, the data, the people, the constraint.' },
+    { title: 'Scope', text: 'Cut to something shippable that moves one number the customer already tracks.' },
+    { title: 'Build in place', text: 'Integrate with their identity, data and approval systems — on their infrastructure.' },
+    { title: 'Harden', text: 'Survive real traffic: rate limits, odd formats, permissions, the first complaints.' },
+    { title: 'Hand over', text: 'Runbooks, training, monitoring; someone else operates it now.', hl: true },
+    { title: 'Feed the product', text: 'Turn what repeated into a feature, a connector or a template.', hl: true },
+  ]} />
+</Exhibit>
+
+Each step has a characteristic failure. Discovery fails when the engineer builds what was asked for rather than what was needed. Scoping fails when nothing is cut. Building fails when the engineer works on a laptop with sample data instead of inside the customer's environment. Hardening fails when the system is declared done at the demo. Handover fails when the FDE becomes a permanent part of the customer's operations team. And product feedback fails silently — no one notices, until the third customer needs the same connector built from scratch.
+
+OpenAI's description of its own FDE process, as reported by *The Pragmatic Engineer*, maps closely onto the first five steps: a couple of days of early scoping on site, prototyping with synthetic data; a validation phase built around evaluations, with results reported before delivery; then delivery with engineers on site a few days a week. Its FDE team also contributes to OpenAI's Agents SDK — step six in practice.
+
+<Note kind="field">
+On an enterprise knowledge-assistant platform I led, the hard part was never "a chatbot over our documents." It was retrieval that respected role-based access from the company’s identity provider, plus per-user spend limits enforced on every endpoint. Nobody writes that into a job spec. It is the job.
+</Note>
+
+## Deep dive 1: when you actually need one (and when you don't)
+
+Most companies hiring FDEs in 2026 need one of three other roles instead. The test is two questions: **How ambiguous are your customers' problems?** And **how hard are their environments to integrate with?**
+
+<Exhibit
+  n={8}
+  title="Hire an FDE only when problems are ambiguous and integration is hard"
+  sub="Author’s framework: matching the role to customer ambiguity and integration difficulty"
+  note="Framework by the author."
+>
+  <Matrix
+    x="Integration difficulty"
+    y="Problem ambiguity"
+    quads={[
+      { title: 'Solutions consultant', text: 'Ambiguous problems, standard environments — discovery and configuration, light code' },
+      { title: 'Forward deployed engineer', text: 'Ambiguous problems in complex environments — scope, build, harden, own the outcome', hl: true },
+      { title: 'Customer success / support', text: 'Clear problems, standard environments — enablement and playbooks' },
+      { title: 'Integration / solutions engineer', text: 'Clear problems, complex environments — connectors, data pipelines, SSO' },
+    ]}
+  />
+</Exhibit>
+
+**The mechanism.** Ambiguity determines how much *discovery* the work needs; integration difficulty determines how much *engineering* it needs. An FDE is the expensive combination of both. If your product is mature and every customer wants roughly the same thing, an FDE will be bored and expensive. If your customers want wildly different things but run on clean SaaS, a strong solutions consultant will move faster. If they want the same thing but run on a tangle of legacy systems, an integration engineer with good connectors is the answer. You need an FDE when both axes are high — usually regulated, data-heavy enterprises where the AI only creates value once it touches their systems of record.
+
+**How to place yourself honestly.** Take your last ten closed or lost deals and answer four questions for each. Did the customer's stated problem change materially during the sale or delivery? Did delivery require access to the customer's internal systems — identity, data warehouse, ticketing, document stores — rather than an upload? Did someone write code that ran on the customer's infrastructure? And did that code, or a generalised version of it, later ship to another customer? If most deals score yes on the first two, you are in the top-right quadrant. If most score yes on the first only, you are top-left.
+
+**The failure mode.** The most expensive mistake I see is hiring FDEs to compensate for an immature product. Every deal needs heroics, so the company hires heroes — and the heroics become permanent, because no one has time to turn them into product. The symptom is the fourth question above scoring no: field work that never ships twice. If that is you, the hire you need is a product engineer, and the FDE budget is better spent fixing onboarding.
+
+**How to measure whether it is working.** Three numbers, tracked per customer: time from contract to the first production use; whether the system is operated by the customer without the FDE after handover; and the share of custom work that became a shared feature, connector or template within two quarters. The third number is the one that tells you whether you are building a moat or a consultancy.
+
+## Deep dive 2: how to spot a fake
+
+A tenfold jump in postings guarantees a wave of rebranded résumés. The tells are consistent.
+
+<Exhibit n={9} title="Real FDEs talk about constraints and incidents; fakes talk about frameworks and demos" sub="Author's framework: signals observed in interviews and portfolios" note="Framework by the author.">
+  <Compare
+    cols={['Real FDE', 'Résumé FDE']}
+    hlCol={0}
+    rows={[
+      { k: 'Describes past work as', v: ['A customer, a constraint, a shipped system, a number that moved', 'A tech stack and a list of models used'] },
+      { k: 'When asked “what broke?”', v: ['A specific incident, the root cause, the fix, the guardrail added', '“It went smoothly” — or a story about a demo'] },
+      { k: 'On scoping', v: ['Explains what they cut, and why the client agreed', 'Built everything the client asked for'] },
+      { k: 'On environments', v: ['Names identity, networking, data-residency and approval hurdles', 'Assumes an API key and a notebook'] },
+      { k: 'On evaluation', v: ['Describes the test set, who labelled it, and the threshold for go-live', 'Quotes a benchmark score for the model'] },
+      { k: 'On handover', v: ['Runbooks, training, who operates it now', 'No answer — they were never there after launch'] },
+      { k: 'On the product', v: ['Can name something they built that later shipped to other customers', 'Every engagement was a one-off'] },
+      { k: 'Evidence', v: ['Can walk you through a real deployment (redacted)', 'Shows a polished demo or a tutorial repo'] },
+    ]}
+  />
+</Exhibit>
+
+**The mechanism.** Faking is easy because the vocabulary is public. Anyone can learn to say "retrieval", "agents" and "evals". What cannot be learned from a course is the texture of production: the permission error that only appears for one department, the PDF format nobody mentioned, the rate limit that only bites at month-end. Real FDEs carry that texture in their stories. Their answers get *more* specific under follow-up questions; a fake's get more general.
+
+The single best question I know: **"Tell me about the first week after go-live."** People who have done the job light up — that week is where rate limits, permission errors, unexpected document formats and the first user complaints arrive. People who haven't done the job describe the launch.
+
+<Note kind="field">
+On a document-processing pipeline I built, three levels of async concurrency meant many workers could hit the model provider at the same instant — exactly the burst that trips rate limits. The fix, a sliding-window limiter guarded by a lock, is a small piece of code; knowing to look for it is the experience. (The burst-traffic lab on that case file simulates the failure.) It is also why "what happened the first time your system met real traffic?" is the best question to ask an FDE candidate.
+</Note>
+
+**The failure mode on the hiring side** is over-correcting into "only hire people with the exact title." Given the supply numbers in Exhibit 6, that pool barely exists. Salesforce's experience is instructive: 40–50% of its FDE moves were internal transfers, and it says it values curiosity over credentials. a16z gives the same advice — hire for high agency, curiosity and "a healthy disregard for the status quo" rather than advanced degrees. The goal of spotting fakes is not to find people with the title; it is to find people with the behaviour, whatever they were called before.
+
+## Deep dive 3: how to interview and score
+
+LeetCode tells you almost nothing here. Run an interview that looks like the job, and score it against explicit anchors so that the panel is measuring the same thing.
+
+<Exhibit
+  n={10}
+  title="Interview the way the job works, and score each stage against written anchors"
+  sub="Author's framework: a five-stage FDE interview loop and the scoring rubric behind it"
+  note="Framework by the author. Score each dimension 1, 3 or 5 using the anchors; a 1 on judgement or ownership should be disqualifying regardless of the total. The table scrolls sideways on small screens."
+>
+  <Flow steps={[
+    { title: 'Deployment walkthrough', text: 'Candidate walks through one real deployment: the brief, the constraints, what broke, the numbers.' },
+    { title: 'Decomposition', text: 'Give a vague business problem; they turn it into a scoped MVP and say what they would cut.', hl: true },
+    { title: 'Stakeholder role-play', text: 'An interviewer plays a sceptical client owner. Watch how they handle pushback.' },
+    { title: 'Integration take-home', text: 'Connect two systems that were not designed to talk, with messy data. Keep it small.' },
+    { title: 'Debrief on failure', text: 'Ask what they would monitor in week one and what they expect to break.' },
+  ]} />
+  <div style="margin-top:28px"><Compare
+    cols={['Tested in', 'Score 1', 'Score 3', 'Score 5']}
+    rows={[
+      { k: 'Scoping judgement', v: ['Decomposition', 'Builds everything asked for', 'Cuts scope when prompted', 'Cuts unprompted, ties the MVP to one number the customer tracks'] },
+      { k: 'Production depth', v: ['Walkthrough, debrief', 'Describes the demo', 'Names generic risks', 'Names specific incidents, root causes and guardrails added'] },
+      { k: 'Integration skill', v: ['Take-home', 'Works only on clean inputs', 'Works, with brittle assumptions', 'Handles messy data, fails loudly, documents the edges'] },
+      { k: 'Stakeholder handling', v: ['Role-play', 'Concedes or argues', 'Holds position politely', 'Reframes the objection around the customer’s goal and agrees a next step'] },
+      { k: 'Ownership', v: ['All stages', 'Done means merged', 'Done means deployed', 'Done means someone else is using and operating it'] },
+      { k: 'Evaluation instinct', v: ['Walkthrough, take-home', 'No test set', 'Spot checks', 'A labelled test set and a go-live threshold agreed with the customer'] },
+    ]}
+  /></div>
+</Exhibit>
+
+**Why these stages.** Each one tests a step of the loop in Exhibit 7. The walkthrough tests whether the candidate has done the full loop before. Decomposition tests discovery and scoping, and is the stage I weight most heavily: the ability to turn "we want AI for claims" into a scoped, measurable first release is the rarest skill in the role. The role-play tests whether they can hold a scope under pressure without losing the relationship. The take-home tests building in place. The debrief tests hardening and handover.
+
+Palantir's own postings ask for engineers who own work end to end with minimal supervision and can talk to customer executives, with 25–50% travel; Anthropic's ask for four or more years in technical customer-facing work, production LLM experience — prompting, agents, evals — plus high agency and low ego, with similar travel. Both are describing the same person: an engineer whose definition of "done" is *the customer is using it*, not *the PR merged*.
+
+**The failure mode.** Two common ones. First, letting the take-home grow into unpaid consulting — keep it to a few hours and use synthetic data. Second, scoring on charisma: the role-play rewards confident talkers unless the rubric forces the panel to score the *substance* of the reframe. Write the anchors down before the first interview, not after.
+
+## Deep dive 4: building and structuring an FDE team
+
+Hiring the right people is half the problem. The other half is putting them in a structure that keeps the economics in Exhibit 4 working. Companies that have done this publicly share one pattern: field work is always paired with a route back into product.
+
+<Exhibit
+  n={11}
+  title="Every serious FDE organisation pairs field work with a route back into product"
+  sub="How five organisations describe structuring forward deployed work"
+  source="The Pragmatic Engineer (Palantir, OpenAI, Ramp); Salesforce News; Constellation Research (AWS)"
+  sourceUrl="https://newsletter.pragmaticengineer.com/p/forward-deployed-engineers"
+  note="As publicly described by the companies or by reporting on them; not independently verified. The table scrolls sideways on small screens."
+>
+  <Compare
+    cols={['Palantir', 'OpenAI', 'Ramp', 'Salesforce', 'AWS']}
+    rows={[
+      { k: 'Scale (as reported)', v: ['Still the largest FDE employer', 'Two engineers growing to more than ten (2025)', 'About 15 FDEs (2025)', 'Agentforce FDE team tripled in six months (2026)', 'Starting with hundreds (2026)'] },
+      { k: 'Time with customer', v: ['About 25% on site', 'On site a few days a week during delivery', 'Not public', 'Not public', 'Engagements of about 45 days'] },
+      { k: 'Route back to product', v: ['FDEs alternate with core product work; Foundry absorbed field work', 'Team contributes to the Agents SDK', 'FDEs embedded in core product engineering teams, in pods', 'Not public', 'Not public'] },
+      { k: 'Talent source', v: ['Hires from about one year post-college', 'Led by a former solutions architect', 'Prefers 5+ years for senior FDEs', '40–50% internal transfers; six-week onboarding', 'Not public'] },
+      { k: 'Commercial model', v: ['Not public', 'Not public', 'Not public', 'Not public', 'Fixed, outcome-based pricing rather than billable hours'] },
+    ]}
+  />
+</Exhibit>
+
+From those public patterns and my own delivery work, here is how I would structure an FDE function. This is my design, not an industry standard.
+
+**Pods, not lone heroes.** Organise FDEs in pods of two to four, each paired with a named product engineer who owns the route back into the platform. A lone FDE at a customer is a single point of failure and has no one to generalise with. A pod can rotate people between customers without losing context, and the product liaison makes step six of the loop someone's actual job. Ramp's pods embedded in product engineering teams, and Palantir's practice of alternating FDEs between customer and product work, are two versions of the same idea.
+
+**Keep FDEs off sales quotas.** a16z is blunt about this: implementation leads rarely want a quota, and quotas drive counterproductive behaviour. An FDE on a quota is incentivised to promise scope that closes the deal and then live with it. Instead, tie FDE incentives to account outcomes — production adoption, retention, expansion — and align them closely with account executives without making them salespeople.
+
+**Measure the moat, not the hours.** Track, per pod, the three numbers from Deep dive 1 — time to first production use, operated-without-FDE after handover, and the share of custom work absorbed into product. Add one more at the company level: the ratio of FDE effort to new annual revenue, watched over time. If that ratio is not falling as you add customers in the same segment, the field work is not compounding.
+
+**Build a career ladder that rewards handover.** Without one, your best FDEs burn out on travel or leave for product roles — and the ones who stay are rewarded for becoming indispensable to a customer, which is the opposite of what you want. A workable ladder has four rungs. An *FDE I* delivers scoped work inside an engagement someone else leads. An *FDE II* leads an engagement end to end, including handover. A *senior FDE* leads multiple engagements and turns repeated work into product. A *staff FDE* or pod lead owns a segment — its playbooks, its connectors and its product roadmap input. Promotion evidence at every rung should include something a customer now runs without you, and above FDE II, something another customer now uses because you built it once. Make lateral moves into product engineering a celebrated path, not a defection: it is how Palantir turned field knowledge into Foundry.
+
+**Sell narrowly.** a16z's first recommendation is to choose customers with commonalities and start with narrow scope. Field work only compounds when the next customer resembles the last one. An FDE team spread across five unrelated industries learns five lessons once.
+
+<Note kind="field">
+Treat client reviewers’ corrections as product data, not support tickets. On the evaluation platform I built, human corrections feed back into how the automated evaluators are weighted, so each engagement makes the next one cheaper to validate. That is step six of the loop, built into the tooling rather than left to memory.
+</Note>
+
+## Case examples
+
+**Palantir: the field becomes the platform.** For its first decade the FDE was Palantir's core delivery model, and FDEs outnumbered product engineers until around 2016. Foundry's launch that year moved many of them into core product engineering, and *The Pragmatic Engineer* reports that FDEs still alternate between customer embedding and product work. *The lesson:* the FDE function is most valuable when it is designed to make itself partly unnecessary — when the patterns it discovers become product.
+
+**OpenAI: a small team with a defined process.** OpenAI's FDE team began with two engineers in 2025 and grew past ten, working from eight cities across three continents. Its engagements run through scoping, eval-based validation and delivery, and *The Pragmatic Engineer* cites a John Deere project in Iowa that scaled personalised interventions for farmers in time for the growing season. By May 2026 the company had moved from a team to a business — the $4 billion Deployment Company, seeded with about 150 engineers from Tomoro. *The lesson:* when integration becomes the constraint on revenue, even model companies end up in the services business, and they formalise it fast.
+
+**Salesforce: growing the role from the inside.** Salesforce tripled its Agentforce FDE team in six months, filled 40–50% of the moves internally, and built a six-week onboarding programme. *The lesson:* with a market pool of roughly 2,000 genuine FDEs, the scalable source of talent is your own engineers and solutions staff who already know your product — given a structured path, rather than a new title.
+
+**AWS: pricing the outcome, not the hours.** AWS's $1 billion unit, announced in June 2026, prices engagements on a fixed, outcome-based basis rather than billable hours, around a methodology of roughly 45-day engagements. *The lesson:* the cleanest answer to "isn't this just consulting?" is a commercial model in which the vendor, not the customer, bears the cost of slow delivery — which forces the field work to become repeatable.
+
+## Counterpoints
+
+<Note kind="counter" label="Objection 1: FDEs don't scale — it's just consulting with a better title">
+Revenue that requires an engineer on site grows linearly with headcount. Software margins come from selling the same thing many times without people. A company leaning on FDEs is a services firm, and investors will eventually price it like one.
+</Note>
+
+<Note kind="response">
+This is right more often than FDE enthusiasts admit. If field work never flows back into the product, the objection is simply correct, and the metric in Deep dive 1 — the share of custom work absorbed into product — will show it. But the objection proves too much. ServiceNow and Workday both started with margins well below software norms and grew into them (Exhibit 4), and Palantir turned a field-heavy model into Foundry. The question is not whether you use FDEs but whether their work compounds. A company should be able to show, by its third customer in a segment, that the second deployment was materially cheaper than the first.
+</Note>
+
+<Note kind="counter" label="Objection 2: The title is a fad">
+Every boom has its hot title — growth hacker, data scientist, prompt engineer. A 1,000% jump from a small base is exactly what a fad looks like, and the role will be rebranded or absorbed within a few years.
+</Note>
+
+<Note kind="response">
+Half right. The *title* will dilute — Exhibit 6 practically guarantees it, and I expect "FDE" to mean less on a CV in 2028 than it does today. But the *function* has survived at Palantir since the early 2010s, and it exists because of a structural fact: AI systems that take actions must be integrated into systems of record, under each customer's security and approval rules. Multi-year commitments of $4 billion, $1 billion and $100 million are not fad behaviour. Hire for the function and ignore the title.
+</Note>
+
+<Note kind="counter" label="Objection 3: Solutions engineers already do this">
+Solutions engineers, solutions architects and implementation consultants have done technical customer work for decades. The FDE is a rebrand that lets companies pay more for the same job.
+</Note>
+
+<Note kind="response">
+For many companies, this objection is the correct diagnosis — it is the second half of my thesis. If your customers' environments are standard, a solutions engineer or consultant is the right hire (Exhibit 8). The difference, where it is real, is ownership after the sale. OpenAI draws the line clearly, as reported by *The Pragmatic Engineer*: its FDEs write code directly on customer infrastructure, while its solutions architects advise and build proofs of concept with anonymised or offline data. A solutions engineer's job ends when the customer is convinced; an FDE's ends when the customer is operating the system without them. If that distinction does not exist in your organisation, do not create the title.
+</Note>
+
+## Implications by stakeholder
+
+<Exhibit
+  n={12}
+  title="Founders, hiring managers and aspiring FDEs face the same question from different sides: does the work compound?"
+  sub="Author's framework: what the thesis means for each stakeholder"
+  note="Framework by the author. The table scrolls sideways on small screens."
+>
+  <Compare
+    cols={['Founders and CTOs', 'Hiring managers', 'Engineers who want to become FDEs']}
+    rows={[
+      { k: 'The question to ask', v: ['Is integration the real constraint on our revenue — or is the product immature?', 'Which quadrant of Exhibit 8 is this role really in?', 'Can I show a system I built that someone else now operates?'] },
+      { k: 'The mistake to avoid', v: ['Hiring heroes to hide product gaps', 'Hiring by title from a pool of ~2,000', 'Collecting AI certificates instead of deployments'] },
+      { k: 'What to measure', v: ['Share of custom work absorbed into product; FDE effort per unit of new revenue', 'Rubric scores with written anchors; time-to-productivity of new FDEs', 'Before-and-after numbers from a real user; incidents handled'] },
+      { k: 'Where to find leverage', v: ['Narrow segment, outcome-based pricing, pods tied to product', 'Internal transfers from engineering and solutions teams', 'Your current employer’s messiest integration problem'] },
+      { k: 'First move', v: ['Run the four-question test on your last ten deals', 'Rewrite the job spec around the six-step loop', 'Ship one integration end to end and write up what broke'] },
+    ]}
+  />
+</Exhibit>
+
+### For founders and CTOs
+
+Your decision is not "should we have FDEs?" but "is integration the binding constraint on our revenue?" If it is, FDEs are an investment in learning where your product must go, and you should structure them so that learning reaches the roadmap. If it is not — if deals stall on product gaps, pricing or trust — FDEs will mask the problem at a high cost. The commercial lesson from AWS is worth considering early: pricing on outcomes rather than hours aligns your incentive to make deployments repeatable.
+
+### For hiring managers
+
+Write the job specification around the loop in Exhibit 7, not around a list of frameworks. Recruit from inside first — your own engineers and solutions staff who know the product and have shown customer instincts — and use the rubric in Exhibit 10 to make the bar explicit. Budget for onboarding: Salesforce runs six weeks. And protect your FDEs from quotas and from becoming permanent members of a customer's operations team.
+
+### For engineers who want to become FDEs
+
+The bar is not a title; it is a system running in someone else's environment, and a story about how it broke. Experience requirements vary widely — Palantir hires about a year out of college, Ramp prefers five or more years for senior FDEs, Anthropic asks for four or more years customer-facing — so the realistic route for most engineers is to volunteer for the messiest integration work at their current employer, see it through handover, and measure the result. Expect 25–50% travel at many companies, and be honest with yourself about whether you want that.
+
+## What to do next: a 90-day plan
+
+For a founder or engineering leader deciding whether, and how, to build forward deployed capacity:
+
+**Days 1–30: diagnose.**
+1. Run the four-question test from Deep dive 1 on your last ten deals, and place your company on the matrix in Exhibit 8.
+2. List every piece of custom work delivered in the past year and mark which pieces were reused for a second customer.
+3. If you are not in the top-right quadrant, stop here and hire the role your quadrant points to — or fix the product gap that is stalling deals.
+
+**Days 31–60: pilot one pod.**
+1. Staff one pod of two to three engineers, ideally including at least one internal transfer, paired with a named product engineer.
+2. Assign it to two customers in the *same* segment.
+3. Agree three metrics before work starts: time to first production use, handover completed, and custom work absorbed into product.
+4. Keep the pod off quotas; tie its incentives to those customers' adoption.
+
+**Days 61–90: decide.**
+1. Compare the second deployment's effort with the first. If it was not materially cheaper, find out why before hiring more.
+2. Write the career ladder and the interview rubric based on what the pilot taught you.
+3. Decide to scale, restructure or stop — and write down the evidence for the decision.
+
+For an engineer aiming at the role, the 90 days are simpler: pick one real integration problem at your current job, take it from discovery through handover, measure the before and after, and write a one-page account of what broke. That document is a better application than any certificate.
+
+## Limitations and methodology
+
+- **Postings growth is from a small base.** A 1,000% increase in a niche title involves far fewer jobs than a 13% increase across all of tech. Postings also overstate hiring in a hot market.
+- **Titles are inconsistent.** Different companies use "forward deployed engineer" for pre-sales, delivery and consulting roles. Growth in the title partly reflects relabelling of existing jobs.
+- **The supply estimate is opaque.** Gartner's figure of about 2,000 genuine FDEs is one analyst's estimate reported secondhand; its method is not public. I use it for order of magnitude only.
+- **Salary data is advertised and US-centric.** Medians from job ads are not realised compensation, and pay outside the US differs.
+- **Company accounts are self-reported.** The Salesforce, OpenAI, AWS and Anthropic figures are the companies' own descriptions or reporting on them. Commitments are intentions, not outcomes.
+- **The margin evidence is illustrative.** a16z is an investor with an interest in services-led startups, and its two margin examples are survivors. Companies whose margins never recovered are invisible in that data.
+- **My frameworks are mine.** The quadrant, the six-step loop, the rubric and the team design come from my own delivery work. They are tools for thinking, not validated instruments, and they have not been tested across a large sample of companies.
+
+## The behaviour outlasts the title
+
+The forward deployed engineer exists because AI products that act inside a business only create value once someone wires them into that business — its data, its identity systems, its approvals, its odd document formats. That is a structural fact, and it is why the role has survived at Palantir for well over a decade and why the largest AI companies are now building deployment businesses around it. But structural demand for a function does not mean every company needs the title. Most need a solutions consultant, an integration engineer or a better product, and the ones that do need FDEs need them organised so the work compounds.
+
+<Note kind="insight">
+The FDE title will dilute. The behaviour won't. Hire for people who can show you a system running in someone else's environment — and tell you, in detail, how it broke.
+</Note>

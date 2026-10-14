@@ -1,0 +1,138 @@
+---
+dek: "Software is “in production” not because of where it runs but because of the road it travelled to get there, and GitHub Actions lets you build that road so every change has to pass the same checks, by the same rules, every time."
+takeaways:
+  - "Good habits (testing, reviewing, being careful with passwords) only protect you when someone remembers them. A gate is a habit the computer enforces for you, even on a busy Friday."
+  - "The road itself can be attacked. In March 2025, a popular building block used by more than 23,000 projects was secretly swapped for a version that leaked passwords. Projects that had locked it to an exact fingerprint were not affected."
+  - "The most useful protections are nearly free: give automated jobs read-only access by default, lock outside tools to an exact version, use short-lived logins instead of stored keys, and make the tests required before anything can be merged."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Think about how food reaches a supermarket shelf. Nobody trusts a sandwich because of the shelf it sits on. You trust it because of the road it took: the kitchen was inspected, the temperature was logged, the label was checked, and if something goes wrong the batch can be traced and recalled. Software is the same. “Production” is not a place. It is the road a change has to travel, and the checkpoints it must pass on the way.</p>
+
+Most AI and data projects begin as a demo that works on one person’s laptop. Getting from there to something a business can rely on is mostly not about writing better code. It is about building the road: making sure every change gets checked, reviewed and recorded the same way, every time.
+
+The argument of the full article, in plain words: **production is about the path code takes, not the code itself. Git and GitHub Actions let you turn good habits into automatic checkpoints, and the cheapest checkpoints prevent the most expensive disasters.**
+
+## Jargon decoder
+
+<Compare
+  cols={["In plain words"]}
+  rows={[
+    { k: "Git", v: ["A system that records every change to a project, who made it and why, so any change can be compared or undone"] },
+    { k: "Pull request (PR)", v: ["A proposed change that others can review and test before it joins the main version"] },
+    { k: "GitHub Actions", v: ["Robots on GitHub that run jobs automatically: test this, build that, deploy it"] },
+    { k: "Workflow", v: ["A recipe file telling those robots what to do and when"] },
+    { k: "CI (continuous integration)", v: ["Automatically testing every proposed change"] },
+    { k: "Gate", v: ["A check the system enforces: if it fails, the change cannot go through"] },
+    { k: "Eval", v: ["A test for AI answers: a fixed set of questions with known good answers, and a score"] },
+    { k: "Token / secret", v: ["A password-like key that lets a robot do things, such as publish or deploy"] },
+    { k: "OIDC", v: ["A way for a job to get a one-time pass from the cloud instead of carrying a permanent key"] },
+    { k: "Pinning to a SHA", v: ["Locking an outside tool to the exact fingerprint of one version, so nobody can swap it"] },
+  ]}
+/>
+
+## Why this matters more now
+
+Three things have changed.
+
+**There is far more automated change.** GitHub reported 11.5 billion minutes of these robot jobs in public projects in its 2025 year, up 35%. People merged 518.7 million pull requests.
+
+**AI writes more of the code, and that makes things wobblier.** DORA, a long-running research programme on how software teams deliver, found in 2024 that using more AI made developers’ work *look* better (better documentation, better code, faster reviews), but delivery got less stable: an estimated 7.2% drop in stability for every 25% increase in AI use. In 2025, with 90% of people surveyed using AI, delivery got faster, but it was still getting less stable. DORA’s explanation was simple: without strong automated testing, good version control and fast feedback, more change just means more breakage.
+
+<Exhibit
+  n={1}
+  title="AI made the work look better, but delivery got less stable"
+  sub="Estimated change for every 25% more AI use, DORA 2024 survey (%)"
+  source="DORA, Accelerate State of DevOps Report 2024"
+  sourceUrl="https://services.google.com/fh/files/misc/2024_final_dora_report.pdf"
+  note="These are estimates from a survey, not measurements of real deployments."
+  table={[["Outcome", "Estimated change"], ["Documentation quality", "+7.5%"], ["Code quality", "+3.4%"], ["Delivery stability", "−7.2%"]]}
+>
+  <Bars unit="%" max={8} data={[
+    { label: "Documentation", value: 7.5, display: "+7.5%" },
+    { label: "Code quality", value: 3.4, display: "+3.4%" },
+    { label: "Stability", value: -7.2, display: "−7.2%", neg: true, hl: true },
+  ]} />
+</Exhibit>
+
+**The road itself is now being attacked.** In eighteen months, attackers broke into three popular projects *through their automation*. GitHub put it plainly: attackers are targeting the automation itself, not just the software it builds.
+
+## The ladder: five steps from laptop to production
+
+Here is the framework from the full article. Each step turns a good habit into something the system enforces.
+
+<Exhibit n={2} title="Five steps from “works on my laptop” to production" sub="Each step turns a habit into a checkpoint" note="Author’s framework.">
+  <Flow steps={[
+    { title: "Push", text: "Put everything in Git, including the AI prompts and test questions." },
+    { title: "Check", text: "Every proposed change is tested automatically." },
+    { title: "Gate", text: "Failing tests block the change. Robots get read-only access by default.", hl: true },
+    { title: "Promote", text: "Changes go to a test copy first, then to the real thing after approval." },
+    { title: "Watch & undo", text: "A nightly job checks the live system; any change can be reversed quickly." },
+  ]} />
+</Exhibit>
+
+**Push.** If a change isn’t recorded in Git, nobody can see it, review it or undo it. For an AI app, that includes the prompt (the instructions you give the model) and the list of test questions, not just the code. DORA found that teams who make small, frequent changes and use “undo” freely get more out of AI.
+
+**Check.** Every pull request triggers the robots. They check the code’s style, run normal tests, and, for AI apps, run an **eval**: maybe 50 real questions with known good answers. If the AI’s score drops below, say, 90%, the check fails. AI answers vary a little each time, so you measure how much the score naturally wobbles and set the bar below that wobble. Otherwise the check fails at random and people learn to ignore it.
+
+**Gate.** This is the step most teams skip. Having tests that *run* is not enough. They become a gate only when GitHub is told to *refuse* any change that fails them. A test you can ignore is a suggestion, and suggestions lose to deadlines.
+
+**Promote.** Changes go to a test copy of the system (“staging”) first, then to the real one (“production”), where a named person can be required to approve. To talk to a cloud provider, the job uses OIDC: it asks for a one-time pass that only works for that one job and then expires. There’s no permanent key sitting around to be stolen.
+
+**Watch and undo.** A scheduled job, like an alarm clock, runs the full set of AI test questions against the live system every night and opens a ticket if the score drops. And because every change went through Git, undoing one is just the same road in reverse.
+
+## The attack that proved the point
+
+On 14 March 2025, a popular GitHub Actions building block called tj-actions/changed-files, used by more than 23,000 projects, was quietly swapped for a bad version. The attacker moved its version labels (like “v45”) to point at malicious code. That code copied secrets out of the robot’s memory and printed them into the job’s logs, which anyone can read on a public project. Nobody using it had changed anything. Their robots simply fetched the bad version the next time they ran.
+
+Researchers later measured the damage. 218 projects actually leaked secrets, and most of what leaked was a short-lived robot key that expires when the job finishes.
+
+<Exhibit
+  n={3}
+  title="Thousands were exposed; a few hundred leaked secrets"
+  sub="The March 2025 tj-actions incident (number of projects)"
+  source="StepSecurity (14 Mar 2025); Endor Labs (19 Mar 2025)"
+  sourceUrl="https://www.endorlabs.com/learn/blast-radius-of-the-tj-actions-changed-files-supply-chain-attack"
+  note="The two counts were measured differently: 23,000+ is an estimate of projects using the tool; 218 is projects found to have leaked secrets."
+  table={[["Stage", "Projects"], ["Using the tool", "23,000+"], ["Leaked secrets", "218"]]}
+>
+  <Bars max={23000} data={[
+    { label: "Using the tool", value: 23000, display: "23,000+" },
+    { label: "Leaked secrets", value: 218, display: "218", hl: true },
+  ]} />
+</Exhibit>
+
+Two cheap habits made the difference:
+
+1. **Pinning.** A version label like “v45” is a sticky note that anyone with access can move. A SHA is a fingerprint of the exact contents, and it can’t be moved. Projects that pinned the tool to a SHA kept running the safe version.
+2. **Least privilege.** A robot key that can only *read* and expires within minutes is nearly worthless to a thief. A permanent key that can publish software or reach the cloud is not.
+
+It happened again in other forms. In August 2025, the Nx project was hacked through a risky robot setting (`pull_request_target`) combined with a pull request whose *title* was crafted to run as a command. In March 2026, attackers moved 76 of the 77 version labels of a security-scanning tool called trivy-action. Each time, GitHub added a new safeguard: organisations can now *require* pinning (August 2025), releases can be locked so they can never change (October 2025), and a “lockfile” that records the exact version of every tool, including the tools your tools use, is in preview as of October 2026.
+
+## What it costs, and what to do first
+
+For most projects, very little. Robot minutes are free for public projects. Private projects get a free monthly allowance (2,000 minutes on GitHub’s free plan) and then pay by the minute: about $0.006 a minute for a standard Linux machine, and around ten times that for a Mac. In an AI project, the bigger cost is usually the AI calls your tests make, so keep the per-change test set small and run the big one overnight.
+
+<Note kind="field">
+This website runs on exactly this kind of road. An automated workflow, which I built with Claude Code, rebuilds and publishes the site on every change and once a day, so posts scheduled for a future date go live on time. The robots get read-only access by default, and only the publishing step gets permission to publish. The one outside tool it uses is pinned to an exact SHA, because a label can be moved and a fingerprint cannot.
+</Note>
+
+If you do only one afternoon of work, do this:
+
+- Set the robots’ default access to **read-only**.
+- **Pin** every outside tool to a SHA, with the version written in a comment so humans can read it.
+- Name an owner who must review any change to the workflow files.
+- Make the tests **required** before anything can be merged.
+- Then, in the following weeks: add a small eval for AI answers, switch cloud logins to OIDC, add a staging step, and set up a nightly check.
+
+Won’t all these gates slow you down? DORA’s data says the opposite: the best teams deploy whenever they want *and* break things least often, because their checks are automatic and their changes are small. What slows teams down is manual checks and big, risky batches.
+
+## If you remember one thing
+
+You can’t see “production” by looking at a server. You can only see the road a change travelled: what checked it, who approved it, what keys it could touch, and how quickly it could be undone. Git records that road, and GitHub Actions enforces it. The most important checkpoints cost almost nothing: one line setting read-only access, one 40-character fingerprint, one required check.
+
+Good engineers do these things out of habit. A gate keeps working on the day nobody remembers to.

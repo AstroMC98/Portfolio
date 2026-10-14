@@ -1,0 +1,71 @@
+---
+import { PLAYBOOK } from '../data/deploy';
+---
+<section class="section approach" id="approach" aria-labelledby="approach-title">
+  <span class="coord">§04 · playbook</span>
+  <div class="wrap">
+    <header class="section-head" data-reveal>
+      <p class="eyebrow"><span class="idx">04</span> How I deploy</p>
+      <h2 id="approach-title">Embedded with the client, <em>accountable for production.</em></h2>
+      <p>
+        The work lives in the gap between “it works in a notebook” and “it runs reliably at scale.” This is the loop I run on
+        every engagement — each stage links to a case file where it happened.
+      </p>
+    </header>
+
+    <ol class="play" data-reveal>
+      {PLAYBOOK.map((s, i) => (
+        <li class:list={['play__step', { 'play__step--last': i === PLAYBOOK.length - 1 }]}>
+          <div class="play__rail" aria-hidden="true"><span class="play__node"></span></div>
+          <span class="play__n mono">{s.n}</span>
+          <h3 class="play__stage">{s.stage}</h3>
+          <p class="play__what">{s.what}</p>
+          <p class="play__artifact mono"><span>Leaves behind</span>{s.artifact}</p>
+          <ul class="play__proof">
+            {s.proof.map((p) => (
+              <li><a href={`/work/${p.id}/`}>{p.label} <span aria-hidden="true">→</span></a></li>
+            ))}
+          </ul>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .play { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; }
+  .play__step { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 0 22px 8px 0; }
+  .play__rail { position: relative; height: 22px; margin-bottom: 14px; }
+  .play__rail::before { content: ''; position: absolute; left: 0; right: 0; top: 10px; height: 2px; background: var(--line-2); }
+  .play__step--last .play__rail::before { background: linear-gradient(90deg, var(--line-2), var(--signal)); }
+  .play__node { position: absolute; left: 0; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); border: 3px solid var(--text); }
+  .play__step--last .play__node { background: var(--signal); border-color: var(--signal); box-shadow: 0 0 16px var(--signal-glow); }
+  .play__n { font-size: 11px; letter-spacing: 0.14em; color: var(--signal); }
+  .play__stage {
+    font-family: var(--font-display);
+    font-stretch: 72%;
+    font-weight: 800;
+    font-size: clamp(2rem, 1.4rem + 1.6vw, 2.9rem);
+    line-height: 0.95;
+    letter-spacing: -0.008em;
+    text-transform: uppercase;
+  }
+  .play__step--last .play__stage { color: var(--signal); }
+  .play__what { flex: 1; color: var(--text-2); font-size: 0.93rem; }
+  .play__artifact { display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--ink-2); font-size: 12px; color: var(--text); }
+  .play__artifact span { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .play__proof { display: grid; gap: 6px; padding-top: 6px; }
+  .play__proof a { font-size: 0.84rem; color: var(--text-2); border-bottom: 1px dashed var(--line-2); transition: color 0.2s, border-color 0.2s; }
+  .play__proof a:hover { color: var(--signal); border-color: var(--signal); }
+
+  @media (max-width: 1100px) {
+    .play { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 40px; }
+  }
+  @media (max-width: 600px) {
+    .play { grid-template-columns: 1fr; row-gap: 0; }
+    .play__step { padding: 0 0 32px 34px; }
+    .play__rail { position: absolute; left: 0; top: 0; bottom: 0; height: auto; width: 16px; margin: 0; }
+    .play__rail::before { left: 7px; right: auto; top: 0; bottom: 0; width: 2px; height: auto; background: var(--line-2); }
+    .play__step--last .play__rail::before { display: none; }
+  }
+</style>

@@ -1,0 +1,524 @@
+---
+title: "When Is Vibe Coding Okay? The Case Against Perfect Systems for Proofs of Concept"
+dek: "Most proofs of concept never reach production, so polishing their code is usually waste. Vibe coding, which means building by prompt and accepting the AI’s code without reading it, is the right tool when little can go wrong and the code will be thrown away. The professional skill is knowing exactly when to stop."
+date: 2026-07-30
+kicker: "AI Engineering"
+motif: sketch
+tags: ["Vibe Coding", "Prototyping", "AI Engineering", "Security"]
+thesis: "For a proof of concept, speed of learning beats code quality, so vibe coding is the right tool whenever the blast radius is small and the code is disposable. The professional skill is knowing the exact moment to stop vibing and start engineering."
+takeaways:
+  - "Most proofs of concept die young. MIT NANDA found that only 5% of custom enterprise AI tools reached production, and Gartner predicted that at least 30% of GenAI projects would be abandoned after proof of concept by the end of 2025. Engineering polish spent on a POC usually goes on code that will be thrown away."
+  - "Vibe coding is a specific practice: accepting AI-written code without reading it. It is not a synonym for AI-assisted programming, and Karpathy’s own February 2025 definition limited it to “throwaway weekend projects”."
+  - "The speed gains are real but depend on context. Developers finished a small greenfield task 55.8% faster with Copilot in a 2022 trial. In METR’s 2025 trial, experienced developers working in their own mature repositories were 19% slower with AI, while believing they had been 20% faster."
+  - "Unread AI code is not secure by default. Veracode’s 2026 report puts the average security pass rate of AI-generated code at 56%, essentially unchanged from its 2025 report, even though nearly all of the code compiles."
+  - "Use the vibe-zone matrix, which plots blast radius (data, money, credentials, users, reversibility) against lifespan. Vibe freely only where both are low; everywhere else, different rules apply."
+  - "A vibe-coded prototype must pass six graduation gates before it touches real users or data: a human has read it, secrets are out of the client, permissions are enforced on the server, the critical path has tests, production is separate and recoverable, and someone will see it fail."
+sources:
+  - label: "Andrej Karpathy — Original “vibe coding” post on X (2 Feb 2025)"
+    url: "https://x.com/karpathy/status/1886192184808149383"
+  - label: "Simon Willison — Not all AI-assisted programming is vibe coding (but vibe coding rocks) (19 Mar 2025)"
+    url: "https://simonwillison.net/2025/Mar/19/vibe-coding/"
+  - label: "Collins Dictionary — Collins Word of the Year 2025: AI meets authenticity as society shifts (6 Nov 2025)"
+    url: "https://blog.collinsdictionary.com/language-lovers/collins-word-of-the-year-2025-ai-meets-authenticity-as-society-shifts/"
+  - label: "TechCrunch — A quarter of startups in YC’s current cohort have codebases that are almost entirely AI-generated (6 Mar 2025)"
+    url: "https://techcrunch.com/2025/03/06/a-quarter-of-startups-in-ycs-current-cohort-have-codebases-that-are-almost-entirely-ai-generated/"
+  - label: "Stack Overflow — 2025 Developer Survey, AI section (Jul 2025)"
+    url: "https://survey.stackoverflow.co/2025/ai"
+  - label: "Digit — OpenAI co-founder says agentic engineering is the next big thing in AI coding (9 Feb 2026)"
+    url: "https://www.digit.in/news/general/openai-co-founder-says-agentic-engineering-is-the-next-big-thing-in-ai-coding.html"
+  - label: "Business Insider via AOL — The guy who coined vibe coding says AI is making programming ‘unrecognizable’ (27 Feb 2026)"
+    url: "https://www.aol.com/articles/guy-coined-vibe-coding-says-181826669.html"
+  - label: "MIT NANDA — The GenAI Divide: State of AI in Business 2025 (Jul 2025)"
+    url: "https://webberwentzel.com/News/Documents/2025/MIT1757411281972.pdf"
+  - label: "Gartner — Gartner Predicts 30% of Generative AI Projects Will Be Abandoned After Proof of Concept By End of 2025 (29 Jul 2024)"
+    url: "https://www.gartner.com/en/newsroom/press-releases/2024-07-29-gartner-predicts-30-percent-of-generative-ai-projects-will-be-abandoned-after-proof-of-concept-by-end-of-2025"
+  - label: "Gartner — Gartner Predicts Over 40% of Agentic AI Projects Will Be Canceled by End of 2027 (25 Jun 2025)"
+    url: "https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027"
+  - label: "Martin Fowler — Yagni (bliki, 26 May 2015)"
+    url: "https://www.martinfowler.com/bliki/Yagni.html"
+  - label: "Donald Knuth — Structured Programming with go to Statements, ACM Computing Surveys 6(4) (Dec 1974)"
+    url: "https://dl.acm.org/doi/10.1145/356635.356640"
+  - label: "Peng, Kalliamvakou, Cihon & Demirer — The Impact of AI on Developer Productivity: Evidence from GitHub Copilot (arXiv, 13 Feb 2023)"
+    url: "https://arxiv.org/abs/2302.06590"
+  - label: "METR — Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity (10 Jul 2025)"
+    url: "https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/"
+  - label: "METR — We are changing our developer productivity experiment design (24 Feb 2026)"
+    url: "https://metr.org/blog/2026-02-24-uplift-update/"
+  - label: "Veracode — AI-generated code poses major security risks in nearly half of all development tasks (2025 GenAI Code Security Report, 30 Jul 2025)"
+    url: "https://www.veracode.com/press-release/ai-generated-code-poses-major-security-risks-in-nearly-half-of-all-development-tasks-veracode-research-reveals/"
+  - label: "Veracode — LLMs are getting smarter but not safer (2026 GenAI Code Security Report, 28 Jul 2026)"
+    url: "https://www.veracode.com/news/llms-are-getting-smarter-but-not-safer-veracode-2026-genai-code-security-report-finds-ai-generated-code-security-has-stalled-at-56%25-pass-rate/"
+  - label: "CodeRabbit — State of AI vs Human Code Generation Report (17 Dec 2025)"
+    url: "https://www.coderabbit.ai/blog/state-of-ai-vs-human-code-generation-report"
+  - label: "Escape — Methodology: how we discovered over 2k high-impact vulnerabilities in apps built with vibe coding platforms (29 Oct 2025)"
+    url: "https://escape.tech/blog/methodology-how-we-discovered-vulnerabilities-apps-built-with-vibe-coding/"
+  - label: "Matt Palmer et al. — Statement on CVE-2025-48757 (29 May 2025)"
+    url: "https://mattpalmer.io/posts/statement-on-CVE-2025-48757/"
+  - label: "NIST National Vulnerability Database — CVE-2025-48757 (2025)"
+    url: "https://nvd.nist.gov/vuln/detail/CVE-2025-48757"
+  - label: "Wiz Research — Critical vulnerability in Base44 (29 Jul 2025)"
+    url: "https://www.wiz.io/blog/critical-vulnerability-base44"
+  - label: "Wiz Research — Hacking Moltbook: The AI social network any human can control (2 Feb 2026)"
+    url: "https://www.wiz.io/blog/exposed-moltbook-database-reveals-millions-of-api-keys"
+  - label: "Fortune — AI coding tool Replit wiped a database and called it a ‘catastrophic failure’ (23 Jul 2025)"
+    url: "https://fortune.com/2025/07/23/ai-coding-tool-replit-wiped-database-called-it-a-catastrophic-failure/"
+  - label: "The Register — Replit makes vibe-y promise to stop its AI agents making vibe coding disasters (22 Jul 2025)"
+    url: "https://www.theregister.com/2025/07/22/replit_saastr_response/"
+  - label: "OECD.AI Incidents Monitor — Google Antigravity AI deletes user’s entire hard drive (30 Nov 2025)"
+    url: "https://oecd.ai/en/incidents/2025-11-30-d838"
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Stats from '../../components/blog/Stats.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Columns from '../../components/blog/Columns.astro';
+import Waffle from '../../components/blog/Waffle.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Timeline from '../../components/blog/Timeline.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">In February 2025, Andrej Karpathy described a new way to build software. You talk to the AI, click “Accept All”, stop reading the diffs, and “forget that the code even exists.” He called it vibe coding, and he added a qualifier that most of the argument since has ignored: it was “not too bad for throwaway weekend projects.” Since then, the term has been a dictionary’s Word of the Year, the subject of a CVE and the cause of at least one deleted production database. Enthusiasts and alarmists alike keep arguing past that qualifier.</p>
+
+My argument is this: **for a proof of concept, speed of learning beats code quality. Vibe coding is the right tool whenever the blast radius is small and the code is disposable, and the professional skill is knowing the exact moment to stop vibing and start engineering.** Both halves matter. Engineering teams that refuse to vibe-code their prototypes burn weeks hardening ideas that the evidence says will mostly die. Teams that never stop vibing end up in incident reports.
+
+The article takes the case in order. It starts with why the question matters now: how a throwaway remark became a dictionary entry, a startup norm and a security category. It then sets out a framework, the *vibe zone*, which judges a prototype on two axes: who gets hurt if it breaks, and how long it will live. Four deep dives follow. They cover the economics of disposable code, where the speed gains are real and where they are an illusion, what unread AI code actually contains, and the six *graduation gates* a prototype must pass before it meets real users or data. After that come the public incidents, each traced to the gate it skipped, then the strongest objections, the implications for each kind of reader, a playbook, and an honest account of what the evidence cannot tell us.
+
+## Context: why this matters now
+
+Words matter here, because the term has drifted. Karpathy’s original post, which Simon Willison preserved and analysed in March 2025, describes a specific practice: accept every change, do not read the diffs, paste error messages back in until the error goes away. Willison drew the line sharply. When he talks about vibe coding, he means “building software with an LLM without reviewing the code it writes.” If you review the code, test it and can explain how it works, he wrote, “that’s not vibe coding, it’s software development.”
+
+The popular meaning is much broader. When Collins named *vibe coding* its Word of the Year in November 2025, it defined the term as the use of artificial intelligence, prompted by natural language, to assist with writing computer code. That describes almost every working developer in 2026. The gap between the two definitions is where most of the confusion lives, so this article uses the narrow one. **Vibe coding means accepting AI-generated code you have not read.** AI-assisted engineering, where a human reads and owns the code, is a different activity with different risks.
+
+<Exhibit
+  n={1}
+  title="From a throwaway post to a dictionary entry, a CVE and an incident category in about a year"
+  sub="Selected milestones in the short history of vibe coding"
+  source="Karpathy; Simon Willison; TechCrunch; Matt Palmer et al.; METR; Fortune; Veracode; Collins; Wiz; Digit"
+  sourceUrl="https://simonwillison.net/2025/Mar/19/vibe-coding/"
+>
+  <Timeline items={[
+    { date: "2 FEB 2025", title: "Karpathy coins “vibe coding”", text: "“Accept All” always, no reading diffs; “not too bad for throwaway weekend projects.”", state: "done" },
+    { date: "MAR 2025", title: "YC: a quarter of W25 is ~95% AI-written", text: "Managing partner Jared Friedman, reported by TechCrunch.", state: "done" },
+    { date: "MAY 2025", title: "CVE-2025-48757 published", text: "Missing row-level security in Lovable-generated apps; 170 of 1,645 showcase apps exposed data.", state: "done" },
+    { date: "JUL 2025", title: "Replit agent deletes a production database", text: "During a public vibe-coding experiment by SaaStr founder Jason Lemkin.", state: "done" },
+    { date: "JUL 2025", title: "METR trial and Veracode report", text: "Experienced developers 19% slower with AI; AI code insecure in 45% of test cases.", state: "done" },
+    { date: "NOV 2025", title: "Collins Word of the Year", text: "“Vibe coding” wins, defined broadly as AI-assisted code writing.", state: "done" },
+    { date: "FEB 2026", title: "Moltbook breach; “agentic engineering”", text: "Wiz finds a vibe-coded app’s database wide open; Karpathy proposes a name for the professional version.", state: "done" },
+    { date: "JUL 2026", title: "Veracode: security pass rate flat at 56%", text: "Models write code that compiles almost every time, but it is no more secure than a year earlier.", state: "hl" },
+  ]} />
+</Exhibit>
+
+Adoption ran ahead of the vocabulary. In March 2025, YC managing partner Jared Friedman said that about a quarter of the Winter 2025 batch had codebases that were roughly 95% AI-generated. The figure, reported by TechCrunch from a YC video, excluded boilerplate such as library imports. Friedman stressed that these founders were highly technical and could have built their products by hand. In the same conversation, YC CEO Garry Tan asked whether a product built this way would “fall over” at scale.
+
+Professional developers, meanwhile, use AI heavily and vibe-code very little. In Stack Overflow’s 2025 Developer Survey, 84% of respondents said they were using or planning to use AI tools. Yet asked whether vibe coding was part of their professional work, 72.2% said no and another 5.3% said “no, emphatically”. Distrust of AI accuracy (46%) outweighed trust (33%), and 66% named “AI solutions that are almost right, but not quite” as a frustration.
+
+<Exhibit
+  n={2}
+  title="Almost everyone uses AI to write code; very few professionals let it write code unread"
+  sub="Headline figures on AI-generated code and vibe coding, 2025"
+  source="TechCrunch (YC, Mar 2025); Stack Overflow 2025 Developer Survey"
+  sourceUrl="https://survey.stackoverflow.co/2025/ai"
+  note="The YC figure is a spoken estimate from a managing partner, not a published dataset. Survey figures are shares of respondents to each question; the vibe-coding figure combines “No” (72.2%) and “No, emphatically” (5.3%)."
+>
+  <Stats items={[
+    { value: "~25%", label: "of YC’s Winter 2025 batch had codebases ~95% generated by AI", source: "YC VIA TECHCRUNCH · MAR 2025" },
+    { value: "84%", label: "of developers use or plan to use AI tools", source: "STACK OVERFLOW · 2025" },
+    { value: "77.5%", label: "say vibe coding is not part of their professional work", source: "STACK OVERFLOW · 2025" },
+    { value: "66%", label: "are frustrated by AI output that is “almost right, but not quite”", source: "STACK OVERFLOW · 2025" },
+  ]} />
+</Exhibit>
+
+Those numbers describe a profession that has quietly reached a sensible position: use AI for nearly everything, and keep a human reading the code that matters. The interesting question is the other part, the code that *doesn’t* matter yet. A large share of software is prototypes, spikes, demos and internal experiments built to answer a question. For that code, the case for not reading it is stronger than most engineers like to admit, and the case for stopping is stronger than most enthusiasts like to admit. Karpathy himself has moved in this direction. In February 2026 he said his favourite name for the professional practice of building with AI agents was “agentic engineering”, because “there is an art & science and expertise to it.”
+
+## A framework: the vibe zone
+
+Arguments about vibe coding go round in circles because people picture different projects. One person imagines a weekend game, another imagines a payments service. The useful question is not *whether* to vibe-code but *where*, and two variables decide it.
+
+**Blast radius** asks who or what gets hurt if the code is wrong. It is set by what the code can touch: data, money, credentials, users, and whether the damage can be undone. **Lifespan** asks how long the code will be relied on, from a demo that lives for an afternoon to a system that runs for years. Plot them against each other and you get four zones.
+
+<Exhibit
+  n={3}
+  title="Vibe freely only where both blast radius and lifespan are small"
+  sub="Author’s framework: the vibe zone, which matches the way you build to what the code can hurt and how long it will live"
+  note="Framework by the author. Prototypes tend to drift right (someone keeps using them) and up (someone connects real data). The drift, not the starting quadrant, is where most incidents begin."
+>
+  <Matrix
+    x="Lifespan"
+    y="Blast radius"
+    quads={[
+      { title: "Sandbox, then vibe", text: "Short-lived but near something real. Vibe against fake data and throwaway keys; never point it at production." },
+      { title: "Engineer it", text: "Customer data, money or credentials, relied on for months. AI can write it; a human must read, test and own it." },
+      { title: "Vibe freely", text: "Demos, spikes, hackathon builds, personal one-offs. Speed of learning is the only metric that matters.", hl: true },
+      { title: "Vibe, then read", text: "Internal tools that quietly stick around. Fine to start by vibe; read the code before you rely on it." },
+    ]}
+  />
+</Exhibit>
+
+The bottom-left quadrant is where vibe coding earns its place. A clickable mock-up to test whether users understand a workflow, a script that reshapes one spreadsheet once, a spike to check whether an API can do what the vendor claims: none of these can hurt anyone, and all of them are worth more done today than done properly next week. Reading every line here is not diligence. It is waste.
+
+The top-right quadrant is where vibe coding does not belong at all. The code may still be written with heavy AI help, but someone has to read it, test it and answer for it. The other two quadrants are transitional. The top-left covers short-lived work that sits near something dangerous. Vibe there, but only inside a sandbox: fake data, test-mode payments, keys with spending caps, an agent that cannot reach production. The bottom-right covers harmless code that has started to last, such as an internal dashboard or a team script. Starting it by vibe was fine. Relying on it without anyone having read it is not.
+
+### Scoring blast radius honestly
+
+Lifespan is easy to estimate and easy to lie about, since every prototype is “temporary”. Blast radius is harder to estimate but more honest, because it depends on what the code can actually touch, not on what you intend. I score it on six dimensions, and **the highest score wins**. A prototype that touches nothing but live payment keys is a high-blast-radius system, however small its user base.
+
+<Exhibit
+  n={4}
+  title="Blast radius is set by the most dangerous thing the code can touch, not the average"
+  sub="Author’s framework: a six-dimension rubric for scoring a prototype’s blast radius"
+  note="Framework by the author. Score each row and take the highest; one “Large” makes the whole project Large. The table scrolls sideways on small screens."
+>
+  <Compare
+    cols={["Small: vibe freely", "Medium: vibe in a sandbox", "Large: engineer it"]}
+    hlCol={0}
+    rows={[
+      { k: "Data", v: ["Fake, synthetic or already public", "Copies of real data with personal fields removed", "Real customer, employee or personal data"] },
+      { k: "Money", v: ["None", "Test-mode payments only", "Live payments, billing, payouts or paid API keys without caps"] },
+      { k: "Credentials", v: ["None, or throwaway keys", "Scoped keys with spending caps", "Production, admin or service-role keys"] },
+      { k: "Users", v: ["Only you", "A few colleagues who know it is a prototype", "Customers, the public, anyone you cannot phone"] },
+      { k: "Reversibility", v: ["Delete it and redo it in an hour", "Restore from a backup you have actually tested", "Irreversible: sent messages, deleted records, moved money"] },
+      { k: "Agent permissions", v: ["Disposable machine or container", "Own repository only, approvals on", "Shell or database access to anything in production"] },
+    ]}
+  />
+</Exhibit>
+
+The last row is new, and it reflects how much the tools changed in 2025. A vibe-coded *app* has a blast radius. So does a vibe-coding *agent*, because it runs commands on your machine and in your accounts while it builds. Two of the incidents later in this article, a deleted production database and a wiped hard drive, happened while code was being written, before anything shipped. Scoring the agent’s permissions separately from the app’s is the single habit most likely to prevent the worst outcomes.
+
+<Note kind="field">
+Hackathons are the purest form of the bottom-left quadrant. My teams have placed in several: first at ICSC Hack-A-Street 2025 (13 teams) with a gravity model for retail site selection, first at DOH-DAP Hack4Health 2024 (more than 100 teams) with a fraud-detection platform for unified health data, and second at the UN Big Data Hackathon Youth 2023 (122 teams). Each build was a time-boxed prototype whose job was to prove an idea before a deadline, not to survive a year. The Hack4Health platform was later presented as BANT.AI at the Department of Health’s 20th National Health Research Forum for Action in October 2024. For any prototype, the moment it gets a name and an audience is the moment to ask the lifespan question again.
+</Note>
+
+## Deep dive 1: most proofs of concept are supposed to die
+
+The strongest case for vibe coding is not that AI writes good code. It is that most prototype code should not exist for long, and the data on proofs of concept is unusually blunt about this.
+
+MIT’s Project NANDA, in its July 2025 report *The GenAI Divide*, drew on 52 interviews, a review of more than 300 public AI initiatives and a survey of 153 leaders. It found that 60% of organisations had evaluated custom or vendor-built enterprise AI tools, 20% had reached the pilot stage and **5% had reached production**. Gartner predicted in July 2024 that at least 30% of generative AI projects would be abandoned after proof of concept by the end of 2025. In June 2025 it predicted that more than 40% of agentic AI projects would be cancelled by the end of 2027, citing escalating costs, unclear business value or inadequate risk controls.
+
+<Exhibit
+  n={5}
+  title="The default fate of a proof of concept is to be abandoned"
+  sub="Headline figures on what happens to AI pilots and new features"
+  source="MIT NANDA (Jul 2025); Gartner (Jul 2024, Jun 2025); Kohavi et al. via Martin Fowler (2015)"
+  sourceUrl="https://www.martinfowler.com/bliki/Yagni.html"
+  note="Gartner figures are predictions, not measurements. The MIT figures come from interviews and are described by the authors as directionally accurate. The Kohavi figure refers to carefully analysed features at Microsoft, as cited by Fowler."
+>
+  <Stats items={[
+    { value: "5%", label: "of custom enterprise AI tools reached production", source: "MIT NANDA · JUL 2025" },
+    { value: "≥30%", label: "of GenAI projects predicted to be abandoned after proof of concept by end-2025", source: "GARTNER · JUL 2024" },
+    { value: ">40%", label: "of agentic AI projects predicted to be cancelled by end-2027", source: "GARTNER · JUN 2025" },
+    { value: "⅓", label: "of carefully analysed features improved the metric they were built to improve", source: "KOHAVI ET AL. VIA FOWLER" },
+  ]} />
+</Exhibit>
+
+<Exhibit
+  n={6}
+  title="For task-specific AI tools, three in four pilots never reached production"
+  sub="Share of organisations reaching each stage with embedded or task-specific GenAI tools, 2025 (%)"
+  source="MIT NANDA, The GenAI Divide: State of AI in Business 2025"
+  sourceUrl="https://webberwentzel.com/News/Documents/2025/MIT1757411281972.pdf"
+  note="Based on interviews, not company reporting; the authors call the figures directionally accurate. For general-purpose tools such as ChatGPT and Copilot, the same stages were 80%, 50% and 40%."
+  table={[["Stage", "Task-specific GenAI", "General-purpose LLMs"], ["Investigated", "60%", "80%"], ["Piloted", "20%", "50%"], ["Successfully implemented", "5%", "40%"]]}
+>
+  <Columns unit="%" max={100} data={[
+    { label: "Investigated", value: 60, display: "60%" },
+    { label: "Piloted", value: 20, display: "20%" },
+    { label: "In production", value: 5, display: "5%", hl: true },
+  ]} />
+</Exhibit>
+
+Treat those numbers with care (see the limitations section), but the direction is consistent and long predates generative AI. Martin Fowler’s 2015 essay on YAGNI (“You Aren’t Gonna Need It”) cites Kohavi and colleagues at Microsoft: even after careful analysis, only about a third of features improved the metrics they were designed to improve. Fowler uses that to put the odds of building something unnecessary at “at least ⅔”.
+
+### The four costs of a perfect prototype
+
+Fowler breaks the cost of building something before you know you need it into four parts. Each one applies directly to an over-engineered proof of concept.
+
+- **Cost of build.** All the effort spent on analysing, programming and testing something that then goes unused. For a POC, this means the authentication system, the CI pipeline and the test suite built for a product that was cancelled at the steering meeting.
+- **Cost of delay.** Every week spent hardening the prototype is a week the real question goes unanswered. In a proof of concept, the deliverable is a *decision*, and polish postpones it.
+- **Cost of carry.** Extra code makes everything after it harder to change. A prototype burdened with abstractions for a future no one has validated is slower to pivot, which is the one thing a prototype must do well.
+- **Cost of repair.** If the idea survives, you will understand the problem better than when you started, and the early architecture will often be wrong anyway.
+
+Fowler is precise about the limits of the idea. YAGNI, he writes, “only applies to capabilities built into the software to support a presumptive feature, it does not apply to effort to make the software easier to modify.” Knuth made the older version of the point in 1974: “premature optimization is the root of all evil” applies to about 97% of the time, and he warned in the same passage not to pass up the critical 3%. Neither principle says quality never matters. Both say quality should be bought when the need is known.
+
+That is the economic case for vibe coding, stated properly. **A proof of concept is a question, and the code is the cheapest way to ask it.** If an AI can produce a working answer in an afternoon that a careful engineer would take a week to build, and most such questions end in “no”, then reading every line is a bad trade. The careful week is worth spending on the survivors.
+
+## Deep dive 2: where the speed is real, and where it is an illusion
+
+The economic case depends on vibe coding actually being faster. The best evidence says it can be, and that the conditions matter enormously.
+
+In a 2022 randomised experiment by researchers from Microsoft, GitHub and MIT, published in 2023, 95 freelance developers were asked to build an HTTP server in JavaScript. Those given GitHub Copilot finished **55.8% faster**: 71 minutes on average, against 161 minutes for the control group. It was a small, well-specified, greenfield task with a test suite, and that is close to the shape of a proof of concept.
+
+METR’s randomised trial, published in July 2025, measured the opposite setting. It followed 16 experienced open-source developers working on 246 real issues in their own repositories, which averaged more than 22,000 GitHub stars and more than a million lines of code. They used early-2025 tools, mainly Cursor Pro with Claude 3.5 and 3.7 Sonnet. With AI allowed, they took **19% longer**. More striking is what they *believed*. Before the study they expected AI to speed them up by 24%, and afterwards they still believed it had sped them up by 20%.
+
+<Exhibit
+  n={7}
+  title="AI made developers much faster on a small greenfield task and slower in mature codebases, and they misjudged which"
+  sub="Effect of AI tools on task completion time, % faster (negative = slower), by study and setting"
+  source="Peng et al. (GitHub Copilot experiment, 2022, published 2023); METR (Jul 2025)"
+  sourceUrl="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/"
+  note="Different studies, tools and populations; shown together to make one point about context. METR’s February 2026 follow-up with late-2025 tools found a likely speed-up, which METR calls only very weak evidence of its size, and it regards the July 2025 results as out of date."
+  table={[["Measure", "Setting", "Effect"], ["Copilot vs control (measured)", "Greenfield HTTP server, 95 developers", "55.8% faster"], ["Developers’ forecast", "METR, own mature repos", "24% faster"], ["Developers’ belief afterwards", "METR, own mature repos", "20% faster"], ["Measured", "METR, own mature repos, 246 tasks", "19% slower"]]}
+>
+  <Bars unit="%" data={[
+    { label: "Greenfield task, measured", value: 55.8, display: "+55.8%" },
+    { label: "Mature repos, forecast", value: 24, display: "+24%" },
+    { label: "Mature repos, believed", value: 20, display: "+20%" },
+    { label: "Mature repos, measured", value: 19, display: "−19%", neg: true, hl: true },
+  ]} />
+</Exhibit>
+
+Neither study tested vibe coding in Karpathy’s strict sense, and the tools have moved on. In February 2026, METR reported that a larger follow-up with late-2025 tools (57 developers, more than 800 tasks) pointed to a speed-up rather than a slowdown. It also warned that the data was “only very weak evidence” for the size of the gain, partly because many developers now refuse to work without AI at all. Read together, the studies support three claims and no more:
+
+1. **AI speed gains are largest where context is small.** A fresh project with a clear spec has no hidden conventions to break and no history to respect. A mature codebase is mostly hidden context, and the time saved writing code goes on checking it.
+2. **People are poor judges of their own speed with AI.** METR’s developers misjudged both the size and the direction of the effect. Anyone deciding to vibe-code on the grounds that “it feels faster” is relying on the measure the evidence says is unreliable.
+3. **The proof-of-concept setting is the favourable one.** A POC is greenfield, small and specified by the question it answers. That is exactly where the measured gains were large.
+
+That third point is the heart of the thesis. The conditions under which vibe coding saves the most time are the same conditions under which the code matters least. The overlap is not a coincidence. A small, fresh, low-context problem is easy for a model to get mostly right, and cheap to throw away when it gets something wrong.
+
+## Deep dive 3: what unread code actually contains
+
+The case for vibe coding is economic. The case for stopping is about security, and the evidence is just as consistent.
+
+Veracode’s 2025 GenAI Code Security Report tested more than 100 language models on 80 curated coding tasks. It found that AI-generated code introduced security vulnerabilities in 45% of cases. Models failed to defend against cross-site scripting in 86% of relevant cases and against log injection in 88%. The 2026 edition, published in July 2026, makes the more important point. Across four testing snapshots, the average security pass rate is **56%, “virtually unchanged”** on the year before, while syntax pass rates are close to 100%. Coding-specialised models scored no better than general-purpose ones (51% against 52%).
+
+<Exhibit
+  n={8}
+  title="AI-generated code almost always compiles but passes security tests only about half the time"
+  sub="Veracode benchmark pass rates for AI-generated code, 2026 report (%)"
+  source="Veracode, 2026 GenAI Code Security Report (28 Jul 2026)"
+  sourceUrl="https://www.veracode.com/news/llms-are-getting-smarter-but-not-safer-veracode-2026-genai-code-security-report-finds-ai-generated-code-security-has-stalled-at-56%25-pass-rate/"
+  note="Benchmark tasks with no security-specific prompting, not a sample of real-world code. Syntax pass rate reported as approximately 100%. Veracode sells application-security tools."
+  table={[["Measure", "Pass rate"], ["Syntax (code compiles)", "~100%"], ["Best model on security (GPT-5.5)", "68%"], ["Average security pass rate", "56%"], ["Coding-specialised models, average", "51%"], ["Java, security", "30%"]]}
+>
+  <Bars unit="%" max={100} data={[
+    { label: "Compiles (syntax)", value: 100, display: "~100%" },
+    { label: "Best model, security", value: 68, display: "68%" },
+    { label: "Average, security", value: 56, display: "56%", hl: true },
+    { label: "Coding-specialised models", value: 51, display: "51%" },
+    { label: "Java, security", value: 30, display: "30%" },
+  ]} />
+</Exhibit>
+
+That gap, between code that works and code that is safe, explains why vibe coding is so seductive and so dangerous. The feedback loop of vibe coding is “does it run?”, and the answer is almost always yes. Nothing in that loop ever asks “who else can run it?” CodeRabbit’s December 2025 analysis of 470 open-source pull requests points the same way. AI co-authored pull requests averaged about 10.8 issues each against 6.5 for human-only ones, with 1.7 times as many major issues. CodeRabbit sells AI code review and notes that labelling pull requests as AI-authored was itself difficult, so read the ratio as indicative.
+
+### The signature flaw: the database door left open
+
+Benchmarks describe tendencies. The field data shows what those tendencies look like when vibe-coded apps go live, and one pattern dominates. Many app-builder platforms pair a browser front end with a hosted database, often Supabase. The browser carries a *public* key, which is safe only if the database enforces row-level security (RLS), meaning rules that limit each user to their own rows. If the rules are missing or wrong, the public key opens the whole database.
+
+In March 2025, researchers led by Matt Palmer scanned the showcase of apps built with Lovable, a popular vibe-coding platform. They found 303 exposed endpoints across **170 of 1,645 projects, about 10.3%**, leaking emails, phone numbers, payment details and API keys. The issue became CVE-2025-48757. The National Vulnerability Database describes it as insufficient row-level security that let unauthenticated attackers read or write arbitrary tables, and records that Lovable disputes it on the grounds that each customer is responsible for protecting its own application’s data. The researchers also said the platform’s new security scan only checked whether an RLS policy *existed*, not whether it was correct.
+
+<Exhibit
+  n={9}
+  title="About one in ten Lovable showcase apps exposed data through missing or broken access rules"
+  sub="Lovable-built showcase projects with exposed endpoints, March–May 2025"
+  source="Matt Palmer et al., Statement on CVE-2025-48757 (29 May 2025)"
+  sourceUrl="https://mattpalmer.io/posts/statement-on-CVE-2025-48757/"
+  note="170 of 1,645 projects (10.3%), from scans of homepages only, so logged-in areas may expose more. The vendor disputes the CVE, arguing that each customer is responsible for securing its own application."
+>
+  <Waffle value={10.3} display="170 of 1,645" label="Lovable showcase apps with exposed endpoints in the researchers’ scan" />
+</Exhibit>
+
+It was not a one-off. In October 2025, the security firm Escape published passive scans of more than 5,600 publicly available apps built on vibe-coding platforms. It found more than 2,000 high-impact vulnerabilities, more than 400 exposed secrets and 175 instances of exposed personal data, and described these as lower bounds. In February 2026, Wiz found the same root cause in Moltbook, a social network for AI agents whose founder had said he “didn’t write a single line of code” for it. The Supabase key was in the client JavaScript, RLS was missing, and anyone could read and write the whole database. That included about 1.5 million API authentication tokens and 35,000 email addresses.
+
+The pattern is the point. **Vibe coding fails in a predictable place.** The visible product works, because that is what the builder tests. The invisible properties fail: who is allowed to do what, where the secrets live, what happens on the server. These are exactly the things a non-reader never sees. That is why the gates in the next section concentrate there.
+
+<Note kind="field">
+I teach no-code AI and low-code tools to corporate teams, including the Ayala Group programme “Generative AI & Low Code for Corporate Teams” in 2025. These tools give the power to build software to people who have never had to think about row-level security or where an API key lives. That is a good thing, and it is also why the blast-radius question has to be taught alongside the tool, not left for a security review that may never come.
+</Note>
+
+## Deep dive 4: the graduation gates
+
+If the bottom-left quadrant is where vibe coding belongs, the critical moment is when a prototype tries to leave it. The usual risk is that nobody ever formally decides to put a prototype into production. It gets demoed, then shared, then someone connects real data “just for the pilot”, and by the time anyone asks, it is load-bearing. Graduation gates replace that drift with a decision. **Before a vibe-coded prototype touches real users, real data, real money or real credentials, it must pass six gates.** Until it does, it stays in the sandbox.
+
+<Exhibit
+  n={10}
+  title="Six gates stand between a vibe-coded prototype and real users, and the first and third catch most incidents"
+  sub="Author’s framework: graduation gates for moving a prototype out of the vibe zone"
+  note="Framework by the author. Gates 1 and 3 are highlighted because the public incidents in Exhibit 11 cluster there. A prototype that cannot pass a gate goes back to the sandbox or is rewritten; it does not ship with a ticket to fix it later."
+>
+  <Flow steps={[
+    { title: "1. Read", text: "A named human who will own the code has read every line on the critical path and can explain it.", hl: true },
+    { title: "2. Secrets", text: "No keys in client code or in the repository; rotate anything the prototype ever exposed." },
+    { title: "3. Permissions", text: "Authentication on every endpoint; row-level rules enforced on the server and tested as a stranger.", hl: true },
+    { title: "4. Tests", text: "Automated tests on the critical path: sign-up, payment, and the one workflow the product exists for." },
+    { title: "5. Recoverability", text: "Development and production separated; backups restored at least once; agents have no production write access." },
+    { title: "6. Observability", text: "Logs, error alerts and a person who is told when it breaks." },
+  ]} />
+</Exhibit>
+
+**Gate 1: read.** This gate is the definition of leaving the vibe zone. If a human has read and understood the code, it is no longer vibe coding in Willison’s sense; it is software development that happened to start with AI. The reader does not need to have written any of it. They need to be able to explain the authentication flow, the data model and every place the code talks to the outside world, and to be the person who answers for it. If no one can be named, the code is not ready, whatever its test results say.
+
+**Gate 2: secrets.** Escape found more than 400 exposed secrets in vibe-coded apps. Any key the prototype has ever placed in the browser, a commit or a screenshot is compromised and must be rotated, not just moved. A crude check catches the worst cases:
+
+```bash
+# Gate 2 smoke test: no server-side secrets in anything the browser downloads
+npm run build
+grep -rnE "service_role|sk_live_|sk-[A-Za-z0-9]{20,}" dist/ \
+  && echo "FAIL: secret in client bundle" || echo "ok"
+```
+
+**Gate 3: permissions.** Every incident in the previous section failed here. The test is simple to state and rarely done: log in as a stranger, or as no one, and try to read and change someone else’s data. For a Supabase-backed app, the fix is usually a few lines, and it shows why the gate needs a reader rather than a scanner. The policy below is correct only if `user_id` really identifies the owner:
+
+```sql
+-- Without RLS, the public key shipped to every browser can read every row.
+alter table public.orders enable row level security;
+
+create policy "owners can read their own orders"
+  on public.orders for select
+  to authenticated
+  using ((select auth.uid()) = user_id);
+```
+
+**Gate 4: tests.** Not coverage targets: tests on the few paths whose failure would be an incident. AI is very good at writing these once a human has said what they must prove, and this is one of the places where AI-assisted engineering is cheaper than it used to be.
+
+**Gate 5: recoverability.** Separate development from production, take backups and restore one at least once, and take production write access away from any agent. Replit’s response to the July 2025 incident, automatic separation of development and production databases, is this gate built into a platform.
+
+**Gate 6: observability.** A prototype fails quietly because nobody is watching. A production system fails loudly to someone who can act. Structured logs, an error alert and a named person who receives it are the minimum.
+
+<Note kind="field">
+This site was designed and built with Claude Code. Before it went live, its GitHub Actions deploy workflow got two small changes that are graduation gates in miniature. The third-party deploy action is pinned to a commit SHA rather than a movable tag, and each job’s permissions are scoped: the build job can only read the repository, while the deploy job can write to Pages and request an identity token. Neither change makes the site faster to build. Both limit what can go wrong.
+</Note>
+
+The gates are deliberately cheap for small systems and grow with blast radius. A prototype with a Medium score might pass all six in a day. One that handles payments might take weeks. Either way, the gates turn “we’ll harden it later” into a dated, checkable decision.
+
+<Note kind="field">
+As an independent contractor I take RAG and agentic systems from prototype to enterprise production. On an enterprise RAG chat platform I built, the requirements that decided whether it could go live were role-based access tied to the organisation’s identity system and per-user spending limits enforced on every endpoint. Neither shows up in a demo, and both are exactly what an unread prototype leaves out. Gate 3 is where most of the work of graduating a prototype actually goes.
+</Note>
+
+## Case examples
+
+The public incidents of 2025–26 are worth reading as gate failures rather than as AI horror stories. In every case the prototype-grade practice was reasonable for a prototype. The failure was that the blast radius had grown and the practice had not changed.
+
+<Exhibit
+  n={11}
+  title="Every well-documented vibe-coding incident maps to a skipped graduation gate"
+  sub="Selected public incidents, what happened, and the gate that would have caught it"
+  source="Fortune; The Register; Matt Palmer et al.; NVD; Wiz; OECD.AI Incidents Monitor"
+  sourceUrl="https://fortune.com/2025/07/23/ai-coding-tool-replit-wiped-database-called-it-a-catastrophic-failure/"
+  note="Accounts are based on public reporting and, for Replit, largely on the user’s own posts. Base44 was a flaw in the platform itself, not in user code. The table scrolls sideways on small screens."
+>
+  <Compare
+    cols={["What happened", "Gate skipped"]}
+    rows={[
+      { k: "Replit and SaaStr (Jul 2025)", v: ["During a vibe-coding experiment and an active code freeze, the agent ran unauthorised commands and deleted a live database holding records on more than 1,200 executives and 1,190 companies.", "5. Recoverability: the agent could write to production"] },
+      { k: "Lovable apps (Mar–May 2025)", v: ["170 of 1,645 showcase apps exposed data through missing or incorrect row-level security; became CVE-2025-48757 (disputed by the vendor).", "3. Permissions; 1. Read"] },
+      { k: "Base44 (Jul 2025)", v: ["Wiz found registration endpoints that let anyone with a public app ID create a verified account on private enterprise apps; fixed in under 24 hours.", "3. Permissions, at the platform layer"] },
+      { k: "Moltbook (Jan–Feb 2026)", v: ["A database key in client JavaScript with no RLS gave anyone read and write access to ~1.5M API tokens and 35,000 emails; secured within hours of disclosure.", "2. Secrets; 3. Permissions; 1. Read"] },
+      { k: "Google Antigravity (Nov 2025)", v: ["During a coding session, an agent escalated a folder deletion into wiping a user’s entire D: drive; the loss was irreversible.", "5. Recoverability: agent permissions"] },
+    ]}
+  />
+</Exhibit>
+
+**Replit and SaaStr: the agent is part of the blast radius.** Jason Lemkin, founder of SaaStr, was running a public experiment in vibe coding with Replit’s agent. According to Fortune’s account of his posts, the agent deleted a live database during a code freeze, admitted to running unauthorised commands and “panicking in response to empty queries”, and initially told him a rollback would not work. Lemkin then recovered the data manually. Replit’s CEO, Amjad Masad, called it “unacceptable and should never be possible”, said the agent had lacked access to the right internal documentation, and announced automatic separation of development and production databases and a planning-only mode. *The lesson:* the experiment was a prototype, but the agent held production credentials, and that made the blast radius large. A code freeze written in a prompt is not a permission.
+
+**Lovable: a platform default is not a security review.** The 170 exposed apps were not the work of careless people. They were built by people trusting a platform to handle the parts they could not see. The vendor’s dispute, that each customer is responsible for securing its own app, is legally tidy and practically beside the point for anyone who never read the generated code. *The lesson:* if no one has read the access rules, then no one is responsible for them, whatever the terms of service say. Gate 1 exists to make that responsibility land on a named person.
+
+**Base44: even well-written app code sits on someone else’s code.** The flaw Wiz found in July 2025 was in the platform, not in any user’s app, and Wix fixed it in under 24 hours with no evidence of exploitation. It belongs on this list because it shows the limit of the vibe-coder’s view. The builder had no way to see the problem, and no amount of prompting would have revealed it. *The lesson:* when a prototype graduates, the platform it runs on graduates with it, and that platform needs the same scrutiny as any vendor holding your data.
+
+**Moltbook: the canonical graduation failure.** A project built quickly with AI became popular quickly. Wiz’s analysis of the exposed data found about 17,000 human owners behind the 1.5 million registered agents. Every root cause Wiz identified, a key in the client and RLS missing, is a prototype-grade shortcut that stayed in place after the audience arrived. Credit where due: the team fixed it within about three hours of first contact. *The lesson:* lifespan and blast radius can both jump overnight when something goes viral. The gates have to be passed before the launch post, not after the security report.
+
+## Counterpoints
+
+<Note kind="counter" label="Objection 1: There is no such thing as a throwaway prototype">
+Every engineer has seen a “temporary” prototype run in production for years. If prototypes always survive, vibe coding them only postpones the cost, and with interest.
+</Note>
+
+<Note kind="response">
+The premise is half true. Some prototypes do survive, and that is exactly why graduation must be a gate rather than a hope. But the claim that prototypes *always* survive does not fit the data. On MIT NANDA’s figures, most custom enterprise AI tools that were evaluated never reached production, and Gartner’s predictions point the same way. Engineering every prototype for production to protect the few that survive means paying the full cost on the many that die. The better response is to make throwing code away cheap and explicit. Give every POC a kill date, and budget a rewrite or a graduation pass as real work when it survives.
+</Note>
+
+<Note kind="counter" label="Objection 2: Vibe coding deskills engineers">
+If juniors never read the code, they never learn to write it, and in five years nobody will be able to pass Gate 1.
+</Note>
+
+<Note kind="response">
+This is the strongest objection, and I partly concede it. Vibe coding is a way to learn about a *problem*, not a way to learn to *program*, and an engineer who only ever vibes will not be able to read what they ship. But the remedy is to make reading the price of graduation, not to ban vibing. Karpathy, who coined the term, argued in February 2026 that “deep technical expertise may be even more of a multiplier than before because of the added leverage.” On that view the scarce skill is not typing code but judging it. That is an argument for teaching juniors to pass the gates, not for keeping them out of the sandbox.
+</Note>
+
+<Note kind="counter" label="Objection 3: The models will soon be good enough that none of this matters">
+Models improve every few months. Soon AI-generated code will be secure by default, and reading it will be as pointless as reading compiler output.
+</Note>
+
+<Note kind="response">
+Functional quality has improved. Security quality, on the best longitudinal evidence available, has not. Veracode’s pass rate was essentially flat between its 2025 and 2026 reports even as syntax correctness approached 100%, and coding-specialised models did no better than general ones. Speed may well be improving: METR’s 2026 follow-up points that way. But speed and safety are different properties, and the evidence shows them moving separately. Until a model can be shown to reason reliably about *who* is allowed to do *what*, Gate 3 needs a human.
+</Note>
+
+<Note kind="counter" label="Objection 4: AI makes good engineering cheap too, so engineer everything">
+If AI can write tests, policies and pipelines in minutes, there is no reason to skip them, even for a prototype.
+</Note>
+
+<Note kind="response">
+There is something to this, and it is why the gates are cheaper to pass in 2026 than they would have been in 2023. But the expensive part of engineering a prototype was never the typing. It is the *decisions*: the data model, the permission structure, the architecture, made before anyone knows whether the idea works. Fowler’s costs of carry and repair apply however cheaply the code was produced. Use AI-assisted engineering to pass the gates when the time comes. Use vibes to find out whether the time will ever come.
+</Note>
+
+## Implications by stakeholder
+
+<Exhibit
+  n={12}
+  title="Each stakeholder has a different job, but all of them are deciding when a prototype stops being one"
+  sub="Author’s framework: what the thesis means for each stakeholder"
+  note="Framework by the author. The table scrolls sideways on small screens."
+>
+  <Compare
+    cols={["Founders and product leads", "Engineering managers", "Engineers", "Security and risk teams"]}
+    rows={[
+      { k: "The question to ask", v: ["What decision will this prototype let us make, and by when?", "Which quadrant is each prototype in today, and which way is it drifting?", "Could I explain every line on the critical path to a reviewer?", "Which prototypes can touch real data or credentials right now?"] },
+      { k: "The mistake to avoid", v: ["Treating a successful demo as a finished product", "Banning vibe coding outright, or never asking about it", "Shipping code you have never read because the demo worked", "Reviewing only what is formally submitted for release"] },
+      { k: "What to put in place", v: ["Kill dates and graduation budgets for every POC", "The six gates as a release checklist", "Sandboxes, throwaway keys, agents with no production access", "Pre-approved sandboxes; scans for exposed keys and missing RLS"] },
+      { k: "First move", v: ["List live prototypes and give each a decision date", "Score current prototypes with the blast-radius rubric", "Run the Gate 2 and Gate 3 tests on your latest prototype", "Inventory apps built on vibe-coding platforms in your organisation"] },
+    ]}
+  />
+</Exhibit>
+
+### For founders and product leads
+
+A proof of concept is a purchase of information. Judge it by how quickly it produced a decision, not by how good its code is. That means letting teams vibe-code freely in the bottom-left quadrant, and it means a successful demo must trigger a graduation budget rather than a launch date. YC’s own partners asked in public whether 95%-AI codebases would hold up at scale. The honest answer is that they will if someone passes the gates, and not otherwise.
+
+### For engineering managers
+
+The worst policies are the two extremes. A blanket ban drives prototyping into personal accounts and unsanctioned tools, where blast radius is invisible. Silence lets prototypes drift into production unexamined. A better policy fits on a page. Vibe freely in approved sandboxes with fake data and capped keys, and nothing reaches real users or data without passing the six gates and naming an owner.
+
+### For engineers
+
+The professional skill is not refusing to vibe, and it is not vibing everything. It is noticing the moment the quadrant changes: someone asks for a login, a real customer list appears, an API key with no cap is pasted in. That moment is the signal to stop accepting diffs and start reading them. METR’s finding that developers misjudged their own speed is a reason to trust a checklist over a feeling.
+
+### For security and risk teams
+
+Expect vibe-coded apps you have never heard of. Escape’s scans found more than 2,000 high-impact vulnerabilities in publicly reachable apps on these platforms. A pre-approved sandbox, with synthetic data, scoped keys and no route to production systems, is a cheaper control than chasing shadow apps after they leak, and it gives builders a reason to stay inside the lines.
+
+## What to do next: a two-speed playbook
+
+**Before you vibe (fifteen minutes).**
+1. Write down the question the prototype answers and the date by which it must answer it.
+2. Score its blast radius with the rubric in Exhibit 4. If any row is Large, either change the setup until it is not, or do not vibe-code it.
+3. Set up the sandbox: synthetic or public data, test-mode payments, keys with spending caps, a separate account or project, and an agent that cannot reach production.
+
+**While you vibe.**
+1. Commit often. Version control is your undo button, and the only one you control.
+2. Keep a short shortcut log: every hard-coded key, disabled check and “temporary” bypass. It becomes the graduation to-do list.
+3. Do not add features the question does not need. A vibe-coded prototype grows faster than a hand-written one, and so does its cost of carry.
+
+**At the decision date, choose one of three exits.**
+1. **Kill it.** This is the most common and most valuable outcome. Delete the sandbox and rotate its keys.
+2. **Rewrite it.** The prototype answered the question but its structure is wrong for production. Keep the learning, discard the code, and build the production version with AI-assisted engineering from the start.
+3. **Graduate it.** The structure is sound. Run the six gates in order, name an owner, and do not connect real data until Gate 3 passes.
+
+The playbook’s only rule that cannot bend is the last one: **nothing touches real users, data, money or credentials until a named human has read the code and the permission tests pass as a stranger.** Everything else can be adjusted to fit the team.
+
+## Limitations and methodology
+
+- **Definitions vary.** Collins defines vibe coding broadly; Karpathy and Willison define it narrowly. Most studies measure AI-assisted coding in general, not the strict practice of accepting code unread. I have used them as evidence about the tendencies of unreviewed AI code, which is an inference.
+- **Speed studies are narrow and dated.** The Copilot experiment used one small task, older tools and freelancers, most of whom did not finish both the task and the survey. METR’s 2025 trial had 16 developers, and METR now regards its results as out of date; its 2026 follow-up is weak evidence by its own account.
+- **Security evidence comes largely from vendors.** Veracode, CodeRabbit, Escape and Wiz all sell security or review products. Their methods are published and their findings consistent, but they have an interest in the problem looking large. Benchmark pass rates are not real-world breach rates.
+- **Incidents are self-selected.** Public incidents are the ones someone chose to report. The Replit account rests mainly on the user’s own posts, and details differ between outlets. Quiet successes and quiet failures are both invisible.
+- **POC failure figures are imprecise.** MIT NANDA’s figures come from interviews and are described by the authors as directionally accurate. Gartner’s figures are predictions. None of them isolates the effect of how the prototype’s code was written.
+- **Dates matter.** Tools, models and platform defaults have changed quickly since 2025; several platforms have tightened their defaults since the incidents described here. Figures are as reported on the dates in the source list, and this article reflects evidence available in October 2026.
+- **My frameworks are mine.** The vibe zone, the blast-radius rubric and the graduation gates come from my own delivery and teaching work. They are tools for thinking, not validated instruments, and have not been tested across a large sample of teams.
+
+## Vibe the question, engineer the answer
+
+Karpathy’s original post contained its own boundary: throwaway weekend projects. The most useful thing to come out of the year since is not a verdict on vibe coding but a clear view of where that boundary sits. It is not a line between good and bad engineers, or between AI and human code. It is the line between code that can hurt no one and will soon be deleted, and code that can hurt someone and will be relied on. On one side, reading every line is waste. On the other, not reading is negligence. The work is in noticing when you cross it.
+
+<Note kind="insight">
+Vibe-code the question, engineer the answer. A prototype’s job is to find out, cheaply, whether something deserves to exist, and the moment it touches real users or real data it has stopped being a prototype, whatever it is called.
+</Note>

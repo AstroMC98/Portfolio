@@ -1,0 +1,127 @@
+---
+dek: "To get an AI job today, showing something real you have built and tested counts for more than a certificate, so start building before you apply."
+takeaways:
+  - "Employers are paying more for AI skills and caring a little less about degrees, but they now want beginners who can already do part of the job."
+  - "Climb the proof ladder: learned, built, shipped (someone else uses it), measured (you have a number), survived (it broke and you fixed it). Most beginners stop at built; aim for measured."
+  - "You do not need to be a coder to start. Students, fresh grads and career shifters each have a real advantage, and domain knowledge from a job like BPO is one of the most valuable things you can bring."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Stats from '../../components/blog/Stats.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Imagine trying out for a band. You could hand over a certificate that says you passed a music-theory course, or you could press play on a recording of yourself playing a song with real people listening. The band will listen to the recording first. Getting into AI work has become a lot like that audition, and the good news is that anyone can make a recording.</p>
+
+I did not plan an AI career. I studied applied physics, worked on data for COVID-19 virus tracking at the Philippine Genome Center, took a master's in data science, and only then moved into industry: insurance, then a big customer-service company in Singapore, then AI engineering for a UK consultancy. Every step looked sideways at the time. If your path looks sideways too, that is normal. You are probably closer than you think.
+
+## The short version
+
+Here is the whole argument in one sentence: **for AI jobs, showing work you have actually shipped and measured now counts for more than paper qualifications, and because it has become harder for beginners to get hired, building that proof before you apply is the move that matters most.**
+
+A degree still helps. A certificate rarely hurts. But neither answers the question every AI hiring manager now asks of beginners: *can you already do some of the job?*
+
+## What is happening in the job market
+
+Three things are true at once.
+
+**AI skills pay more, and the extra is growing.** PwC studies huge numbers of job ads every year. In its 2026 study, jobs asking for AI skills offered on average 62% higher pay than similar jobs that did not, up from 25% two editions earlier.
+
+**There are many more AI jobs.** Ads asking for AI skills grew 69% in PwC's 2026 study, against 9% for all job ads.
+
+<Exhibit
+  n={1}
+  title="Job ads asking for AI skills grew more than seven times faster than the job market"
+  sub="Growth in job postings, AI-skill roles vs. all roles"
+  source="PwC 2026 Global AI Jobs Barometer"
+  sourceUrl="https://kyodonewsprwire.jp/release/202606150856"
+  table={[["Segment", "Posting growth"], ["Postings requiring AI skills", "+69%"], ["All job postings", "+9%"]]}
+>
+  <Bars unit="%" data={[
+    { label: "Ads asking for AI skills", value: 69, display: "+69%", hl: true },
+    { label: "All job ads", value: 9, display: "+9%" },
+  ]} />
+</Exhibit>
+
+**But the front door is narrower for beginners.** This is the part that surprises people. Employers are asking for degrees a bit less often: in jobs where AI helps people work, the share of ads requiring a degree fell from 66% in 2019 to 59% in 2024. At the same time, beginner-level jobs touched by AI are seven times more likely to ask for senior-level skills. And a Stanford study of real payroll records found that employment of 22- to 25-year-olds in the jobs most exposed to AI was 19% below where it would have been had it kept pace with less-exposed jobs. Experienced workers showed no such gap.
+
+<Exhibit
+  n={2}
+  title="Employers are loosening the paper requirement and raising the skills bar"
+  sub="Degrees, entry-level expectations and early-career hiring"
+  source="PwC Global AI Jobs Barometer 2025 and 2026; Brynjolfsson, Chandar & Chen, Stanford Digital Economy Lab (rev. Aug 2026)"
+  sourceUrl="https://digitaleconomy.stanford.edu/publications/canaries-in-the-coal-mine/"
+  note="The 19% is relative to less-exposed peers, not an absolute fall, and the authors describe it as descriptive rather than causal. US data."
+>
+  <Stats items={[
+    { value: "59%", label: "of ads for AI-augmented jobs still ask for a degree, down from 66% in 2019", source: "PWC 2025" },
+    { value: "7×", label: "more likely that an AI-exposed beginner role asks for senior-level skills", source: "PWC 2026" },
+    { value: "−19%", label: "employment of 22–25-year-olds in AI-exposed jobs vs. peers’ pace", source: "STANFORD DEL · 2026" },
+  ]} />
+</Exhibit>
+
+How do those fit together? Employers are relaxing the *badge* (the degree) and raising the *bar* (what you can already do). AI now handles many of the simple tasks juniors used to learn on: first drafts, basic analysis, routine code. What is left needs judgement. A certificate says you could probably learn that judgement one day. A real, tested project shows you already have some.
+
+And this is not a collapse. Jobs in the more AI-exposed occupations still grew 38% between 2019 and 2024. The jobs are there. You just need to arrive with more in your hands.
+
+## The proof ladder
+
+If proof is what counts, you need a way to tell how much you have. I use a simple model I call the proof ladder.
+
+<Exhibit
+  n={3}
+  title="Most beginners stop at “built”; interviews start at “shipped” and offers usually need “measured”"
+  sub="The author’s proof ladder: five levels of evidence that you can do AI work"
+  note="Author’s framework. Each rung builds on the one before it."
+>
+  <Flow steps={[
+    { title: "Learned", text: "Courses, certificates, a degree. Useful, but weak evidence on its own." },
+    { title: "Built", text: "It runs on your own computer." },
+    { title: "Shipped", text: "It is online and at least one real person uses it.", hl: true },
+    { title: "Measured", text: "You have one honest number: minutes saved, errors caught, cost per use.", hl: true },
+    { title: "Survived", text: "It broke in real use, you fixed it, and you can explain how." },
+  ]} />
+</Exhibit>
+
+Each rung answers a different worry in a hiring manager's head. *Learned*: do they know the words? *Built*: can they make something? *Shipped*: can they finish something outside a classroom? *Measured*: do they know whether it works? *Survived*: what happens when it breaks? The good news is that every rung is something you can climb on your own, starting now.
+
+## Five paths, and how to choose
+
+Job titles in AI change every year or two, so do not get attached to them. Instead, ask yourself two questions: **how deep into the AI itself do you want to go**, and **how close to customers and their problems do you want to be?** Then pick the path that fits what you enjoy today. You can always move later; I did.
+
+- **AI / ML engineer:** builds the AI system and keeps it running. Good if you like making things that work reliably.
+- **Forward-deployed engineer:** goes to one customer and makes AI work inside their business. Good if you like people and messy problems as much as code. Ads for this role grew more than 1,000% in January to August 2026, compared with a year earlier.
+- **AI strategist or consultant:** decides what is worth building and helps people adopt it. Good if you care more about the *why* than the *how*.
+- **Research and model engineering:** makes the AI models themselves better. Good if you love maths and patient experiments. This is the one path where degrees still matter most.
+- **Data and AI operations:** makes sure the data and the tests can be trusted. Good if you are careful and like catching mistakes. It is not glamorous, but an AI is only as good as the tests that check it.
+
+## Jargon decoder
+
+- **AI / ML:** artificial intelligence and machine learning: software that learns patterns from examples instead of following only hand-written rules.
+- **LLM (large language model):** the kind of AI behind chatbots, which reads and writes text.
+- **Portfolio:** a small collection of things you have built that an employer can look at.
+- **Deployed / shipped:** online and usable by someone other than you.
+- **Evaluation set (test set):** a list of questions with known right answers, used to check how often the AI gets things right.
+- **Agentic AI:** AI that plans and takes actions, not just answers questions.
+- **Domain knowledge:** deep understanding of one field or industry, such as insurance, health or customer service.
+- **BPO:** business process outsourcing, such as call centres and back-office services.
+
+## Where to start, whoever you are
+
+**If you are a student,** your advantage is that failing is cheap. Turn one class project into something a real person uses (a student group, a professor, a family business) and measure it. Take your maths classes seriously; you will rarely have this much time to learn it again.
+
+**If you just graduated,** you have a thesis or capstone sitting on your laptop. Put it online, test it against a set of questions with known answers, work out what it costs to run, and write one page on what broke. You have just climbed from *learned* to *measured* using work you already did.
+
+**If you are switching careers,** you hold something many engineers lack: you know where the work actually hurts, which process is slow, which report nobody trusts. With your manager's permission and without using sensitive data, automate one painful step in your current job and count the minutes it saves. Is it too late at 30 or 40? No. Plan honestly for less free time, and expect it to take longer than a bootcamp advert suggests.
+
+**If you work in BPO,** this matters to you directly. An IMF study found about one in three Filipino workers is highly exposed to AI, but about 60% of them are in roles where AI is more likely to help than to replace. A BPO floor already runs on the measuring habits AI projects need: handle time, quality scores, calibration. QA analysts, team leads and trainers are closer to AI work than they think.
+
+<Note kind="field">
+I have taught bootcamps and corporate classes at CIIT and Eskwelabs since 2023, and I give every group the same advice: credentials open the door, but shipped work is what gets discussed in the interview. Build a small, real thing, like a dashboard a manager actually uses, and be ready to explain every choice you made.
+</Note>
+
+A beginner portfolio that gets interviews usually has five things: one project that is actually online, one real user, one honest number, a short write-up of what broke, and a field you care about. Tick four and you know exactly what to do next.
+
+## If you remember one thing
+
+The AI job market is paying more, hiring more and changing fast, while quietly raising the bar for beginners. That rewards people who show up with something real: built, shipped, measured and fixed when it broke. You do not need permission to start, and you do not need to wait for another certificate. Ship something small, even if it is rough. Measure it. Write down what broke. Sideways is normal. Proof is what turns sideways into forward.

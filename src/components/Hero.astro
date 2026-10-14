@@ -1,0 +1,310 @@
+---
+import { PROFILE, METRICS } from '../data/profile';
+
+// Satellite capabilities feeding the hub (SVG user units, viewBox 600×600, hub at 300,300 r=168)
+const satellites = [
+  { x: 92, y: 150, label: 'Enterprise RAG', accent: true },
+  { x: 508, y: 150, label: 'Agentic workflows' },
+  { x: 62, y: 330, label: 'Doc intelligence' },
+  { x: 538, y: 330, label: 'LLMOps · evals' },
+  { x: 128, y: 500, label: 'Governance' },
+  { x: 472, y: 500, label: 'Fine-tuning' },
+];
+const HUB = { x: 300, y: 300, r: 172 };
+// The hub holds the brand mark drawn as a live pipeline: each vertex of the M is a stage.
+const M = [
+  { x: 210, y: 380, label: 'ingest', lx: 210, ly: 418 },
+  { x: 210, y: 215, label: 'retrieve', lx: 210, ly: 190 },
+  { x: 300, y: 322, label: 'reason', lx: 300, ly: 362 },
+  { x: 390, y: 215, label: 'verify', lx: 390, ly: 190 },
+  { x: 390, y: 380, label: 'ship', lx: 390, ly: 422 },
+];
+const mPath = 'M' + M.map((p) => `${p.x} ${p.y}`).join(' L');
+const spoke = (s: { x: number; y: number }) => {
+  const dx = HUB.x - s.x;
+  const dy = HUB.y - s.y;
+  const d = Math.hypot(dx, dy);
+  return { x2: HUB.x - (dx / d) * HUB.r, y2: HUB.y - (dy / d) * HUB.r };
+};
+---
+<section class="hero" id="top" aria-labelledby="hero-title">
+  <div class="wrap hero__grid">
+    <div class="hero__copy">
+      <p class="eyebrow" data-hero-in>{PROFILE.positioning}</p>
+      <h1 id="hero-title" class="hero__title" data-hero-title>
+        I build AI systems that survive <em>production.</em>
+      </h1>
+      <p class="hero__lede" data-hero-in>
+        I embed with enterprise teams — insurers, BPOs, media, education and the public sector — turn a vague AI ambition into a
+        scoped plan, and ship governed RAG, agent and LLMOps systems into their production.
+      </p>
+      <div class="hero__ctas" data-hero-in>
+        <a class="btn btn--primary" href={PROFILE.resume} download>
+          Download résumé <span class="arrow arrow--down" aria-hidden="true">↓</span>
+        </a>
+        <a class="btn" href="#work">See the work <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+      <p class="hero__creds mono" data-hero-in>
+        <span>Now: Intelligent AI Solutions (UK)</span><span>Ex-AIA Digital+</span><span>Ex-TDCX AI</span>
+      </p>
+    </div>
+
+    <figure class="hero__visual" aria-label="Diagram: six capabilities feed one pipeline — ingest, retrieve, reason, verify, ship">
+      <svg class="hero__graph" viewBox="0 0 600 600" aria-hidden="true">
+        <defs>
+          <radialGradient id="hubGlow" cx="50%" cy="70%" r="60%">
+            <stop offset="0%" stop-color="#3df5a7" stop-opacity="0.32" />
+            <stop offset="55%" stop-color="#3df5a7" stop-opacity="0.06" />
+            <stop offset="100%" stop-color="#3df5a7" stop-opacity="0" />
+          </radialGradient>
+          <pattern id="hubGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+            <path d="M24 0H0V24" fill="none" stroke="#3df5a7" stroke-opacity="0.08" />
+          </pattern>
+        </defs>
+
+        <circle class="orbit orbit--outer" cx="300" cy="300" r="286" />
+        <circle class="orbit orbit--dash" cx="300" cy="300" r="232" />
+
+        {satellites.map((s, i) => {
+          const e = spoke(s);
+          return (
+            <g>
+              <path id={`spoke-${i}`} class="dg-edge" d={`M${s.x} ${s.y} L${e.x2} ${e.y2}`} />
+              <circle class="dg-packet" r="3" visibility="hidden">
+                <set attributeName="visibility" to="visible" begin={`${i * 0.4}s`} />
+                <animateMotion dur={`${2.6 + i * 0.35}s`} repeatCount="indefinite" begin={`${i * 0.4}s`}>
+                  <mpath href={`#spoke-${i}`} />
+                </animateMotion>
+              </circle>
+            </g>
+          );
+        })}
+
+        <circle cx="300" cy="300" r="168" fill="#0d1311" />
+        <circle cx="300" cy="300" r="168" fill="url(#hubGrid)" />
+        <circle cx="300" cy="300" r="168" fill="url(#hubGlow)" />
+        <circle cx="300" cy="300" r="168" fill="none" stroke="#3df5a7" stroke-opacity="0.55" stroke-width="1.25" />
+
+        {satellites.map((s) => {
+          const w = s.label.length * 7.6 + 34;
+          return (
+            <g class:list={['dg-node', 'hero__sat', { 'dg-node--accent': s.accent }]}>
+              <rect x={s.x - w / 2} y={s.y - 17} width={w} height="34" rx="17" />
+              <circle cx={s.x - w / 2 + 16} cy={s.y} r="3" fill={s.accent ? '#3df5a7' : '#8b958f'} />
+              <text x={s.x - w / 2 + 26} y={s.y + 4}>{s.label}</text>
+            </g>
+          );
+        })}
+
+        <g class="hero__m">
+          <path id="m-path" d={mPath} class="hero__m-line" />
+          <path d={mPath} class="hero__m-flow" />
+          {[0, 1, 2].map((i) => (
+            <circle class="dg-packet" r="5" visibility="hidden">
+              <set attributeName="visibility" to="visible" begin={`${i * 1.2}s`} />
+              <animateMotion dur="3.6s" begin={`${i * 1.2}s`} repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear">
+                <mpath href="#m-path" />
+              </animateMotion>
+            </circle>
+          ))}
+          {M.map((p, i) => (
+            <g class:list={['hero__m-node', { 'is-out': i === M.length - 1 }]}>
+              {i === M.length - 1 && <circle class="hero__m-ring" cx={p.x} cy={p.y} r="22" />}
+              <circle cx={p.x} cy={p.y} r={i === M.length - 1 ? 21 : 15} />
+              <text x={p.lx} y={p.ly} text-anchor="middle">{p.label}</text>
+            </g>
+          ))}
+        </g>
+
+        <text class="hero__fig" x="300" y="22" text-anchor="middle">FIG. 01 — SIGNAL PATH</text>
+      </svg>
+
+      <figcaption class="hero__badge mono">
+        <span class="status-dot" aria-hidden="true"></span>
+        {PROFILE.years} yrs · {PROFILE.projects} production projects
+      </figcaption>
+    </figure>
+  </div>
+
+  <div class="wrap">
+    <ul class="ticker" aria-label="Headline results">
+      {METRICS.map((m) => (
+        <li class="ticker__item">
+          <span class="ticker__num numeral">
+            {m.prefix}<span data-count={m.value}>{m.value}</span>{m.suffix}
+          </span>
+          <span class="ticker__label">{m.label}</span>
+          <span class="ticker__src mono">{m.source}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  <div class="marquee" aria-label="Organisations I have delivered for">
+    <div class="marquee__track">
+      {[0, 1].map((dup) => (
+        <ul class="marquee__list" aria-hidden={dup === 1 ? 'true' : undefined}>
+          {PROFILE.brands.map((b) => <li>{b}</li>)}
+        </ul>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    padding-top: clamp(104px, 12vh, 128px);
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: -20% -10% auto auto;
+    width: 70vw; height: 70vw;
+    background: radial-gradient(closest-side, rgb(61 245 167 / 0.09), transparent);
+    pointer-events: none;
+  }
+  .hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    align-items: center;
+    gap: clamp(24px, 4vw, 64px);
+  }
+  .hero__title {
+    margin-top: 22px;
+    font-family: var(--font-display);
+    font-stretch: 72%;
+    font-weight: 800;
+    font-size: clamp(3rem, 1rem + 5vw, 6.2rem);
+    line-height: 0.94;
+    letter-spacing: -0.012em;
+  }
+  .hero__title em {
+    font-style: normal;
+    color: var(--signal);
+  }
+  .hero__lede {
+    margin-top: 22px;
+    max-width: 560px;
+    font-size: var(--fs-lg);
+    line-height: 1.5;
+    color: var(--text-2);
+  }
+  .hero__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  .hero__creds {
+    display: flex; flex-wrap: wrap; gap: 8px 20px;
+    margin-top: 26px;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .hero__creds span { display: inline-flex; align-items: center; gap: 20px; }
+  .hero__creds span + span::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--line-2); margin-left: -12px; }
+
+  /* Visual */
+  .hero__visual { position: relative; aspect-ratio: 1; width: 100%; max-width: 560px; justify-self: end; }
+  .hero__graph { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .orbit { fill: none; stroke: var(--line); }
+  .orbit--dash { stroke: var(--line-2); stroke-dasharray: 2 7; transform-origin: 300px 300px; animation: spin 80s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hero__fig { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em; }
+  .hero__sat text { font-size: 12px; }
+
+  /* Hub: the Signal M mark as a working pipeline */
+  .hero__m-line { fill: none; stroke: var(--text); stroke-width: 11; stroke-linejoin: round; stroke-linecap: round; }
+  .hero__m-flow { fill: none; stroke: var(--ink); stroke-width: 3; stroke-dasharray: 2 14; stroke-linecap: round; animation: dash 1.4s linear infinite; }
+  .hero__m-node circle { fill: var(--ink); stroke: var(--text); stroke-width: 7; }
+  .hero__m-node.is-out circle { fill: var(--signal); stroke: none; filter: drop-shadow(0 0 16px rgb(61 245 167 / 0.7)); }
+  .hero__m-node .hero__m-ring { fill: none !important; stroke: var(--signal) !important; stroke-width: 2 !important; filter: none !important; transform-origin: 390px 380px; animation: m-ring 2.4s ease-out infinite; }
+  @keyframes m-ring { from { transform: scale(1); opacity: 0.8; } to { transform: scale(2.4); opacity: 0; } }
+  .hero__m-node text { fill: var(--muted); font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .hero__m-node.is-out text { fill: var(--signal); }
+  .hero__m .dg-packet { fill: var(--signal); }
+  .hero__badge {
+    position: absolute;
+    left: 50%;
+    bottom: 3%;
+    transform: translateX(-50%);
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 8px 14px;
+    background: rgb(10 13 12 / 0.85);
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    font-size: 11.5px;
+    color: var(--text-2);
+    white-space: nowrap;
+  }
+
+  /* Ticker */
+  .ticker {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin-top: clamp(36px, 4vw, 56px);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .ticker__item {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    padding: 22px 24px 22px;
+    border-left: 1px solid var(--line);
+  }
+  .ticker__item:first-child { border-left: 0; padding-left: 0; }
+  .ticker__num { font-size: clamp(2.4rem, 1.6rem + 2vw, 3.5rem); }
+  .ticker__label { font-size: 0.92rem; line-height: 1.4; color: var(--text-2); }
+  .ticker__src { font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+
+  /* Marquee */
+  .marquee {
+    margin-top: 0;
+    padding-block: 22px;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+    mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  }
+  .marquee__track { display: flex; width: max-content; animation: marquee 48s linear infinite; }
+  .marquee:hover .marquee__track { animation-play-state: paused; }
+  .marquee__list { display: flex; flex-shrink: 0; }
+  .marquee__list li {
+    display: inline-flex; align-items: center;
+    padding-inline: 28px;
+    font-family: var(--font-display);
+    font-stretch: 75%;
+    font-weight: 650;
+    font-size: 1.3rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .marquee__list li::after { content: '✦'; margin-left: 56px; font-size: 0.7rem; color: var(--signal); opacity: 0.6; }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+
+  @media (max-width: 1100px) {
+    .ticker { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .ticker__item:nth-child(4) { border-left: 0; padding-left: 0; }
+    .ticker__item:nth-child(n + 4) { border-top: 1px solid var(--line); }
+  }
+  @media (max-width: 960px) {
+    .hero__grid { grid-template-columns: 1fr; }
+    .hero__visual { justify-self: center; max-width: 520px; order: -1; margin-bottom: -8px; }
+  }
+  @media (max-width: 640px) {
+    .ticker { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ticker__item { padding: 22px 14px; }
+    .ticker__item:nth-child(n) { border-left: 1px solid var(--line); padding-left: 14px; border-top: 1px solid var(--line); }
+    .ticker__item:nth-child(odd) { border-left: 0; padding-left: 0; }
+    .ticker__item:nth-child(-n + 2) { border-top: 0; }
+    .ticker__item:last-child { grid-column: 1 / -1; }
+    .hero__sat rect, .hero__sat text { display: none; }
+    .hero__visual { max-width: 400px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee__track { animation: none; flex-wrap: wrap; width: auto; }
+    .marquee__list[aria-hidden='true'] { display: none; }
+    .marquee__list { flex-wrap: wrap; justify-content: center; }
+  }
+</style>

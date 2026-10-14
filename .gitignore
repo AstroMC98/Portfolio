@@ -53,3 +53,14 @@ desktop.ini
 *.bak
 .cache/
 .superpowers/
+references/
+# Astro
+.astro/
+.playwright-mcp/
+_legacy/
+
+# Blog: local-only drafts and admin trash
+src/content/drafts/
+src/content/.trash/
+# Blog admin local state (checked passages)
+admin/.state.json

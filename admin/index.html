@@ -1,0 +1,905 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg" />
+<title>Blog admin — Marc Castro</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --ink: #0a0d0c; --ink-2: #111715; --ink-3: #172019; --line: #1e2824; --line-2: #2a3732;
+    --text: #ecefea; --text-2: #c4cbc6; --muted: #8b958f;
+    --signal: #3df5a7; --amber: #ffb547; --danger: #ff7a7a; --blue: #7fb2f0; --violet: #b3a9ff;
+    --sans: 'Archivo Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { min-height: 100vh; background: var(--ink); color: var(--text); font: 15px/1.5 var(--sans); }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+  .mono { font-family: var(--mono); }
+  [hidden] { display: none !important; }
+
+  /* Login */
+  .login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+  .login form { width: min(380px, 100%); display: grid; gap: 14px; padding: 28px; border: 1px solid var(--line-2); border-radius: 18px; background: var(--ink-2); }
+  .login h1 { font-size: 1.4rem; font-weight: 800; }
+  .login p { color: var(--muted); font-size: 0.9rem; }
+
+  /* Fields */
+  label { display: grid; gap: 6px; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-family: var(--mono); }
+  input, textarea, select { width: 100%; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--ink); font-size: 0.95rem; text-transform: none; letter-spacing: 0; font-family: var(--sans); color: var(--text); }
+  textarea { resize: vertical; min-height: 70px; }
+  textarea.code { font-family: var(--mono); font-size: 13px; line-height: 1.6; tab-size: 2; }
+  input[type=checkbox] { width: auto; }
+  .check { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; font-family: var(--sans); font-size: 0.9rem; color: var(--text-2); }
+  .hint { font-family: var(--sans); text-transform: none; letter-spacing: 0; font-size: 0.8rem; color: var(--muted); }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-2); background: transparent; font-weight: 600; font-size: 0.86rem; white-space: nowrap; text-decoration: none; }
+  .btn:hover { border-color: var(--text-2); }
+  .btn--primary { background: var(--signal); color: var(--ink); border-color: var(--signal); }
+  .btn--ok { color: var(--signal); border-color: rgb(61 245 167 / 0.45); }
+  .btn--danger { color: var(--danger); border-color: rgb(255 122 122 / 0.4); }
+  .btn--sm { min-height: 30px; padding: 0 11px; font-size: 0.8rem; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .err { color: var(--danger); font-size: 0.88rem; }
+
+  .chip { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-2); font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.04em; white-space: nowrap; }
+  .s-live { color: var(--signal); border-color: rgb(61 245 167 / 0.4); }
+  .s-scheduled { color: var(--blue); border-color: rgb(127 178 240 / 0.4); }
+  .s-draft, .s-local-draft { color: var(--muted); }
+  .s-needs-review { color: var(--amber); border-color: rgb(255 181 71 / 0.4); }
+  .k-review, .k-todo, .k-placeholder { color: var(--amber); border-color: rgb(255 181 71 / 0.45); }
+  .k-voice { color: var(--violet); border-color: rgb(179 169 255 / 0.45); }
+  .k-site { color: var(--blue); border-color: rgb(127 178 240 / 0.45); }
+  .k-details { color: var(--text-2); }
+  .k-eli5 { color: var(--blue); border-color: rgb(127 178 240 / 0.45); border-style: dashed; }
+  .count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--amber); color: var(--ink); font: 700 0.72rem/1 var(--mono); flex: none; }
+  .count.zero { background: var(--line-2); color: var(--muted); }
+
+  /* App layout */
+  .app { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: 100vh; }
+  .side { border-right: 1px solid var(--line); display: flex; flex-direction: column; height: 100vh; position: sticky; top: 0; }
+  .side__head { padding: 16px; border-bottom: 1px solid var(--line); display: grid; gap: 12px; }
+  .side__title { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .side__title b { font-size: 1.05rem; white-space: nowrap; }
+  .needs-nav { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgb(255 181 71 / 0.35); background: rgb(255 181 71 / 0.06); font-weight: 700; text-align: left; }
+  .needs-nav.is-on { border-color: var(--amber); background: rgb(255 181 71 / 0.12); }
+  .list { overflow-y: auto; padding: 8px; display: grid; gap: 4px; align-content: start; flex: 1; }
+  .item { text-align: left; width: 100%; padding: 11px 12px; border-radius: 12px; border: 1px solid transparent; background: transparent; display: grid; gap: 6px; }
+  .item:hover { background: var(--ink-2); }
+  .item.is-on { background: var(--ink-2); border-color: var(--line-2); }
+  .item__t { font-weight: 650; font-size: 0.9rem; line-height: 1.3; display: flex; gap: 8px; justify-content: space-between; align-items: start; }
+  .item__m { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+
+  .main { min-width: 0; display: flex; flex-direction: column; }
+  .bar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 24px; border-bottom: 1px solid var(--line); background: rgb(10 13 12 / 0.95); backdrop-filter: blur(10px); }
+  .bar { flex-wrap: nowrap; }
+  .bar__l { display: flex; gap: 10px; align-items: center; min-width: 0; flex: 1; }
+  .bar__r { flex: none; }
+  .bar__l b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar__r { display: flex; flex-wrap: wrap; gap: 8px; }
+  .dirty { color: var(--amber); font-family: var(--mono); font-size: 0.75rem; white-space: nowrap; }
+
+  /* Needs-you view */
+  .needs { padding: 24px; display: grid; gap: 20px; max-width: 1100px; }
+  .needs__head h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.01em; }
+  .needs__head p { color: var(--muted); margin-top: 4px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; }
+  .filter { display: inline-flex; gap: 8px; align-items: center; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-2); background: transparent; font-size: 0.84rem; }
+  .filter.is-on { border-color: var(--text); background: var(--ink-2); }
+  .filter small { font-family: var(--mono); color: var(--muted); }
+  .groups { display: grid; gap: 28px; }
+  .group { display: grid; gap: 10px; }
+  .group__h { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+  .group__h b { font-size: 1rem; }
+  .card { border: 1px solid var(--line-2); border-radius: 14px; background: var(--ink-2); padding: 14px 16px; display: grid; gap: 10px; }
+  .card__top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-family: var(--mono); font-size: 0.74rem; color: var(--muted); }
+  .card__why { font-size: 0.88rem; color: var(--text-2); }
+  .card__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .card__actions .spacer { flex: 1; }
+  .card textarea { min-height: 0; max-height: 420px; }
+  .done { text-align: center; padding: 48px 16px; color: var(--muted); border: 1px dashed var(--line-2); border-radius: 14px; }
+  .done b { display: block; color: var(--signal); font-size: 1.1rem; margin-bottom: 4px; }
+
+  /* Editor view */
+  .tabs { display: flex; gap: 4px; padding: 0 24px; border-bottom: 1px solid var(--line); }
+  .tab { padding: 12px 14px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); font-weight: 650; }
+  .tab.is-on { color: var(--text); border-bottom-color: var(--signal); }
+  .content { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 20px; padding: 20px 24px; align-items: start; }
+  .outline { position: sticky; top: 76px; display: grid; gap: 2px; max-height: calc(100vh - 100px); overflow-y: auto; padding-right: 4px; }
+  .outline__h { font: 600 0.7rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 4px 10px 8px; }
+  .sec { text-align: left; width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid transparent; background: transparent; display: grid; gap: 3px; }
+  .sec:hover { background: var(--ink-2); }
+  .sec.is-on { background: var(--ink-2); border-color: var(--line-2); }
+  .sec__t { font-size: 0.84rem; font-weight: 600; line-height: 1.3; display: flex; gap: 6px; justify-content: space-between; align-items: start; }
+  .sec__m { font: 0.68rem/1 var(--mono); color: var(--muted); }
+  .sec--all { border-top: 1px solid var(--line); border-radius: 0 0 10px 10px; margin-top: 6px; padding-top: 10px; }
+  .pane { display: grid; gap: 12px; min-width: 0; }
+  .pane__h { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; justify-content: space-between; }
+  .pane__h h2 { font-size: 1.15rem; font-weight: 750; }
+  .pane__nav { display: flex; gap: 6px; }
+  .here { display: grid; gap: 6px; }
+  .here button { text-align: left; display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--ink-2); font-size: 0.84rem; color: var(--text-2); min-width: 0; }
+  .here button span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  #sectionText { min-height: 62vh; white-space: pre-wrap; }
+  .details { padding: 20px 24px; display: grid; gap: 18px; max-width: 1100px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 14px; }
+  .span2 { grid-column: span 2; }
+  .eli5-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 20px 24px 0; }
+  .eli5-empty { padding: 20px 24px; max-width: 1100px; }
+  .eli5-empty .done { display: grid; gap: 12px; justify-items: center; }
+  .eli5-empty .done b { margin-bottom: 0; }
+
+  .toast { position: fixed; right: 16px; bottom: 16px; z-index: 50; max-width: min(420px, calc(100vw - 32px)); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line-2); background: #050706; font-size: 0.9rem; box-shadow: 0 10px 30px rgb(0 0 0 / 0.5); }
+  .toast.ok { border-color: rgb(61 245 167 / 0.5); }
+  .toast.bad { border-color: rgb(255 122 122 / 0.6); color: var(--danger); }
+  dialog { border: 1px solid var(--line-2); border-radius: 16px; background: var(--ink-2); color: var(--text); padding: 22px; width: min(420px, 92vw); }
+  dialog::backdrop { background: rgb(0 0 0 / 0.6); }
+  dialog form { display: grid; gap: 12px; }
+
+  @media (max-width: 1100px) {
+    .content { grid-template-columns: 1fr; }
+    .outline { position: static; max-height: 220px; border: 1px solid var(--line); border-radius: 12px; padding: 6px; }
+  }
+  @media (max-width: 860px) {
+    .app { grid-template-columns: 1fr; }
+    .bar { flex-wrap: wrap; }
+    .side { position: static; height: auto; max-height: 50vh; border-right: 0; border-bottom: 1px solid var(--line); }
+    .span2 { grid-column: auto; }
+    .bar, .needs, .content, .details, .eli5-fields, .eli5-empty { padding-left: 16px; padding-right: 16px; }
+    .eli5-fields { grid-template-columns: 1fr; }
+    .tabs { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+  <section class="login" id="login" hidden>
+    <form id="loginForm">
+      <h1>Blog admin</h1>
+      <p>Local only. Edits write straight to the files in this repo.</p>
+      <label>Password <input type="password" id="pw" autocomplete="current-password" required autofocus /></label>
+      <p class="err" id="loginErr" role="alert"></p>
+      <button class="btn btn--primary" type="submit">Sign in</button>
+    </form>
+  </section>
+
+  <div class="app" id="app" hidden>
+    <aside class="side">
+      <div class="side__head">
+        <div class="side__title"><b>Blog admin</b>
+          <span style="display:flex; gap:6px">
+            <button class="btn btn--sm" id="newBtn" type="button">+ New post</button>
+            <button class="btn btn--sm" id="logoutBtn" type="button">Sign out</button>
+          </span>
+        </div>
+        <button class="needs-nav" id="needsNav" type="button"><span>Needs you</span><span class="count" id="needsCount">0</span></button>
+        <input type="search" id="search" placeholder="Search posts…" aria-label="Search posts" />
+      </div>
+      <nav class="list" id="list" aria-label="Posts"></nav>
+    </aside>
+
+    <main class="main">
+      <!-- Needs-you view: every passage that needs the author, across all posts and site data. -->
+      <section id="needsView" hidden>
+        <div class="needs">
+          <div class="needs__head">
+            <h1>Where you're needed</h1>
+            <p id="needsSummary"></p>
+          </div>
+          <div class="filters" id="filters" role="group" aria-label="Filter"></div>
+          <div class="groups" id="needsList"></div>
+        </div>
+      </section>
+
+      <!-- Post editor -->
+      <form id="editor" hidden novalidate>
+        <div class="bar">
+          <div class="bar__l"><span class="chip" id="statusChip"></span><b id="formTitle"></b><span class="dirty" id="dirty" hidden>● unsaved</span></div>
+          <div class="bar__r">
+            <a class="btn btn--sm" id="previewBtn" target="_blank" rel="noopener">Preview ↗</a>
+            <button class="btn btn--sm" type="button" id="moveBtn"></button>
+            <button class="btn btn--sm btn--danger" type="button" id="trashBtn">Trash</button>
+            <button class="btn btn--primary" type="submit" id="saveBtn">Save <span class="mono" style="opacity:.6">Ctrl+S</span></button>
+          </div>
+        </div>
+        <div class="tabs" role="tablist">
+          <button class="tab is-on" type="button" role="tab" data-tab="content" aria-selected="true">In depth</button>
+          <button class="tab" type="button" role="tab" data-tab="eli5" aria-selected="false">ELI5</button>
+          <button class="tab" type="button" role="tab" data-tab="details" aria-selected="false">Details &amp; sources</button>
+        </div>
+
+        <!-- ELI5 version (src/content/simple/<slug>.mdx): empty state, or its dek/takeaways above the section editor. -->
+        <div class="eli5-empty" id="eli5Empty" hidden>
+          <div class="done">
+            <b>No ELI5 version yet</b>
+            <span>A plain-English version of this post, shown behind the “In depth | ELI5” toggle. It lives in <span class="mono" id="eli5Path"></span>.</span>
+            <button class="btn btn--primary" type="button" id="createEli5">Create ELI5 version</button>
+            <span class="hint">Starts from a short template: a lede, “Jargon decoder” and “If you remember one thing”. Nothing is written until you save.</span>
+            <span class="hint" id="eli5DraftNote" hidden>This post is a local draft, but src/content/simple/ is not git-ignored: the ELI5 file will show up in your next commit.</span>
+          </div>
+        </div>
+        <div class="eli5-fields" id="eli5Fields" hidden>
+          <label>ELI5 dek <textarea id="eli5Dek" rows="2"></textarea><span class="hint">The whole idea in one plain sentence. Leave empty to reuse the in-depth dek.</span></label>
+          <label>ELI5 takeaways <textarea id="eli5Takeaways" rows="3"></textarea><span class="hint">One per line.</span></label>
+        </div>
+
+        <div class="content" id="tab-content">
+          <nav class="outline" id="outline" aria-label="Sections"></nav>
+          <div class="pane">
+            <div class="pane__h">
+              <h2 id="secTitle"></h2>
+              <div class="pane__nav">
+                <button class="btn btn--sm" type="button" id="prevSec">← Prev</button>
+                <button class="btn btn--sm" type="button" id="nextSec">Next →</button>
+              </div>
+            </div>
+            <div class="here" id="here"></div>
+            <textarea id="sectionText" class="code" spellcheck="true" aria-labelledby="secTitle"></textarea>
+            <p class="hint">You're editing one section. A line starting with <span class="mono">## </span> starts a new section; the outline refreshes when you switch sections or save. Components: Exhibit, Bars, Columns, Lines, Slope, Waffle, Stats, Matrix, Flow, Compare, Timeline, Note.</p>
+          </div>
+        </div>
+
+        <div class="details" id="tab-details" hidden>
+          <div class="grid">
+            <label class="span2">Title <input name="title" required /></label>
+            <label>Publish date <input name="date" type="date" required /><span class="hint">Live from this date (daily rebuild).</span></label>
+            <label>Updated <input name="updated" type="date" /><span class="hint">Optional. Shown as “Updated …” under the byline.</span></label>
+            <label>Kicker <input name="kicker" placeholder="e.g. LLMOps" /></label>
+            <label>Cover motif <select name="motif" id="motif"></select></label>
+            <label>Tags <input name="tags" placeholder="comma, separated" /></label>
+            <div style="display:grid; gap:8px; align-content:end">
+              <label class="check"><input type="checkbox" name="featured" /> Featured on blog index</label>
+              <label class="check"><input type="checkbox" name="draft" /> Draft (never publishes)</label>
+            </div>
+          </div>
+          <label>Dek — one-sentence summary <textarea name="dek" rows="2" required></textarea></label>
+          <label>Thesis <textarea name="thesis" rows="2"></textarea></label>
+          <label>Key takeaways <textarea name="takeaways" rows="5"></textarea><span class="hint">One per line.</span></label>
+          <label>Sources <textarea name="sources" rows="8" class="code"></textarea><span class="hint">One per line: Label | https://url</span></label>
+          <label>Review note <textarea name="review" rows="2"></textarea><span class="hint">If filled, the post shows an “Author review” box and will not publish.</span></label>
+        </div>
+        <p class="err" id="formErr" role="alert" style="padding:0 24px 24px"></p>
+      </form>
+    </main>
+  </div>
+
+  <dialog id="newDialog">
+    <form method="dialog" id="newForm">
+      <b>New post</b>
+      <label>Title <input id="newTitle" required /></label>
+      <label>Slug (URL) <input id="newSlug" pattern="[a-z0-9]+(-[a-z0-9]+)*" required /><span class="hint">Lowercase words joined by hyphens. Created as a local draft.</span></label>
+      <p class="err" id="newErr"></p>
+      <div style="display:flex; gap:8px; justify-content:flex-end">
+        <button class="btn" value="cancel" type="button" id="newCancel">Cancel</button>
+        <button class="btn btn--primary" type="submit">Create</button>
+      </div>
+    </form>
+  </dialog>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const h = (tag, props = {}, ...kids) => {
+  const el = Object.assign(document.createElement(tag), props);
+  for (const k of kids.flat()) if (k != null && k !== false) el.append(k);
+  return el;
+};
+const STATUS = { live: 'Live', scheduled: 'Scheduled', draft: 'Draft', 'needs-review': 'Needs review', 'local-draft': 'Local draft' };
+const KIND = {
+  review: { label: 'Review flag', why: 'Blocks publishing. Confirm or edit the passage, then clear the flag.', group: 'blocking' },
+  todo: { label: 'TODO', why: 'A marker left in the text. Replace it with the real content.', group: 'blocking' },
+  placeholder: { label: 'Placeholder', why: 'Template text that still needs writing.', group: 'blocking' },
+  voice: { label: 'Your experience', why: 'A first-person claim about your own work. Check it is accurate and sounds like you.', group: 'voice' },
+  site: { label: 'Site fact', why: 'Only you can supply this. Edit it, and delete the TODO(confirm) marker once it is right.', group: 'site' },
+  details: { label: 'Missing details', why: 'Recruiters skim these first.', group: 'details' },
+};
+const FILTERS = [['all', 'All'], ['blocking', 'Blocks publishing'], ['voice', 'Your experience'], ['site', 'Site facts'], ['details', 'Missing details']];
+
+let posts = [];
+let needs = [];
+let meta = { motifs: [], root: '' };
+let filter = 'all';
+let view = 'needs';
+let current = null; // { slug, folder, status }
+let tab = 'content'; // 'content' (In depth) | 'eli5' | 'details'
+// The section editor shows one version at a time: 'full' (the post) or 'simple' (its ELI5 file).
+// `chunks`/`sec` belong to the version in `ver`; the other version's are parked in `docs`.
+let ver = 'full';
+const docs = { full: { chunks: [], sec: 0 }, simple: { chunks: [], sec: 0, exists: false, extra: {} } };
+let chunks = []; // the body split at `## ` headings; chunks.join('') is the whole body
+let sec = 0; // selected section index, or -1 for "whole file"
+const dirty = { full: false, simple: false };
+const isDirty = () => dirty.full || dirty.simple;
+const ELI5_TEMPLATE = `import Exhibit from '../../components/blog/Exhibit.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Opening paragraph.</p>
+
+## Jargon decoder
+
+- **Term:** what it means in plain English.
+
+## If you remember one thing
+
+Write here.
+`;
+
+/** Cover motifs are unique per post: motifs taken by other posts are shown but disabled. */
+function renderMotifOptions(slug) {
+  const sel = $('#motif');
+  const keep = sel.value;
+  sel.innerHTML = '';
+  meta.motifs.forEach((m) => {
+    const owner = m === 'generative' ? null : posts.find((p) => p.motif === m && p.slug !== slug);
+    sel.append(h('option', { value: m, disabled: !!owner, textContent: owner ? `${m} — used by “${owner.title.slice(0, 40)}”` : m === 'generative' ? 'generative (unique per post)' : m }));
+  });
+  if (keep) sel.value = keep;
+}
+
+/* ---------- API ---------- */
+async function api(path, opts = {}) {
+  const res = await fetch('/admin/api' + path, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', 'X-Admin': '1', ...(opts.headers || {}) },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+    credentials: 'same-origin',
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && path !== '/login') { showLogin(); throw new Error('Signed out'); }
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+function toast(msg, kind = 'ok') {
+  const t = h('div', { className: `toast ${kind}`, textContent: msg });
+  document.body.append(t);
+  setTimeout(() => t.remove(), 3400);
+}
+const vscodeLink = (file, line) => `vscode://file/${meta.root}/${file}:${line || 1}`;
+
+/* ---------- Shell ---------- */
+function showLogin() { $('#app').hidden = true; $('#login').hidden = false; $('#pw').focus(); }
+async function showApp() {
+  $('#login').hidden = true; $('#app').hidden = false;
+  meta = await api('/meta');
+  $('#motif').innerHTML = '';
+  renderMotifOptions(null);
+  await refresh();
+  showNeeds();
+}
+async function refresh() {
+  [posts, needs] = await Promise.all([api('/posts').then((r) => r.posts), api('/needs').then((r) => r.items)]);
+  $('#needsCount').textContent = needs.length;
+  $('#needsCount').classList.toggle('zero', needs.length === 0);
+  renderList();
+  if (view === 'needs') renderNeeds();
+}
+function renderList() {
+  const q = $('#search').value.trim().toLowerCase();
+  const list = $('#list');
+  list.innerHTML = '';
+  posts.filter((p) => !q || p.title.toLowerCase().includes(q)).forEach((p) => {
+    const b = h('button', { type: 'button', className: 'item' + (view === 'editor' && current?.slug === p.slug ? ' is-on' : '') },
+      h('span', { className: 'item__t' }, h('span', { textContent: p.title }), p.needs ? h('span', { className: 'count', textContent: p.needs, title: `${p.needs} item(s) need you` }) : null),
+      h('span', { className: 'item__m' }, h('span', { className: `chip s-${p.status}`, textContent: STATUS[p.status] }), h('span', { textContent: p.date }), h('span', { textContent: `${Math.round(p.words / 100) / 10}k words` }),
+        p.hasSimple ? h('span', { className: 'chip k-eli5', textContent: 'ELI5', title: 'Has an ELI5 version' }) : null));
+    b.addEventListener('click', () => openPost(p.slug));
+    list.append(b);
+  });
+}
+function setView(v) {
+  view = v;
+  $('#needsView').hidden = v !== 'needs';
+  $('#editor').hidden = v !== 'editor';
+  $('#needsNav').classList.toggle('is-on', v === 'needs');
+  renderList();
+}
+function confirmDiscard() { return !isDirty() || confirm('Discard unsaved changes?'); }
+function showNeeds() {
+  if (!confirmDiscard()) return;
+  setDirty(false); current = null;
+  setView('needs');
+  renderNeeds();
+}
+
+/* ---------- Needs-you view ---------- */
+function renderNeeds() {
+  const counts = { all: needs.length };
+  needs.forEach((n) => { const g = KIND[n.kind].group; counts[g] = (counts[g] || 0) + 1; });
+  const fileCount = new Set(needs.map((n) => n.file)).size;
+  $('#needsSummary').textContent = needs.length
+    ? `${needs.length} item${needs.length === 1 ? '' : 's'} across ${fileCount} file${fileCount === 1 ? '' : 's'}. Fix each one right here — no need to open the whole post.`
+    : 'Nothing needs you right now.';
+  const fl = $('#filters');
+  fl.innerHTML = '';
+  FILTERS.forEach(([key, label]) => {
+    const b = h('button', { type: 'button', className: 'filter' + (filter === key ? ' is-on' : '') }, label, h('small', { textContent: counts[key] || 0 }));
+    b.setAttribute('aria-pressed', String(filter === key));
+    b.addEventListener('click', () => { filter = key; renderNeeds(); });
+    fl.append(b);
+  });
+
+  const shown = needs.filter((n) => filter === 'all' || KIND[n.kind].group === filter)
+    .sort((a, b) => PRIORITY[a.kind] - PRIORITY[b.kind]);
+  const box = $('#needsList');
+  box.innerHTML = '';
+  if (!shown.length) {
+    box.append(h('div', { className: 'done' }, h('b', { textContent: 'All clear' }), filter === 'all' ? 'Every post and site fact is in good shape.' : 'Nothing in this category.'));
+    return;
+  }
+  const groups = new Map();
+  shown.forEach((n) => { if (!groups.has(n.file)) groups.set(n.file, []); groups.get(n.file).push(n); });
+  for (const [file, items] of groups) {
+    const first = items[0];
+    const post = posts.find((p) => p.slug === first.slug);
+    const eli5 = first.version === 'simple';
+    const head = h('div', { className: 'group__h' },
+      h('span', { style: 'display:flex;gap:10px;align-items:center;flex-wrap:wrap' },
+        h('b', { textContent: first.kind === 'site' ? `Site data · ${first.title}` : first.title }),
+        eli5 ? h('span', { className: 'chip k-eli5', textContent: 'ELI5' }) : null,
+        post ? h('span', { className: `chip s-${post.status}`, textContent: STATUS[post.status] }) : null),
+      first.slug && post
+        ? h('button', { type: 'button', className: 'btn btn--sm', textContent: eli5 ? 'Open ELI5 →' : 'Open post →', onclick: () => openPost(first.slug, { tab: eli5 ? 'eli5' : 'content' }) })
+        : h('a', { className: 'btn btn--sm', href: vscodeLink(file, first.line), textContent: 'Open file in VS Code ↗' }));
+    box.append(h('div', { className: 'group' }, head, items.map(card)));
+  }
+  box.querySelectorAll('textarea').forEach(autosize);
+}
+
+/** Grow a textarea to fit its content (capped by CSS max-height). */
+function autosize(ta) { ta.style.height = 'auto'; ta.style.height = `${ta.scrollHeight + 2}px`; }
+/** Most urgent first: things that block publishing, then site facts, details, then voice checks. */
+const PRIORITY = { review: 0, todo: 0, placeholder: 0, site: 1, details: 2, voice: 3 };
+
+function card(n) {
+  const k = KIND[n.kind];
+  const eli5 = n.version === 'simple';
+  const top = h('div', { className: 'card__top' },
+    h('span', { className: `chip k-${n.kind}`, textContent: k.label }),
+    eli5 ? h('span', { className: 'chip k-eli5', textContent: 'ELI5', title: 'In the ELI5 version' }) : null,
+    h('span', { textContent: n.kind === 'site' ? `${n.file} · line ${n.line}` : `§ ${n.section}${n.line > 1 ? ` · line ${n.line}` : ''}` }));
+  const why = h('p', { className: 'card__why', textContent: n.kind === 'details' ? `Missing: ${n.missing.join(', ')}. ${k.why}` : k.why });
+  const c = h('div', { className: 'card' }, top, why);
+  const actions = h('div', { className: 'card__actions' });
+
+  if (n.kind === 'details') {
+    actions.append(h('button', { type: 'button', className: 'btn btn--sm btn--primary', textContent: 'Fill in details', onclick: () => openPost(n.slug, { tab: 'details' }) }));
+    c.append(actions);
+    return c;
+  }
+
+  const original = n.original.replace(/\r\n/g, '\n');
+  const ta = h('textarea', { className: 'code', value: original, rows: 2, spellcheck: true });
+  ta.setAttribute('aria-label', `${k.label} text`);
+  const save = h('button', { type: 'button', className: 'btn btn--sm btn--primary', textContent: 'Save edit', disabled: true });
+  ta.addEventListener('input', () => { save.disabled = ta.value === original; autosize(ta); });
+
+  const target = n.slug ? { type: eli5 ? 'simple' : 'post', slug: n.slug } : { type: 'data', name: n.file.split('/').pop() };
+  const patch = async (replacement, msg, ack = false) => {
+    try {
+      await api('/patch', { method: 'POST', body: { target, start: n.start, original: n.original, replacement, ack } });
+      toast(msg);
+      await refresh();
+    } catch (e) { toast(e.message, 'bad'); }
+  };
+
+  if (n.kind === 'review' && n.field === 'review') {
+    // A post-level review note lives in the frontmatter: clear it through the normal save path.
+    ta.readOnly = true;
+    actions.append(h('button', { type: 'button', className: 'btn btn--sm btn--ok', textContent: 'Confirmed — clear flag', onclick: async () => {
+      try {
+        const p = await api('/posts/' + encodeURIComponent(n.slug));
+        await api('/posts/' + encodeURIComponent(n.slug), { method: 'PUT', body: { frontmatter: { ...p.frontmatter, review: '' }, body: p.body } });
+        toast('Review flag cleared.');
+        await refresh();
+      } catch (e) { toast(e.message, 'bad'); }
+    } }));
+  } else {
+    save.addEventListener('click', () => patch(ta.value, 'Saved.', n.kind === 'voice'));
+    actions.append(save);
+    if (n.kind === 'review') {
+      actions.append(h('button', { type: 'button', className: 'btn btn--sm btn--ok', textContent: 'Confirmed — clear flag', onclick: () =>
+        patch(ta.value.replace(/^(<Note\b[^>]*?)\s+review(?=[\s>/])/, '$1'), 'Flag cleared.') }));
+    }
+    if (n.kind === 'voice') {
+      actions.append(h('button', { type: 'button', className: 'btn btn--sm btn--ok', textContent: 'Looks right ✓', onclick: async () => {
+        if (ta.value !== original) return patch(ta.value, 'Saved and marked as checked.', true);
+        try { await api('/ack', { method: 'POST', body: { id: n.id } }); toast('Marked as checked.'); await refresh(); } catch (e) { toast(e.message, 'bad'); }
+      } }));
+    }
+  }
+  actions.append(h('span', { className: 'spacer' }));
+  if (n.slug && posts.some((p) => p.slug === n.slug)) actions.append(h('button', { type: 'button', className: 'btn btn--sm', textContent: 'Show in post', onclick: () => openPost(n.slug, { tab: eli5 ? 'eli5' : 'content', find: original, section: n.section }) }));
+  actions.append(h('a', { className: 'btn btn--sm', href: vscodeLink(n.file, n.line), textContent: 'VS Code ↗', title: `${n.file}:${n.line}` }));
+  c.append(ta, actions);
+  return c;
+}
+
+/* ---------- Sections ---------- */
+function splitSections(body) {
+  const starts = [0];
+  let pos = 0, fence = false;
+  for (const line of body.split('\n')) {
+    if (/^```/.test(line)) fence = !fence;
+    if (!fence && pos > 0 && /^## /.test(line)) starts.push(pos);
+    pos += line.length + 1;
+  }
+  return starts.map((s, i) => body.slice(s, starts[i + 1] ?? body.length));
+}
+function secName(chunk) {
+  if (!chunk.startsWith('## ')) return 'Introduction';
+  const nl = chunk.indexOf('\n');
+  return chunk.slice(3, nl === -1 ? undefined : nl).trim();
+}
+const wordsIn = (t) => t.replace(/<[^>]+>|\{[^}]*\}|^import .*$/gm, ' ').split(/\s+/).filter(Boolean).length;
+/** Items for the post and version the section editor is showing. */
+const postNeeds = () => needs.filter((n) => current && n.slug === current.slug && (n.version || 'full') === ver);
+
+/** Copy the textarea back into `chunks`. */
+function syncChunk() {
+  if (!chunks.length) return;
+  if (sec === -1) chunks = splitSections($('#sectionText').value);
+  else chunks[sec] = $('#sectionText').value;
+}
+/** Re-split after edits (a heading may have been added or removed), keeping roughly the same place. */
+function resplit() {
+  if (!chunks.length) return;
+  syncChunk();
+  const offset = sec <= 0 ? 0 : chunks.slice(0, sec).join('').length;
+  chunks = splitSections(chunks.join(''));
+  if (sec > 0) {
+    let acc = 0;
+    const i = chunks.findIndex((c) => (acc += c.length) > offset);
+    sec = i === -1 ? chunks.length - 1 : i;
+  }
+  // Keep the textarea in step with `chunks`, so a later syncChunk() cannot write stale text back.
+  $('#sectionText').value = sec === -1 ? chunks.join('') : chunks[sec];
+}
+
+/** Point the section editor at another version, parking the current one's sections. */
+function bind(v) {
+  if (v === ver) return false;
+  syncChunk();
+  docs[ver].chunks = chunks;
+  docs[ver].sec = sec;
+  ver = v;
+  ({ chunks, sec } = docs[v]);
+  if (!chunks.length) $('#sectionText').value = '';
+  return true;
+}
+/** The whole body of one version, including unsynced edits in the textarea. */
+function bodyOf(v) {
+  if (v === ver) { syncChunk(); return chunks.join(''); }
+  return docs[v].chunks.join('');
+}
+
+function renderOutline() {
+  const o = $('#outline');
+  o.innerHTML = '';
+  o.append(h('div', { className: 'outline__h', textContent: `${chunks.length} sections` }));
+  const pn = postNeeds();
+  chunks.forEach((c, i) => {
+    const name = secName(c);
+    const count = pn.filter((n) => n.section === name).length;
+    const ex = (c.match(/<Exhibit\b/g) || []).length;
+    const b = h('button', { type: 'button', className: 'sec' + (sec === i ? ' is-on' : '') },
+      h('span', { className: 'sec__t' }, h('span', { textContent: name }), count ? h('span', { className: 'count', textContent: count }) : null),
+      h('span', { className: 'sec__m', textContent: `${wordsIn(c)} words${ex ? ` · ${ex} exhibit${ex > 1 ? 's' : ''}` : ''}` }));
+    b.addEventListener('click', () => selectSection(i));
+    o.append(b);
+  });
+  const all = h('button', { type: 'button', className: 'sec sec--all' + (sec === -1 ? ' is-on' : '') },
+    h('span', { className: 'sec__t', textContent: 'Whole file' }), h('span', { className: 'sec__m', textContent: 'Edit everything at once' }));
+  all.addEventListener('click', () => selectSection(-1));
+  o.append(all);
+}
+
+function selectSection(i, { keep = false } = {}) {
+  if (!chunks.length) return; // ELI5 tab before an ELI5 file exists
+  if (!keep) resplit();
+  sec = Math.max(-1, Math.min(i, chunks.length - 1));
+  const ta = $('#sectionText');
+  ta.value = sec === -1 ? chunks.join('') : chunks[sec];
+  ta.scrollTop = 0;
+  $('#secTitle').textContent = sec === -1 ? 'Whole file' : secName(chunks[sec]);
+  $('#prevSec').disabled = sec <= 0;
+  $('#nextSec').disabled = sec === -1 || sec >= chunks.length - 1;
+  renderOutline();
+  renderHere();
+}
+
+/** Shortcut buttons for the items in the current section that need you. */
+function renderHere() {
+  const box = $('#here');
+  box.innerHTML = '';
+  const name = sec === -1 ? null : secName(chunks[sec]);
+  postNeeds().filter((n) => n.start != null && (name === null || n.section === name)).forEach((n) => {
+    const b = h('button', { type: 'button' },
+      h('span', { className: `chip k-${n.kind}`, textContent: KIND[n.kind].label }),
+      h('span', { textContent: n.original.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160) }));
+    b.addEventListener('click', () => highlight(n.original.replace(/\r\n/g, '\n')));
+    box.append(b);
+  });
+}
+
+function highlight(snippet) {
+  const ta = $('#sectionText');
+  const i = ta.value.indexOf(snippet);
+  if (i === -1) return;
+  ta.focus();
+  ta.setSelectionRange(i, i + snippet.length);
+  const lineH = parseFloat(getComputedStyle(ta).lineHeight) || 20;
+  ta.scrollTop = Math.max(0, (ta.value.slice(0, i).split('\n').length - 3) * lineH);
+}
+
+/* ---------- Editor ---------- */
+/** Mark one version ('full' | 'simple') dirty or clean; with no version, all of them. */
+function setDirty(v, which) {
+  if (which) dirty[which] = v;
+  else dirty.full = dirty.simple = v;
+  const el = $('#dirty');
+  el.hidden = !isDirty();
+  el.textContent = '● unsaved' + (dirty.simple ? (dirty.full ? ' · in depth + ELI5' : ' · ELI5') : '');
+}
+function setTab(t) {
+  tab = t;
+  document.querySelectorAll('.tab').forEach((b) => {
+    const on = b.dataset.tab === t;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-selected', String(on));
+  });
+  // "In depth" and "ELI5" share the section editor; Details keeps whichever version was last shown.
+  const want = t === 'eli5' ? 'simple' : t === 'content' ? 'full' : ver;
+  if (bind(want)) selectSection(sec, { keep: true });
+  const hasEli5 = docs.simple.exists;
+  $('#tab-content').hidden = !(t === 'content' || (t === 'eli5' && hasEli5));
+  $('#eli5Fields').hidden = !(t === 'eli5' && hasEli5);
+  $('#eli5Empty').hidden = !(t === 'eli5' && !hasEli5);
+  $('#tab-details').hidden = t !== 'details';
+  if (current) updatePreview();
+}
+function updatePreview() {
+  const eli5 = tab === 'eli5';
+  $('#previewBtn').href = `/blog/${current.slug}/${eli5 ? '?view=eli5' : ''}`;
+  $('#previewBtn').textContent = eli5 ? 'Preview ELI5 ↗' : 'Preview ↗';
+}
+
+async function openPost(slug, { tab = 'content', find = null, section = null } = {}) {
+  const sameOpen = view === 'editor' && current?.slug === slug;
+  if (!sameOpen && !confirmDiscard()) return;
+  if (sameOpen) {
+    resplit();
+  } else {
+    const [p, s] = await Promise.all([
+      api('/posts/' + encodeURIComponent(slug)),
+      api('/posts/' + encodeURIComponent(slug) + '?version=simple'),
+    ]);
+    current = { slug: p.slug, folder: p.folder, status: p.status };
+    const f = $('#editor');
+    const fm = p.frontmatter;
+    f.title.value = fm.title || '';
+    f.date.value = fm.date || '';
+    f.updated.value = fm.updated || '';
+    f.kicker.value = fm.kicker || '';
+    renderMotifOptions(p.slug);
+    f.motif.value = fm.motif || 'paths';
+    f.tags.value = (fm.tags || []).join(', ');
+    f.featured.checked = !!fm.featured;
+    f.draft.checked = !!fm.draft;
+    f.dek.value = fm.dek || '';
+    f.thesis.value = fm.thesis || '';
+    f.takeaways.value = (fm.takeaways || []).join('\n');
+    f.sources.value = (fm.sources || []).map((s) => `${s.label} | ${s.url}`).join('\n');
+    f.review.value = fm.review || '';
+    // Keep any frontmatter fields the form doesn't expose.
+    const known = ['title', 'date', 'updated', 'kicker', 'motif', 'tags', 'featured', 'draft', 'dek', 'thesis', 'takeaways', 'sources', 'review'];
+    f.dataset.extra = JSON.stringify(Object.fromEntries(Object.entries(fm).filter(([key]) => !known.includes(key))));
+    // ELI5 version: its own dek/takeaways fields and sections (empty until the file exists).
+    const sfm = s.exists ? s.frontmatter : {};
+    $('#eli5Dek').value = sfm.dek || '';
+    $('#eli5Takeaways').value = (sfm.takeaways || []).join('\n');
+    $('#eli5Path').textContent = s.file;
+    $('#eli5DraftNote').hidden = p.folder !== 'drafts';
+    docs.simple = {
+      chunks: s.exists ? splitSections(s.body.replace(/\r\n/g, '\n')) : [],
+      sec: 0,
+      exists: s.exists,
+      extra: Object.fromEntries(Object.entries(sfm).filter(([key]) => key !== 'dek' && key !== 'takeaways')),
+    };
+    docs.full = { chunks: splitSections(p.body.replace(/\r\n/g, '\n')), sec: 0 };
+    ver = 'full';
+    ({ chunks, sec } = docs.full);
+    $('#sectionText').value = chunks[0];
+    $('#formErr').textContent = '';
+    setDirty(false);
+    updateChrome();
+  }
+  setView('editor');
+  setTab(tab);
+  if (!chunks.length) return; // ELI5 tab, no ELI5 file yet: the empty state is showing
+  let target = sameOpen ? sec : 0;
+  if (find) target = Math.max(0, chunks.findIndex((c) => c.includes(find)));
+  else if (section) target = Math.max(0, chunks.findIndex((c) => secName(c) === section));
+  selectSection(target, { keep: true });
+  if (find) highlight(find);
+}
+
+function updateChrome() {
+  const chip = $('#statusChip');
+  chip.className = `chip s-${current.status}`;
+  chip.textContent = STATUS[current.status];
+  $('#formTitle').textContent = $('#editor').title.value || current.slug;
+  updatePreview();
+  $('#moveBtn').textContent = current.folder === 'drafts' ? 'Move to blog' : 'Move to local drafts';
+}
+
+function collect() {
+  const f = $('#editor');
+  return {
+    frontmatter: {
+      ...JSON.parse(f.dataset.extra || '{}'),
+      title: f.title.value.trim(),
+      dek: f.dek.value.trim(),
+      date: f.date.value,
+      updated: f.updated.value,
+      kicker: f.kicker.value.trim(),
+      motif: f.motif.value,
+      tags: f.tags.value.split(',').map((t) => t.trim()).filter(Boolean),
+      featured: f.featured.checked,
+      draft: f.draft.checked,
+      thesis: f.thesis.value.trim(),
+      takeaways: lines(f.takeaways.value),
+      sources: lines(f.sources.value).map((l) => {
+        const i = l.lastIndexOf('|');
+        return i === -1 ? { label: l, url: '' } : { label: l.slice(0, i).trim(), url: l.slice(i + 1).trim() };
+      }),
+      review: f.review.value.trim(),
+    },
+    body: bodyOf('full'),
+  };
+}
+function collectSimple() {
+  return {
+    frontmatter: { ...docs.simple.extra, dek: $('#eli5Dek').value.trim(), takeaways: lines($('#eli5Takeaways').value) },
+    body: bodyOf('simple'),
+  };
+}
+const lines = (s) => s.split('\n').map((x) => x.trim()).filter(Boolean);
+
+/** Save every version with unsaved changes (the in-depth post when nothing is marked dirty). */
+async function save() {
+  if (!current) return;
+  const which = ['full', 'simple'].filter((v) => dirty[v] && (v === 'full' || docs.simple.exists));
+  if (!which.length) which.push('full');
+  $('#saveBtn').disabled = true;
+  try {
+    for (const v of which) {
+      const url = '/posts/' + encodeURIComponent(current.slug) + (v === 'simple' ? '?version=simple' : '');
+      const r = await api(url, { method: 'PUT', body: v === 'simple' ? collectSimple() : collect() });
+      if (v === 'full') current.status = r.status;
+      setDirty(false, v);
+    }
+    $('#formErr').textContent = '';
+    await refresh();
+    updateChrome();
+    selectSection(sec);
+    const what = which.length > 1 ? 'Saved both versions' : which[0] === 'simple' ? 'ELI5 version saved' : 'Saved';
+    toast(`${what} — the dev server reloads the preview automatically.`);
+  } catch (e) {
+    $('#formErr').textContent = e.message;
+    toast(e.message, 'bad');
+  } finally {
+    $('#saveBtn').disabled = false;
+  }
+}
+
+/* ---------- Wiring ---------- */
+$('#loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  $('#loginErr').textContent = '';
+  try {
+    await api('/login', { method: 'POST', body: { password: $('#pw').value } });
+    $('#pw').value = '';
+    await showApp();
+  } catch (err) { $('#loginErr').textContent = err.message; }
+});
+$('#logoutBtn').addEventListener('click', async () => {
+  if (!confirmDiscard()) return;
+  await api('/logout', { method: 'POST' }).catch(() => {});
+  setDirty(false); current = null; showLogin();
+});
+$('#needsNav').addEventListener('click', showNeeds);
+$('#search').addEventListener('input', renderList);
+document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
+$('#prevSec').addEventListener('click', () => selectSection(sec - 1));
+$('#nextSec').addEventListener('click', () => selectSection(sec + 1));
+
+$('#editor').addEventListener('submit', (e) => { e.preventDefault(); save(); });
+$('#editor').addEventListener('input', (e) => {
+  // Section text belongs to the version on screen; the ELI5 fields to ELI5; everything else to the post.
+  setDirty(true, e.target.id === 'sectionText' ? ver : e.target.closest('#eli5Fields') ? 'simple' : 'full');
+  if (e.target.name === 'title') $('#formTitle').textContent = e.target.value;
+});
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && view === 'editor' && current) { e.preventDefault(); save(); }
+});
+$('#sectionText').addEventListener('keydown', (e) => {
+  if (e.key !== 'Tab' || e.shiftKey) return;
+  e.preventDefault();
+  const t = e.target, s = t.selectionStart;
+  t.setRangeText('  ', s, t.selectionEnd, 'end');
+  setDirty(true, ver);
+});
+window.addEventListener('beforeunload', (e) => { if (isDirty()) { e.preventDefault(); e.returnValue = ''; } });
+
+$('#createEli5').addEventListener('click', () => {
+  if (!current || docs.simple.exists) return;
+  docs.simple = { chunks: splitSections(ELI5_TEMPLATE), sec: 0, exists: true, extra: {} };
+  $('#eli5Dek').value = '';
+  $('#eli5Takeaways').value = '';
+  // The ELI5 tab is showing (with no sections), so the editor is already bound to 'simple'.
+  if (ver === 'simple') ({ chunks, sec } = docs.simple);
+  else bind('simple');
+  setDirty(true, 'simple');
+  setTab('eli5');
+  selectSection(0, { keep: true });
+  $('#eli5Dek').focus();
+  toast('ELI5 version started from the template. Save (Ctrl+S) to create the file.');
+});
+
+$('#moveBtn').addEventListener('click', async () => {
+  if (!current) return;
+  if (isDirty()) { toast('Save first.', 'bad'); return; }
+  const to = current.folder === 'drafts' ? 'blog' : 'drafts';
+  const msg = (to === 'blog'
+    ? 'Move to src/content/blog? It will be included in your next commit and publishes on its date (unless it is a draft or has review flags).'
+    : 'Move to local drafts? It will be git-ignored and never publish.')
+    + (docs.simple.exists ? ' Its ELI5 version stays in src/content/simple/, which serves blog posts and drafts alike (and is not git-ignored).' : '');
+  if (!confirm(msg)) return;
+  try {
+    await api(`/posts/${encodeURIComponent(current.slug)}/move`, { method: 'POST', body: { to } });
+    const slug = current.slug;
+    current = null;
+    await refresh();
+    await openPost(slug);
+    toast(to === 'blog' ? 'Moved to blog/.' : 'Moved to drafts/.');
+  } catch (e) { toast(e.message, 'bad'); }
+});
+$('#trashBtn').addEventListener('click', async () => {
+  if (!current || !confirm(`Move this post${docs.simple.exists ? ' and its ELI5 version' : ''} to src/content/.trash? You can restore ${docs.simple.exists ? 'them' : 'it'} from there.`)) return;
+  try {
+    const r = await api('/posts/' + encodeURIComponent(current.slug), { method: 'DELETE' });
+    setDirty(false); current = null;
+    await refresh();
+    showNeeds();
+    toast(r.trashedSimple ? 'Moved the post and its ELI5 version to trash.' : 'Moved to trash.');
+  } catch (e) { toast(e.message, 'bad'); }
+});
+
+const dlg = $('#newDialog');
+$('#newBtn').addEventListener('click', () => { $('#newErr').textContent = ''; $('#newForm').reset(); dlg.showModal(); });
+$('#newCancel').addEventListener('click', () => dlg.close());
+$('#newTitle').addEventListener('input', (e) => {
+  $('#newSlug').value = e.target.value.toLowerCase().normalize('NFKD').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 80);
+});
+$('#newForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!confirmDiscard()) return;
+  try {
+    const r = await api('/posts', { method: 'POST', body: { title: $('#newTitle').value.trim(), slug: $('#newSlug').value.trim() } });
+    dlg.close();
+    setDirty(false); current = null;
+    await refresh();
+    await openPost(r.slug);
+    toast('Created as a local draft.');
+  } catch (err) { $('#newErr').textContent = err.message; }
+});
+
+api('/session').then((s) => (s.authenticated ? showApp() : showLogin())).catch(showLogin);
+</script>
+</body>
+</html>
