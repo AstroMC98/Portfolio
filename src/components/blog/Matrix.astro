@@ -1,0 +1,23 @@
+---
+/** 2×2 framework. Quadrants are [top-left, top-right, bottom-left, bottom-right]. Points use 0–100 coordinates. */
+interface Props {
+  x: string;
+  y: string;
+  quads: { title: string; text?: string; hl?: boolean }[];
+  points?: { label: string; x: number; y: number; hl?: boolean }[];
+}
+const { x, y, quads, points = [] } = Astro.props;
+---
+<div class="matrix" role="img" aria-label={`2 by 2 matrix: ${y} versus ${x}. ${quads.map((q) => q.title).join(', ')}`}>
+  {quads.map((q) => (
+    <div class:list={['matrix__q', { 'matrix__q--hl': q.hl }]}>
+      <b>{q.title}</b>
+      {q.text && <span>{q.text}</span>}
+    </div>
+  ))}
+  {points.map((p) => (
+    <span class:list={['matrix__pt', { 'matrix__pt--hl': p.hl }]} style={`left:${p.x}%; top:${100 - p.y}%`}>{p.label}</span>
+  ))}
+  <span class="matrix__ax matrix__ax--x">{x} →</span>
+  <span class="matrix__ax matrix__ax--y">{y} →</span>
+</div>

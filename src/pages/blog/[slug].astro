@@ -1,0 +1,205 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Logo from '../../components/Logo.astro';
+import PostCover from '../../components/blog/PostCover.astro';
+import { getPosts, isLive, needsReview, readingMinutes, fmtDate, type Post } from '../../lib/posts';
+import { PROFILE } from '../../data/profile';
+import '../../styles/blog.css';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post, i) => ({
+    params: { slug: post.id },
+    props: { post, newer: posts[i - 1] ?? null, older: posts[i + 1] ?? null },
+  }));
+}
+
+const { post, newer, older } = Astro.props as { post: Post; newer: Post | null; older: Post | null };
+const { Content, headings } = await render(post);
+const d = post.data;
+const toc = headings.filter((h) => h.depth === 2);
+const scheduled = !isLive(post);
+---
+<Base title={`${d.title} — Marc Castro`} description={d.dek}>
+  <Nav />
+  <div class="progress" aria-hidden="true"><span data-progress></span></div>
+  <main id="main" class="post">
+    <header class="post-hero wrap">
+      <nav class="crumbs mono" aria-label="Breadcrumb"><a href="/blog/">← Writing</a></nav>
+      <div class="post-hero__meta mono">
+        {d.kicker && <span class="post-hero__kicker">{d.kicker}</span>}
+        <span>{fmtDate(d.date)}</span>
+        <span>{readingMinutes(post)} min read</span>
+        {scheduled && <span class="badge-sched">{d.draft ? 'Draft' : needsReview(post) ? 'Needs review' : 'Scheduled'} · not public yet</span>}
+      </div>
+      <h1 class="post-hero__title">{d.title}</h1>
+      <p class="post-hero__dek">{d.dek}</p>
+      <div class="post-hero__tags">{d.tags.map((t) => <a class="chip" href={`/blog/#${encodeURIComponent(t)}`}>{t}</a>)}</div>
+      <div class="post-hero__cover"><PostCover motif={d.motif} slug={post.id} banner /></div>
+    </header>
+
+    <div class="post-body wrap">
+      <aside class="toc" aria-label="In this article">
+        <p class="toc__k mono">In this article</p>
+        <ol>{toc.map((h) => <li><a href={`#${h.slug}`} data-toc>{h.text}</a></li>)}</ol>
+      </aside>
+
+      <article class="post-article">
+        {d.review && (
+          <aside class="callout callout--warn">
+            <p class="callout__k">Author review <span class="review-flag">TO CONFIRM</span></p>
+            <p>{d.review}</p>
+          </aside>
+        )}
+        {d.thesis && (
+          <section class="thesis" aria-label="Thesis">
+            <p class="thesis__k mono">Thesis</p>
+            <p class="thesis__t">{d.thesis}</p>
+          </section>
+        )}
+        {d.takeaways.length > 0 && (
+          <section class="takeaways" aria-label="Key takeaways">
+            <p class="takeaways__k mono">Key takeaways</p>
+            <ol>{d.takeaways.map((t) => <li>{t}</li>)}</ol>
+          </section>
+        )}
+        <div class="prose"><Content /></div>
+
+        {d.sources.length > 0 && (
+          <section class="sources" aria-labelledby="sources-title">
+            <h2 id="sources-title" class="sources__k mono">Sources</h2>
+            <ol>{d.sources.map((s) => <li><a href={s.url} target="_blank" rel="noopener">{s.label}</a></li>)}</ol>
+          </section>
+        )}
+
+        <section class="author">
+          <Logo size={44} />
+          <div>
+            <p class="author__name">Marc Castro</p>
+            <p class="author__bio">Forward-deployed AI engineer. I ship RAG, agent and LLMOps systems into enterprise production — currently Lead AI Engineer at Intelligent AI Solutions (UK).</p>
+            <p class="author__links mono"><a href="/#work">Case files</a> · <a href={PROFILE.linkedin} target="_blank" rel="noopener">LinkedIn</a> · <a href={`mailto:${PROFILE.email}`}>Email</a></p>
+          </div>
+        </section>
+      </article>
+    </div>
+
+    <nav class="post-pager wrap" aria-label="More writing">
+      {older ? (
+        <a class="post-pager__card" href={`/blog/${older.id}/`}><span class="mono">← Older</span><span class="post-pager__t">{older.data.title}</span></a>
+      ) : <span></span>}
+      {newer ? (
+        <a class="post-pager__card post-pager__card--next" href={`/blog/${newer.id}/`}><span class="mono">Newer →</span><span class="post-pager__t">{newer.data.title}</span></a>
+      ) : <span></span>}
+    </nav>
+
+    <footer class="post-foot wrap">
+      <a href="/"><Logo size={26} lockup /></a>
+      <a class="mono" href="/blog/rss.xml">RSS</a>
+    </footer>
+  </main>
+  <div class="chart-tip" aria-hidden="true" data-tip-el></div>
+</Base>
+
+<style>
+  .progress { position: fixed; top: 72px; left: 0; right: 0; height: 2px; z-index: 45; }
+  .progress span { display: block; height: 100%; background: var(--signal); transform-origin: left; transform: scaleX(0); box-shadow: 0 0 10px var(--signal-glow); }
+  .post-hero { padding-top: clamp(110px, 13vh, 140px); }
+  .crumbs { font-size: 12px; letter-spacing: 0.08em; }
+  .crumbs a { color: var(--text-2); }
+  .crumbs a:hover { color: var(--signal); }
+  .post-hero__meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 36px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .post-hero__kicker { color: var(--signal); }
+  .badge-sched { color: var(--amber); }
+  .post-hero__title { margin-top: 18px; max-width: 1050px; font-family: var(--font-display); font-stretch: 72%; font-weight: 800; font-size: clamp(2.6rem, 1.3rem + 4.6vw, 5.6rem); line-height: 0.95; letter-spacing: -0.01em; }
+  .post-hero__dek { margin-top: 22px; max-width: 760px; font-size: var(--fs-lg); line-height: 1.5; color: var(--text-2); }
+  .post-hero__tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+  .post-hero__cover { margin-top: clamp(32px, 4vw, 48px); }
+
+  .post-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: clamp(32px, 5vw, 80px); padding-block: clamp(48px, 6vw, 80px); }
+  .toc { position: sticky; top: 110px; align-self: start; max-height: calc(100vh - 140px); overflow-y: auto; scrollbar-width: thin; padding-right: 6px; }
+  .toc__k { font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .toc ol { display: grid; gap: 4px; counter-reset: t; border-left: 1px solid var(--line); }
+  .toc li { counter-increment: t; }
+  .toc a { display: block; padding: 6px 0 6px 14px; margin-left: -1px; border-left: 2px solid transparent; font-size: 0.86rem; line-height: 1.35; color: var(--muted); transition: color 0.2s, border-color 0.2s; }
+  .toc a:hover { color: var(--text); }
+  .toc a.is-active { color: var(--signal); border-left-color: var(--signal); }
+
+  .post-article { min-width: 0; max-width: 860px; }
+  .thesis { margin-bottom: 2em; padding: 4px 0 4px 24px; border-left: 4px solid var(--signal); }
+  .thesis__k { font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--signal); margin-bottom: 10px; }
+  .thesis__t { font-family: var(--font-display); font-stretch: 80%; font-weight: 700; font-size: clamp(1.35rem, 1.1rem + 0.9vw, 1.85rem); line-height: 1.25; color: var(--text); }
+  .takeaways { margin-bottom: 2.4em; padding: 22px 24px; border: 1px solid rgb(61 245 167 / 0.35); border-radius: 16px; background: linear-gradient(180deg, rgb(61 245 167 / 0.05), transparent), var(--ink-2); }
+  .takeaways__k { font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--signal); margin-bottom: 12px; }
+  .takeaways ol { display: grid; gap: 10px; counter-reset: k; }
+  .takeaways li { counter-increment: k; display: grid; grid-template-columns: 30px 1fr; color: var(--text); line-height: 1.5; }
+  .takeaways li::before { content: counter(k, decimal-leading-zero); font-family: var(--font-mono); font-size: 0.75rem; color: var(--signal); padding-top: 4px; }
+
+  .sources { margin-top: 4em; padding-top: 24px; border-top: 1px solid var(--line); }
+  .sources__k { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  .sources ol { margin-top: 14px; display: grid; gap: 8px; padding-left: 1.4em; list-style: decimal; font-size: 0.86rem; color: var(--muted); }
+  .sources a { color: var(--text-2); text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: 3px; word-break: break-word; }
+  .sources a:hover { color: var(--signal); }
+
+  .author { display: grid; grid-template-columns: auto 1fr; gap: 18px; margin-top: 3em; padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--ink-2); }
+  .author__name { font-weight: 700; }
+  .author__bio { margin-top: 4px; color: var(--text-2); font-size: 0.95rem; }
+  .author__links { margin-top: 10px; font-size: 12px; color: var(--muted); }
+  .author__links a { color: var(--signal); }
+
+  .post-pager { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-bottom: 56px; }
+  .post-pager__card { display: grid; gap: 8px; padding: 22px 24px; border: 1px solid var(--line); border-radius: 16px; background: var(--ink-2); transition: border-color 0.3s; }
+  .post-pager__card:hover { border-color: var(--signal); }
+  .post-pager__card--next { text-align: right; }
+  .post-pager__card .mono { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .post-pager__t { font-family: var(--font-display); font-stretch: 80%; font-weight: 750; font-size: 1.25rem; line-height: 1.15; }
+  .post-foot { display: flex; justify-content: space-between; align-items: center; padding-block: 24px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+
+  @media (max-width: 1000px) {
+    .post-body { grid-template-columns: minmax(0, 1fr); }
+    .toc { display: none; }
+  }
+  @media (max-width: 640px) {
+    .post-pager { grid-template-columns: 1fr; }
+    .post-pager__card--next { text-align: left; }
+  }
+</style>
+
+<script>
+  // Reading progress + active TOC entry
+  const bar = document.querySelector<HTMLElement>('[data-progress]')!;
+  const article = document.querySelector<HTMLElement>('.post-article')!;
+  const tocLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-toc]'));
+  const heads = tocLinks.map((a) => document.getElementById(decodeURIComponent(a.hash.slice(1))));
+  const onScroll = () => {
+    const r = article.getBoundingClientRect();
+    const p = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - innerHeight)));
+    bar.style.transform = `scaleX(${p})`;
+    let active = -1;
+    heads.forEach((h, i) => { if (h && h.getBoundingClientRect().top < innerHeight * 0.3) active = i; });
+    tocLinks.forEach((a, i) => a.classList.toggle('is-active', i === active));
+  };
+  onScroll();
+  addEventListener('scroll', onScroll, { passive: true });
+
+  // Exhibits animate in when they enter the viewport
+  const io = new IntersectionObserver((es) => es.forEach((e) => {
+    if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
+  }), { threshold: 0.25 });
+  document.querySelectorAll('[data-exhibit]').forEach((el) => io.observe(el));
+
+  // Shared hover/focus tooltip for chart marks
+  const tip = document.querySelector<HTMLElement>('[data-tip-el]')!;
+  const show = (el: Element, x: number, y: number) => {
+    tip.textContent = el.getAttribute('data-tip');
+    tip.style.left = `${Math.min(x + 14, innerWidth - 270)}px`;
+    tip.style.top = `${y + 14}px`;
+    tip.classList.add('on');
+  };
+  document.addEventListener('pointermove', (e) => {
+    const el = (e.target as Element).closest?.('[data-tip]');
+    if (el) show(el, e.clientX, e.clientY);
+    else tip.classList.remove('on');
+  }, { passive: true });
+</script>

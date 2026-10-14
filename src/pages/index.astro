@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import SignalRail from '../components/SignalRail.astro';
+import Hero from '../components/Hero.astro';
+import SpecSheet from '../components/SpecSheet.astro';
+import ImpactBento from '../components/ImpactBento.astro';
+import CaseStudies from '../components/CaseStudies.astro';
+import Career from '../components/Career.astro';
+import StackMap from '../components/StackMap.astro';
+import Recognition from '../components/Recognition.astro';
+import Approach from '../components/Approach.astro';
+import Testimonials from '../components/Testimonials.astro';
+import Contact from '../components/Contact.astro';
+import LatestPosts from '../components/LatestPosts.astro';
+---
+<Base>
+  <Nav />
+  <SignalRail />
+  <main id="main">
+    <Hero />
+    <SpecSheet />
+    <ImpactBento />
+    <Approach />
+    <CaseStudies />
+    <Career />
+    <Testimonials />
+    <StackMap />
+    <Recognition />
+    <LatestPosts />
+    <Contact />
+  </main>
+</Base>
+
+<script>
+  import { initMotion, initCalendly } from '../scripts/motion';
+  initMotion();
+  initCalendly();
+</script>

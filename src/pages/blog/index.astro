@@ -1,0 +1,118 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Logo from '../../components/Logo.astro';
+import PostCover from '../../components/blog/PostCover.astro';
+import { getPosts, isLive, needsReview, readingMinutes, fmtDate } from '../../lib/posts';
+
+const posts = await getPosts();
+const featured = posts.find((p) => p.data.featured) ?? posts[0];
+const rest = posts.filter((p) => p !== featured);
+const tags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
+---
+<Base title="Writing — Marc Castro" description="Field notes on forward-deployed AI engineering: production LLM systems, governance, evaluation, local models and careers in AI.">
+  <Nav />
+  <main id="main" class="blog">
+    <header class="blog-head wrap">
+      <p class="eyebrow">Writing</p>
+      <h1 class="blog-head__title">Field notes from <em>production AI.</em></h1>
+      <p class="blog-head__dek">What actually happens when LLM systems meet real organisations — with the data, the diagrams and the mistakes left in.</p>
+      <div class="blog-tags" role="toolbar" aria-label="Filter by topic" data-tags>
+        <button class="filter is-on" data-tag="all" aria-pressed="true">All</button>
+        {tags.map((t) => <button class="filter" data-tag={t} aria-pressed="false">{t}</button>)}
+      </div>
+    </header>
+
+    {featured && (
+      <section class="wrap">
+        <a class="feat" href={`/blog/${featured.id}/`} data-post data-tags-of={featured.data.tags.join('|')}>
+          <PostCover motif={featured.data.motif} slug={featured.id} />
+          <div class="feat__copy">
+            <p class="card-meta mono">
+              {featured.data.kicker && <span class="k">{featured.data.kicker}</span>}
+              <span>{fmtDate(featured.data.date)}</span><span>{readingMinutes(featured)} min</span>
+              {!isLive(featured) && <span class="sched">Scheduled</span>}
+            </p>
+            <h2 class="feat__title">{featured.data.title}</h2>
+            <p class="feat__dek">{featured.data.dek}</p>
+            <span class="feat__go mono">Read the essay →</span>
+          </div>
+        </a>
+      </section>
+    )}
+
+    <section class="wrap">
+      <ul class="grid">
+        {rest.map((p) => (
+          <li data-post data-tags-of={p.data.tags.join('|')}>
+            <a class="card" href={`/blog/${p.id}/`}>
+              <PostCover motif={p.data.motif} slug={p.id} compact />
+              <p class="card-meta mono">
+                {p.data.kicker && <span class="k">{p.data.kicker}</span>}
+                <span>{fmtDate(p.data.date)}</span><span>{readingMinutes(p)} min</span>
+                {!isLive(p) && <span class="sched">{p.data.draft ? 'Draft' : needsReview(p) ? 'Needs review' : 'Scheduled'}</span>}
+              </p>
+              <h2 class="card__title">{p.data.title}</h2>
+              <p class="card__dek">{p.data.dek}</p>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <footer class="post-foot wrap">
+      <a href="/"><Logo size={26} lockup /></a>
+      <a class="mono" href="/blog/rss.xml">RSS feed</a>
+    </footer>
+  </main>
+</Base>
+
+<style>
+  .blog-head { padding: clamp(120px, 14vh, 150px) var(--gutter) clamp(36px, 5vw, 56px); }
+  .blog-head__title { margin-top: 20px; font-family: var(--font-display); font-stretch: 72%; font-weight: 800; font-size: clamp(3rem, 1.4rem + 5.4vw, 6.4rem); line-height: 0.94; }
+  .blog-head__title em { font-style: normal; color: var(--signal); }
+  .blog-head__dek { margin-top: 20px; max-width: 640px; font-size: var(--fs-lg); color: var(--text-2); }
+  .blog-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 32px; }
+  .filter { height: 36px; padding-inline: 14px; border: 1px solid var(--line-2); border-radius: 999px; font-size: 0.85rem; color: var(--text-2); transition: all 0.2s; }
+  .filter:hover { color: var(--text); border-color: var(--text-2); }
+  .filter.is-on { background: var(--text); color: var(--ink); border-color: var(--text); }
+
+  .feat { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: center; padding: clamp(16px, 2vw, 24px); border: 1px solid var(--line); border-radius: 22px; background: var(--ink-2); transition: border-color 0.3s; }
+  .feat:hover { border-color: rgb(61 245 167 / 0.5); }
+  .feat__title { margin-top: 14px; font-family: var(--font-display); font-stretch: 72%; font-weight: 800; font-size: clamp(2rem, 1.3rem + 2.4vw, 3.4rem); line-height: 0.98; }
+  .feat__dek { margin-top: 14px; color: var(--text-2); font-size: 1.05rem; }
+  .feat__go { display: inline-block; margin-top: 22px; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--signal); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 28px 20px; margin-top: 40px; padding-bottom: clamp(56px, 7vw, 96px); }
+  .card { display: grid; gap: 12px; align-content: start; }
+  .card :global(.cover) { transition: border-color 0.3s, transform 0.5s var(--ease-out); }
+  .card:hover :global(.cover) { border-color: rgb(61 245 167 / 0.5); transform: translateY(-3px); }
+  .card__title { font-family: var(--font-display); font-stretch: 80%; font-weight: 750; font-size: 1.45rem; line-height: 1.1; transition: color 0.2s; }
+  .card:hover .card__title { color: var(--signal); }
+  .card__dek { color: var(--text-2); font-size: 0.93rem; }
+  .card-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .card-meta .k { color: var(--signal); }
+  .card-meta .sched { color: var(--amber); }
+  [data-post][hidden] { display: none !important; }
+  .post-foot { display: flex; justify-content: space-between; align-items: center; padding-block: 24px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  @media (max-width: 860px) { .feat { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-tags]')!;
+  const posts = document.querySelectorAll<HTMLElement>('[data-post]');
+  const apply = (tag: string) => {
+    bar.querySelectorAll<HTMLButtonElement>('[data-tag]').forEach((b) => {
+      const on = b.dataset.tag === tag;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    posts.forEach((p) => { p.hidden = tag !== 'all' && !p.dataset.tagsOf!.split('|').includes(tag); });
+  };
+  bar.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-tag]');
+    if (b) { apply(b.dataset.tag!); history.replaceState(null, '', b.dataset.tag === 'all' ? '#' : `#${encodeURIComponent(b.dataset.tag!)}`); }
+  });
+  const fromHash = decodeURIComponent(location.hash.slice(1));
+  if (fromHash) apply(fromHash);
+</script>

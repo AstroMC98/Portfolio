@@ -1,0 +1,157 @@
+---
+/**
+ * Generative cover art — one line-drawn motif per post, in the site's signal palette.
+ * Deterministic (seeded by slug) so it never changes between builds.
+ */
+interface Props {
+  motif: string;
+  slug: string;
+  index?: string;
+  compact?: boolean;
+  banner?: boolean;
+}
+const { motif, slug, index, compact = false, banner = false } = Astro.props;
+
+let seed = [...slug].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+
+const W = 1200;
+const H = 640;
+const M = '#3df5a7';
+const T = '#ecefea';
+const D = '#2a3732';
+const range = (n: number) => Array.from({ length: n }, (_, i) => i);
+
+// Pre-computed geometry per motif
+const branches = range(7).map((i) => ({ y: 120 + i * 70, bend: 380 + rnd() * 260, end: 980 + rnd() * 140, hl: i === 3 }));
+const drift = range(3).map((i) => ({ mu: 380 + i * 210, sigma: 90 + i * 22, hl: i === 2 }));
+const gauss = (mu: number, s: number, amp: number) =>
+  range(121).map((k) => {
+    const x = 120 + k * 8;
+    const y = 520 - amp * Math.exp(-((x - mu) ** 2) / (2 * s * s));
+    return `${k ? 'L' : 'M'}${x} ${y.toFixed(1)}`;
+  }).join(' ');
+const bits = range(12 * 6).map((i) => ({ x: 240 + (i % 12) * 62, y: 150 + Math.floor(i / 12) * 62, on: rnd() > 0.45, hl: rnd() > 0.88 }));
+const civic = range(9 * 4).map((i) => ({ x: 180 + (i % 9) * 100, y: 170 + Math.floor(i / 9) * 100, lit: rnd() > 0.72 }));
+---
+<svg class:list={['cover', { 'cover--compact': compact, 'cover--banner': banner }]} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Cover illustration" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id={`dots-${slug}`} width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#ecefea" opacity="0.08" />
+    </pattern>
+    <radialGradient id={`glow-${slug}`} cx="78%" cy="30%" r="60%">
+      <stop offset="0" stop-color={M} stop-opacity="0.18" />
+      <stop offset="1" stop-color={M} stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width={W} height={H} fill="#0d1311" />
+  <rect width={W} height={H} fill={`url(#dots-${slug})`} />
+  <rect width={W} height={H} fill={`url(#glow-${slug})`} />
+
+  {motif === 'paths' && (
+    <g fill="none" stroke-width="3" stroke-linecap="round">
+      <circle cx="140" cy="330" r="10" fill={T} />
+      {branches.map((b) => (
+        <path d={`M140 330 C ${b.bend * 0.6} 330, ${b.bend * 0.7} ${b.y}, ${b.bend} ${b.y} L ${b.end} ${b.y}`} stroke={b.hl ? M : D} stroke-width={b.hl ? 5 : 3} />
+      ))}
+      {branches.map((b) => <circle cx={b.end} cy={b.y} r={b.hl ? 12 : 7} fill={b.hl ? M : D} stroke="none" />)}
+    </g>
+  )}
+
+  {motif === 'deploy' && (
+    <g fill="none" stroke-width="3">
+      <rect x="120" y="200" width="240" height="240" rx="18" stroke={D} />
+      <rect x="840" y="160" width="260" height="320" rx="18" stroke={T} />
+      <text x="150" y="240" fill="#55665e" font-family="IBM Plex Mono" font-size="20">VENDOR</text>
+      <text x="870" y="200" fill={T} font-family="IBM Plex Mono" font-size="20">CLIENT ENV</text>
+      <path d="M360 320 C 520 320, 620 300, 840 300" stroke={M} stroke-width="5" stroke-dasharray="2 14" stroke-linecap="round" />
+      <circle cx="610" cy="308" r="16" fill={M} stroke="none" />
+      {range(3).map((i) => <rect x={880} y={250 + i * 64} width={180} height={44} rx="8" stroke={i === 1 ? M : D} />)}
+    </g>
+  )}
+
+  {motif === 'civic' && (
+    <g>
+      {civic.map((c) => (
+        <g>
+          <path d={`M${c.x - 26} ${c.y + 22} V ${c.y - 6} L ${c.x} ${c.y - 28} L ${c.x + 26} ${c.y - 6} V ${c.y + 22} Z`} fill="none" stroke={c.lit ? M : D} stroke-width="3" />
+          {c.lit && <circle cx={c.x} cy={c.y + 4} r="6" fill={M} />}
+        </g>
+      ))}
+    </g>
+  )}
+
+  {motif === 'shield' && (
+    <g fill="none" stroke-width="3">
+      {range(5).map((i) => (
+        <rect x={300 + i * 30} y={110 + i * 30} width={600 - i * 60} height={420 - i * 60} rx={26} stroke={i === 4 ? M : D} stroke-width={i === 4 ? 5 : 3} />
+      ))}
+      <path d="M560 300 l30 30 l60 -70" stroke={M} stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+  )}
+
+  {motif === 'brush' && (
+    <g fill="none" stroke-width="3">
+      {range(8).map((i) => <line x1={160 + i * 40} y1="140" x2={160 + i * 40} y2="500" stroke={D} />)}
+      <path d="M150 460 C 380 120, 560 560, 760 260 S 1020 180, 1060 160" stroke={M} stroke-width="10" stroke-linecap="round" />
+      <text x="760" y="520" fill={T} font-family="Archivo Variable" font-weight="800" font-size="120" style="font-stretch:72%">Aa</text>
+      <text x="960" y="520" fill="#55665e" font-family="serif" font-style="italic" font-size="120" text-decoration="line-through">Aa</text>
+    </g>
+  )}
+
+  {motif === 'triad' && (
+    <g>
+      {[[380, 300, 150, '#199e70'], [600, 330, 150, '#3987e5'], [820, 300, 150, '#d95926']].map(([x, y, r, c]) => (
+        <circle cx={x} cy={y} r={r} fill="none" stroke={c as string} stroke-width="5" opacity="0.95" />
+      ))}
+      <circle cx="600" cy="300" r="14" fill={M} />
+    </g>
+  )}
+
+  {motif === 'chip' && (
+    <g>
+      <rect x="210" y="120" width="780" height="400" rx="22" fill="none" stroke={D} stroke-width="3" />
+      {bits.map((b) => <rect x={b.x} y={b.y} width="44" height="44" rx="6" fill={b.hl ? M : b.on ? '#2a3732' : 'none'} stroke={b.hl ? M : D} stroke-width="2" />)}
+      {range(10).map((i) => <line x1={250 + i * 76} y1="96" x2={250 + i * 76} y2="120" stroke={D} stroke-width="4" />)}
+      {range(10).map((i) => <line x1={250 + i * 76} y1="520" x2={250 + i * 76} y2="544" stroke={D} stroke-width="4" />)}
+    </g>
+  )}
+
+  {motif === 'stack' && (
+    <g fill="none" stroke-width="3">
+      {range(4).map((i) => (
+        <path d={`M600 ${170 + i * 90} L 900 ${250 + i * 90} L 600 ${330 + i * 90} L 300 ${250 + i * 90} Z`} stroke={i === 0 ? M : D} stroke-width={i === 0 ? 5 : 3} fill={i === 0 ? 'rgb(61 245 167 / 0.06)' : 'none'} />
+      ))}
+    </g>
+  )}
+
+  {motif === 'loop' && (
+    <g fill="none" stroke-width="5" stroke-linecap="round">
+      <path d="M300 220 C 520 120, 760 120, 920 240" stroke={D} />
+      <path d="M920 420 C 720 540, 480 540, 300 420" stroke={M} />
+      <path d="M905 205 l20 38 l-42 4" stroke={D} />
+      <path d="M318 456 l-24 -36 l42 -6" stroke={M} />
+      <circle cx="270" cy="320" r="46" stroke={T} />
+      <circle cx="950" cy="320" r="46" stroke={T} />
+    </g>
+  )}
+
+  {motif === 'drift' && (
+    <g fill="none" stroke-width="4">
+      <line x1="120" y1="520" x2="1080" y2="520" stroke={D} stroke-width="2" />
+      {drift.map((d, i) => (
+        <path d={gauss(d.mu, d.sigma, 300 - i * 40)} stroke={d.hl ? M : i === 0 ? T : '#55665e'} stroke-width={d.hl ? 5 : 3} />
+      ))}
+      <path d="M400 150 H 830" stroke={M} stroke-width="3" stroke-dasharray="6 8" />
+      <path d="M815 138 l16 12 l-16 12" stroke={M} stroke-width="3" />
+    </g>
+  )}
+
+  {index && <text x="56" y={H - 52} fill="#ecefea" opacity="0.5" font-family="IBM Plex Mono" font-size="22" letter-spacing="4">{index}</text>}
+</svg>
+
+<style>
+  .cover { display: block; width: 100%; height: auto; aspect-ratio: 15 / 8; border-radius: 18px; border: 1px solid var(--line); }
+  .cover--compact { border-radius: 14px; }
+  .cover--banner { aspect-ratio: 21 / 8; }
+</style>

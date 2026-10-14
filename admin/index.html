@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg" />
+<title>Blog admin — Marc Castro</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --ink: #0a0d0c; --ink-2: #111715; --ink-3: #172019; --line: #1e2824; --line-2: #2a3732;
+    --text: #ecefea; --text-2: #c4cbc6; --muted: #8b958f;
+    --signal: #3df5a7; --amber: #ffb547; --danger: #ff7a7a; --blue: #7fb2f0;
+    --sans: 'Archivo Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { min-height: 100vh; background: var(--ink); color: var(--text); font: 15px/1.5 var(--sans); }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+  .mono { font-family: var(--mono); }
+  [hidden] { display: none !important; }
+
+  /* Login */
+  .login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+  .login form { width: min(380px, 100%); display: grid; gap: 14px; padding: 28px; border: 1px solid var(--line-2); border-radius: 18px; background: var(--ink-2); }
+  .login h1 { font-size: 1.4rem; font-weight: 800; }
+  .login p { color: var(--muted); font-size: 0.9rem; }
+
+  /* Fields */
+  label { display: grid; gap: 6px; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-family: var(--mono); }
+  input, textarea, select { width: 100%; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--ink); font-size: 0.95rem; text-transform: none; letter-spacing: 0; font-family: var(--sans); color: var(--text); }
+  textarea { resize: vertical; min-height: 70px; }
+  input[type=checkbox] { width: auto; }
+  .check { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; font-family: var(--sans); font-size: 0.9rem; color: var(--text-2); }
+  .hint { font-family: var(--sans); text-transform: none; letter-spacing: 0; font-size: 0.78rem; color: var(--muted); }
+
+  .btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-2); background: transparent; font-weight: 600; font-size: 0.88rem; white-space: nowrap; }
+  .btn:hover { border-color: var(--text-2); }
+  .btn--primary { background: var(--signal); color: var(--ink); border-color: var(--signal); }
+  .btn--danger { color: var(--danger); border-color: rgb(255 122 122 / 0.4); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .err { color: var(--danger); font-size: 0.88rem; }
+
+  /* App layout */
+  .app { display: grid; grid-template-columns: 320px minmax(0, 1fr); min-height: 100vh; }
+  .side { border-right: 1px solid var(--line); display: flex; flex-direction: column; max-height: 100vh; position: sticky; top: 0; }
+  .side__head { padding: 18px; border-bottom: 1px solid var(--line); display: grid; gap: 12px; }
+  .side__title { display: flex; justify-content: space-between; align-items: center; }
+  .side__title b { font-size: 1.05rem; }
+  .list { overflow-y: auto; padding: 8px; display: grid; gap: 4px; align-content: start; }
+  .item { text-align: left; width: 100%; padding: 12px; border-radius: 12px; border: 1px solid transparent; background: transparent; display: grid; gap: 6px; }
+  .item:hover { background: var(--ink-2); }
+  .item.is-on { background: var(--ink-2); border-color: var(--line-2); }
+  .item__t { font-weight: 650; font-size: 0.92rem; line-height: 1.3; }
+  .item__m { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+  .chip { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-2); font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.04em; }
+  .s-live { color: var(--signal); border-color: rgb(61 245 167 / 0.4); }
+  .s-scheduled { color: var(--blue); border-color: rgb(127 178 240 / 0.4); }
+  .s-draft, .s-local-draft { color: var(--muted); }
+  .s-needs-review { color: var(--amber); border-color: rgb(255 181 71 / 0.4); }
+
+  .main { min-width: 0; display: flex; flex-direction: column; }
+  .bar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--line); background: rgb(10 13 12 / 0.94); backdrop-filter: blur(10px); }
+  .bar__l { display: flex; gap: 10px; align-items: center; min-width: 0; }
+  .bar__l b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar__r { display: flex; flex-wrap: wrap; gap: 8px; }
+  .dirty { color: var(--amber); font-family: var(--mono); font-size: 0.75rem; }
+  .editor { padding: 24px; display: grid; gap: 22px; max-width: 1200px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 14px; }
+  .span2 { grid-column: span 2; }
+  .body textarea { min-height: 60vh; font-family: var(--mono); font-size: 13px; line-height: 1.6; tab-size: 2; white-space: pre; }
+  details { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; background: var(--ink-2); }
+  summary { cursor: pointer; font-weight: 650; }
+  .flags { display: grid; gap: 8px; margin-top: 10px; }
+  .flag { padding: 10px 12px; border-left: 3px solid var(--amber); background: var(--ink); border-radius: 0 8px 8px 0; font-size: 0.85rem; color: var(--text-2); }
+  .flag b { color: var(--amber); font-family: var(--mono); font-size: 0.72rem; }
+  .empty { display: grid; place-items: center; min-height: 60vh; color: var(--muted); padding: 24px; text-align: center; }
+  .toast { position: fixed; right: 16px; bottom: 16px; z-index: 50; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line-2); background: #050706; font-size: 0.9rem; box-shadow: 0 10px 30px rgb(0 0 0 / 0.5); }
+  .toast.ok { border-color: rgb(61 245 167 / 0.5); }
+  .toast.bad { border-color: rgb(255 122 122 / 0.6); color: var(--danger); }
+  dialog { border: 1px solid var(--line-2); border-radius: 16px; background: var(--ink-2); color: var(--text); padding: 22px; width: min(420px, 92vw); }
+  dialog::backdrop { background: rgb(0 0 0 / 0.6); }
+  dialog form { display: grid; gap: 12px; }
+  @media (max-width: 860px) {
+    .app { grid-template-columns: 1fr; }
+    .side { position: static; max-height: 40vh; border-right: 0; border-bottom: 1px solid var(--line); }
+    .span2 { grid-column: auto; }
+  }
+</style>
+</head>
+<body>
+  <section class="login" id="login" hidden>
+    <form id="loginForm">
+      <h1>Blog admin</h1>
+      <p>Local only. Edits write straight to the MDX files in this repo.</p>
+      <label>Password <input type="password" id="pw" autocomplete="current-password" required autofocus /></label>
+      <p class="err" id="loginErr" role="alert"></p>
+      <button class="btn btn--primary" type="submit">Sign in</button>
+    </form>
+  </section>
+
+  <div class="app" id="app" hidden>
+    <aside class="side">
+      <div class="side__head">
+        <div class="side__title"><b>Posts</b>
+          <span style="display:flex; gap:6px">
+            <button class="btn" id="newBtn" type="button">+ New</button>
+            <button class="btn" id="logoutBtn" type="button">Sign out</button>
+          </span>
+        </div>
+        <input type="search" id="search" placeholder="Search titles…" aria-label="Search posts" />
+      </div>
+      <nav class="list" id="list" aria-label="Posts"></nav>
+    </aside>
+
+    <main class="main">
+      <div class="empty" id="empty">Select a post to edit, or create a new one.</div>
+      <form id="form" hidden novalidate>
+        <div class="bar">
+          <div class="bar__l"><span class="chip" id="statusChip"></span><b id="formTitle"></b><span class="dirty" id="dirty" hidden>● unsaved</span></div>
+          <div class="bar__r">
+            <a class="btn" id="previewBtn" target="_blank" rel="noopener">Preview ↗</a>
+            <button class="btn" type="button" id="moveBtn"></button>
+            <button class="btn btn--danger" type="button" id="trashBtn">Move to trash</button>
+            <button class="btn btn--primary" type="submit" id="saveBtn">Save <span class="mono" style="opacity:.6">Ctrl+S</span></button>
+          </div>
+        </div>
+        <div class="editor">
+          <details id="flagBox" hidden open>
+            <summary id="flagSummary"></summary>
+            <p class="hint" style="margin-top:6px">Posts with review flags never publish. Confirm each passage, then remove <span class="mono">review</span> from the Note (or clear the Review field).</p>
+            <div class="flags" id="flags"></div>
+          </details>
+
+          <div class="grid">
+            <label class="span2">Title <input name="title" required /></label>
+            <label>Date <input name="date" type="date" required /><span class="hint">Publishes on this date (daily rebuild).</span></label>
+            <label>Kicker <input name="kicker" placeholder="e.g. LLMOps" /></label>
+            <label>Cover motif <select name="motif" id="motif"></select></label>
+            <label>Tags <input name="tags" placeholder="comma, separated" /></label>
+            <div style="display:grid; gap:8px; align-content:end">
+              <label class="check"><input type="checkbox" name="featured" /> Featured on blog index</label>
+              <label class="check"><input type="checkbox" name="draft" /> Draft (never publishes)</label>
+            </div>
+          </div>
+          <label>Dek — one-sentence summary <textarea name="dek" rows="2" required></textarea></label>
+          <label>Thesis <textarea name="thesis" rows="2"></textarea></label>
+          <label>Key takeaways <textarea name="takeaways" rows="5"></textarea><span class="hint">One per line.</span></label>
+          <label>Sources <textarea name="sources" rows="6" class="mono"></textarea><span class="hint">One per line: Label | https://url</span></label>
+          <label>Review note <textarea name="review" rows="2"></textarea><span class="hint">If filled, the post shows an “Author review” box and will not publish.</span></label>
+          <label class="body">Body (MDX) <textarea name="body" spellcheck="false"></textarea><span class="hint">Components: Exhibit, Bars, Columns, Lines, Slope, Waffle, Stats, Matrix, Flow, Compare, Timeline, Note — import them at the top of the body.</span></label>
+          <p class="err" id="formErr" role="alert"></p>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <dialog id="newDialog">
+    <form method="dialog" id="newForm">
+      <b>New post</b>
+      <label>Title <input id="newTitle" required /></label>
+      <label>Slug (URL) <input id="newSlug" pattern="[a-z0-9]+(-[a-z0-9]+)*" required /><span class="hint">Lowercase words joined by hyphens. Created as a local draft.</span></label>
+      <p class="err" id="newErr"></p>
+      <div style="display:flex; gap:8px; justify-content:flex-end">
+        <button class="btn" value="cancel" type="button" id="newCancel">Cancel</button>
+        <button class="btn btn--primary" type="submit">Create</button>
+      </div>
+    </form>
+  </dialog>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const STATUS = { live: 'Live', scheduled: 'Scheduled', draft: 'Draft', 'needs-review': 'Needs review', 'local-draft': 'Local draft' };
+let posts = [];
+let current = null; // { slug, folder }
+let dirty = false;
+
+async function api(path, opts = {}) {
+  const res = await fetch('/admin/api' + path, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', 'X-Admin': '1', ...(opts.headers || {}) },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+    credentials: 'same-origin',
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && path !== '/login') { showLogin(); throw new Error('Signed out'); }
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+
+function toast(msg, kind = 'ok') {
+  const t = document.createElement('div');
+  t.className = `toast ${kind}`;
+  t.textContent = msg;
+  document.body.append(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+function showLogin() { $('#app').hidden = true; $('#login').hidden = false; $('#pw').focus(); }
+async function showApp() {
+  $('#login').hidden = true; $('#app').hidden = false;
+  const meta = await api('/meta');
+  $('#motif').innerHTML = meta.motifs.map((m) => `<option value="${m}">${m}</option>`).join('');
+  await refreshList();
+}
+
+async function refreshList() {
+  posts = (await api('/posts')).posts;
+  renderList();
+}
+
+function renderList() {
+  const q = $('#search').value.trim().toLowerCase();
+  const list = $('#list');
+  list.innerHTML = '';
+  posts.filter((p) => !q || p.title.toLowerCase().includes(q)).forEach((p) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'item' + (current && current.slug === p.slug ? ' is-on' : '');
+    const t = document.createElement('span'); t.className = 'item__t'; t.textContent = p.title;
+    const m = document.createElement('span'); m.className = 'item__m';
+    m.innerHTML = `<span class="chip s-${p.status}"></span><span></span><span></span>`;
+    m.children[0].textContent = STATUS[p.status] + (p.reviewFlags ? ` · ${p.reviewFlags} flag${p.reviewFlags > 1 ? 's' : ''}` : '');
+    m.children[1].textContent = p.date;
+    m.children[2].textContent = `${Math.round(p.words / 100) / 10}k words`;
+    b.append(t, m);
+    b.addEventListener('click', () => openPost(p.slug));
+    list.append(b);
+  });
+}
+
+function setDirty(v) { dirty = v; $('#dirty').hidden = !v; }
+
+async function openPost(slug) {
+  if (dirty && !confirm('Discard unsaved changes?')) return;
+  const p = await api('/posts/' + encodeURIComponent(slug));
+  current = { slug: p.slug, folder: p.folder };
+  const f = $('#form');
+  const fm = p.frontmatter;
+  f.title.value = fm.title || '';
+  f.date.value = fm.date || '';
+  f.kicker.value = fm.kicker || '';
+  f.motif.value = fm.motif || 'paths';
+  f.tags.value = (fm.tags || []).join(', ');
+  f.featured.checked = !!fm.featured;
+  f.draft.checked = !!fm.draft;
+  f.dek.value = fm.dek || '';
+  f.thesis.value = fm.thesis || '';
+  f.takeaways.value = (fm.takeaways || []).join('\n');
+  f.sources.value = (fm.sources || []).map((s) => `${s.label} | ${s.url}`).join('\n');
+  f.review.value = fm.review || '';
+  f.body.value = p.body;
+  // Keep any frontmatter fields the form doesn't expose.
+  f.dataset.extra = JSON.stringify(Object.fromEntries(Object.entries(fm).filter(([k]) => !['title','date','kicker','motif','tags','featured','draft','dek','thesis','takeaways','sources','review'].includes(k))));
+  $('#empty').hidden = true; f.hidden = false;
+  $('#formErr').textContent = '';
+  updateChrome(p.status, p.folder);
+  renderFlags();
+  setDirty(false);
+  renderList();
+}
+
+function updateChrome(status, folder) {
+  const chip = $('#statusChip');
+  chip.className = `chip s-${status}`;
+  chip.textContent = STATUS[status];
+  $('#formTitle').textContent = $('#form').title.value || current.slug;
+  $('#previewBtn').href = `/blog/${current.slug}/`;
+  $('#moveBtn').textContent = folder === 'drafts' ? 'Move to blog (commit-ready)' : 'Move to local drafts';
+}
+
+function renderFlags() {
+  const f = $('#form');
+  const items = [];
+  if (f.review.value.trim()) items.push({ where: 'Review field', text: f.review.value.trim() });
+  const re = /<Note[^>]*\sreview[\s>][\s\S]*?<\/Note>/g;
+  let m;
+  while ((m = re.exec(f.body.value))) {
+    const line = f.body.value.slice(0, m.index).split('\n').length;
+    items.push({ where: `Body line ${line}`, text: m[0].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 320) });
+  }
+  $('#flagBox').hidden = items.length === 0;
+  $('#flagSummary').textContent = `${items.length} passage${items.length === 1 ? '' : 's'} flagged for review`;
+  const box = $('#flags'); box.innerHTML = '';
+  items.forEach((it) => {
+    const d = document.createElement('div'); d.className = 'flag';
+    const b = document.createElement('b'); b.textContent = it.where;
+    const p = document.createElement('p'); p.textContent = it.text;
+    d.append(b, p); box.append(d);
+  });
+}
+
+function collect() {
+  const f = $('#form');
+  const lines = (s) => s.split('\n').map((x) => x.trim()).filter(Boolean);
+  const fm = {
+    ...JSON.parse(f.dataset.extra || '{}'),
+    title: f.title.value.trim(),
+    dek: f.dek.value.trim(),
+    date: f.date.value,
+    kicker: f.kicker.value.trim(),
+    motif: f.motif.value,
+    tags: f.tags.value.split(',').map((t) => t.trim()).filter(Boolean),
+    featured: f.featured.checked,
+    draft: f.draft.checked,
+    thesis: f.thesis.value.trim(),
+    takeaways: lines(f.takeaways.value),
+    sources: lines(f.sources.value).map((l) => {
+      const i = l.lastIndexOf('|');
+      return i === -1 ? { label: l, url: '' } : { label: l.slice(0, i).trim(), url: l.slice(i + 1).trim() };
+    }),
+    review: f.review.value.trim(),
+  };
+  return { frontmatter: fm, body: f.body.value };
+}
+
+async function save() {
+  if (!current) return;
+  $('#saveBtn').disabled = true;
+  try {
+    const r = await api('/posts/' + encodeURIComponent(current.slug), { method: 'PUT', body: collect() });
+    $('#formErr').textContent = '';
+    setDirty(false);
+    updateChrome(r.status, current.folder);
+    renderFlags();
+    await refreshList();
+    toast('Saved — the dev server reloads the preview automatically.');
+  } catch (e) {
+    $('#formErr').textContent = e.message;
+    toast(e.message, 'bad');
+  } finally {
+    $('#saveBtn').disabled = false;
+  }
+}
+
+$('#loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  $('#loginErr').textContent = '';
+  try {
+    await api('/login', { method: 'POST', body: { password: $('#pw').value } });
+    $('#pw').value = '';
+    await showApp();
+  } catch (err) { $('#loginErr').textContent = err.message; }
+});
+
+$('#logoutBtn').addEventListener('click', async () => {
+  if (dirty && !confirm('Discard unsaved changes?')) return;
+  await api('/logout', { method: 'POST' }).catch(() => {});
+  setDirty(false); current = null; showLogin();
+});
+
+$('#form').addEventListener('submit', (e) => { e.preventDefault(); save(); });
+$('#form').addEventListener('input', (e) => {
+  setDirty(true);
+  if (e.target.name === 'title') $('#formTitle').textContent = e.target.value;
+  if (e.target.name === 'body' || e.target.name === 'review') renderFlags();
+});
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && current) { e.preventDefault(); save(); }
+});
+$('#form').body.addEventListener('keydown', (e) => {
+  if (e.key !== 'Tab' || e.shiftKey) return;
+  e.preventDefault();
+  const t = e.target, s = t.selectionStart;
+  t.setRangeText('  ', s, t.selectionEnd, 'end');
+  setDirty(true);
+});
+window.addEventListener('beforeunload', (e) => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+$('#search').addEventListener('input', renderList);
+
+$('#moveBtn').addEventListener('click', async () => {
+  if (!current) return;
+  if (dirty) { toast('Save first.', 'bad'); return; }
+  const to = current.folder === 'drafts' ? 'blog' : 'drafts';
+  const msg = to === 'blog'
+    ? 'Move to src/content/blog? It will be included in your next commit and publishes on its date (unless it is a draft or has review flags).'
+    : 'Move to local drafts? It will be git-ignored and never publish.';
+  if (!confirm(msg)) return;
+  try {
+    await api(`/posts/${encodeURIComponent(current.slug)}/move`, { method: 'POST', body: { to } });
+    await refreshList();
+    await openPost(current.slug);
+    toast(to === 'blog' ? 'Moved to blog/.' : 'Moved to drafts/.');
+  } catch (e) { toast(e.message, 'bad'); }
+});
+
+$('#trashBtn').addEventListener('click', async () => {
+  if (!current || !confirm('Move this post to src/content/.trash? You can restore it from there.')) return;
+  try {
+    await api('/posts/' + encodeURIComponent(current.slug), { method: 'DELETE' });
+    current = null; setDirty(false);
+    $('#form').hidden = true; $('#empty').hidden = false;
+    await refreshList();
+    toast('Moved to trash.');
+  } catch (e) { toast(e.message, 'bad'); }
+});
+
+const dlg = $('#newDialog');
+$('#newBtn').addEventListener('click', () => { $('#newErr').textContent = ''; $('#newForm').reset(); dlg.showModal(); });
+$('#newCancel').addEventListener('click', () => dlg.close());
+$('#newTitle').addEventListener('input', (e) => {
+  $('#newSlug').value = e.target.value.toLowerCase().normalize('NFKD').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 80);
+});
+$('#newForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  try {
+    const r = await api('/posts', { method: 'POST', body: { title: $('#newTitle').value.trim(), slug: $('#newSlug').value.trim() } });
+    dlg.close();
+    await refreshList();
+    await openPost(r.slug);
+    toast('Created as a local draft.');
+  } catch (err) { $('#newErr').textContent = err.message; }
+});
+
+api('/session').then((s) => (s.authenticated ? showApp() : showLogin())).catch(showLogin);
+</script>
+</body>
+</html>

@@ -1,0 +1,562 @@
+---
+title: "Breaking Into AI: Why Proof Now Beats Paper, and How Students, Fresh Grads and Career Shifters Can Build It"
+dek: "AI skills carry a growing pay premium, degree requirements are falling, and the entry-level door is narrowing at the same time. A field guide to the five realistic paths into AI work, what each one demands, and the 90-day plan that gets you from coursework to evidence."
+date: 2026-12-23
+kicker: Careers
+motif: paths
+tags: [Careers, Forward Deployed, Philippines]
+thesis: "For AI roles, shipped and measured proof now outranks credentials, and because the entry-level squeeze is landing hardest on new workers, building that proof before you apply is the decisive move."
+takeaways:
+  - "The market is paying for AI skill: PwC measured a 62% wage premium in 2026, up from 25% two editions earlier, and AI-skill postings grew 69% while all postings grew 9%."
+  - "Credentials are loosening and the door is narrowing at once. Degree requirements fell in AI-exposed jobs, but AI-exposed entry-level roles are 7× more likely to ask for senior-level skills, and young workers in exposed jobs are already being hired less."
+  - "Think in a proof ladder: built, shipped, measured, survived. Most beginners stop at built. Interviews start at shipped; offers usually need measured."
+  - "There are five realistic paths. Choose by two questions: how deep into the model you want to go, and how close to the customer you want to be. Each path has its own version of proof."
+  - "Career shifters, especially from BPO and shared services, hold the scarcest input in applied AI: knowledge of where a measured process actually hurts."
+  - "Titles move fast; abilities last. Aim for work that involves judging, integrating and being accountable for AI output, not just prompting it."
+sources:
+  - label: "PwC 2025 Global AI Jobs Barometer — official release via PR Newswire (3 Jun 2025)"
+    url: "https://www.aap.com.au/aapreleases/cision20250603ae00811/"
+  - label: "PwC 2026 Global AI Jobs Barometer — official release via PR Newswire (15 Jun 2026)"
+    url: "https://kyodonewsprwire.jp/release/202606150856"
+  - label: "Lightcast — AI skills in job postings, data for the Stanford AI Index 2026 (13 Apr 2026)"
+    url: "https://lightcast.io/resources/blog/stanford-ai-2026"
+  - label: "Brynjolfsson, Chandar & Chen — Canaries in the Coal Mine? Six Facts about the Recent Employment Effects of AI (Stanford Digital Economy Lab, revised 12 Aug 2026)"
+    url: "https://digitaleconomy.stanford.edu/publications/canaries-in-the-coal-mine/"
+  - label: "VnExpress International — AI roles dominate LinkedIn's fastest-growing US jobs, Jobs on the Rise 2026 (secondary report)"
+    url: "https://e.vnexpress.net/news/tech/tech-news/ai-roles-dominate-fastest-growing-jobs-in-us-5004966.html"
+  - label: "World Economic Forum — Future of Jobs Report 2025 press release"
+    url: "https://www.weforum.org/media/future-of-jobs-report-2025-78-million-new-job-opportunities-by-2030-but-urgent-upskilling-needed-to-prepare-workforces/"
+  - label: "Fortune — Forward-deployed engineers: the fast-growing six-figure job (Lightcast data, 3 Sep 2026)"
+    url: "https://fortune.com/2026/09/03/forward-deployed-engineers-fast-growing-six-figure-silicon-valley-job-integrate-ai-with-customers-tech-careers-palantir/"
+  - label: "Salesforce News — Forward deployed engineers are making AI jobs more human (18 Mar 2026)"
+    url: "https://www.salesforce.com/news/stories/forward-deployed-engineers-making-ai-jobs-more-human/"
+  - label: "a16z — Trading Margin for Moat: Why the Forward Deployed Engineer Is the Hottest Job in Startups (4 Jun 2025)"
+    url: "https://a16z.com/services-led-growth/"
+  - label: "The Pragmatic Engineer — Forward deployed engineers (12 Aug 2025)"
+    url: "https://newsletter.pragmaticengineer.com/p/forward-deployed-engineers"
+  - label: "IMF Working Paper WP/25/43 — Artificial Intelligence and the Philippine Labor Market (21 Feb 2025)"
+    url: "https://www.imf.org/en/publications/wp/issues/2025/02/21/artificial-intelligence-and-the-philippine-labor-market-mapping-occupational-exposure-and-562171"
+  - label: "Philstar — IT-BPM revenues breach $40 billion mark (29 Jan 2026)"
+    url: "https://www.philstar.com/business/2026/01/29/2504140/it-bpm-revenues-breach-40-billion-mark/amp/"
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Stats from '../../components/blog/Stats.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Columns from '../../components/blog/Columns.astro';
+import Slope from '../../components/blog/Slope.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Waffle from '../../components/blog/Waffle.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Timeline from '../../components/blog/Timeline.astro';
+import Note from '../../components/blog/Note.astro';
+import TrackPicker from '../../components/blog/career/TrackPicker.astro';
+
+<p class="lede">I did not plan an AI career. I studied applied physics, ended up writing data pipelines for SARS-CoV-2 genome surveillance, took a master's in data science, and only then walked into industry. Every one of those moves looked sideways at the time. If you are a student, a fresh graduate or someone thinking about switching careers, I want you to know that sideways is normal — and that you are probably closer than you think. But the rules of the door you are trying to walk through have changed, and it pays to understand how.</p>
+
+Here is my argument in one sentence: **for AI roles, shipped and measured proof now outranks credentials — and because the entry-level squeeze is landing hardest on new workers, building that proof before you apply is the decisive move.** A degree still helps. A certificate rarely hurts. But neither answers the question every hiring manager in this field is now asking of juniors: *can you already do some of the job?*
+
+This guide is the one I wish someone had handed me, rebuilt as a proper case. It starts with the forces reshaping the AI job market and what the data actually shows, including where it is weaker than the headlines. It then sets out a simple framework — a proof ladder and a map of five career paths — and goes deep on each path: what the work is, how skills stack up, what the demand evidence says, and how people actually break in. After that come a few real cases, the strongest objections to my argument (some of which are partly right), what all this means for students, fresh grads and career shifters, a concrete 90-day plan, and an honest note on what the evidence cannot tell us.
+
+<Exhibit
+  n={1}
+  title="My route into AI was a series of sideways moves, not a ladder"
+  sub="The author's path, simplified"
+  note="The author's own career, listed in order; none of these steps was planned as a step towards AI."
+>
+  <Timeline items={[
+    { date: 'Undergrad', title: 'Applied physics', text: 'A physics degree, not a computing one.', state: 'done' },
+    { date: 'Research', title: 'Philippine Genome Center', text: 'Data pipelines for SARS-CoV-2 genome surveillance.', state: 'done' },
+    { date: 'Grad school', title: 'MS Data Science, AIM', text: 'Asian Institute of Management.', state: 'done' },
+    { date: 'Industry', title: 'Data scientist, AIA', text: 'First industry role, in insurance.', state: 'done' },
+    { date: 'Management', title: 'Data science manager, TDCX Singapore', text: 'Leading data work inside a global BPO.', state: 'done' },
+    { date: 'Now', title: 'Lead AI engineer, UK consultancy', text: 'Enterprise LLM delivery. Teaching at CIIT and Eskwelabs since 2023.', state: 'hl' },
+  ]} />
+</Exhibit>
+
+<Note kind="field">
+Nothing in that sequence was wasted, and the same is true of yours. Research teaches you to evaluate a system before anyone deploys it. Operations work teaches you to scope a project around a number a manager already tracks. Whatever you are doing now — a thesis, a call-centre queue, a classroom — is quietly building one of those habits too.
+</Note>
+
+## Context: why this matters now
+
+Three forces are acting on the AI job market at once, and they pull in different directions. Understanding all three is the difference between a plan that works and one that feels productive but never converts into an offer.
+
+**The first force is price.** Employers are paying more for AI skills, and the premium is rising rather than settling. PwC's Global AI Jobs Barometer, which analyses close to a billion job advertisements each year, found that postings asking for AI skills carried a 56% wage premium in its 2025 edition, up from 25% the year before. The 2026 edition, covering more than a billion ads across 27 countries, put the premium at 62%. That average hides a wide range — from 16% in government roles to 118% at the top end — but the direction is unambiguous.
+
+<Exhibit
+  n={2}
+  title="The pay premium for AI skills has more than doubled in two editions of PwC's barometer"
+  sub="Average wage premium for job postings that require AI skills, by barometer edition"
+  source="PwC Global AI Jobs Barometer 2025 and 2026 (official releases)"
+  sourceUrl="https://kyodonewsprwire.jp/release/202606150856"
+  note="The 25% figure is the previous year's premium as cited in PwC's 2025 release. The 2026 premium ranges from 16% (government) to 118% depending on sector. Advertised wages, not realised pay."
+  table={[['Edition', 'AI-skill wage premium'], ['2024', '25%'], ['2025', '56%'], ['2026', '62%']]}
+>
+  <Columns unit="%" max={70} data={[
+    { label: '2024 edition', value: 25 },
+    { label: '2025 edition', value: 56 },
+    { label: '2026 edition', value: 62, hl: true },
+  ]} />
+</Exhibit>
+
+**The second force is volume.** AI-skill demand is no longer a niche. PwC's 2026 analysis found postings requiring AI skills grew 69%, against 9% for all job postings. Lightcast's data for the Stanford AI Index 2026 shows the same shape from a different angle: 2.5% of all US job postings now mention AI skills, up 55% in a single year, 72% since 2022 and roughly 300% over a decade. LinkedIn's Jobs on the Rise list for the US in 2026, as reported secondhand, put AI engineer at number one, AI consultants and strategists at two, data annotators at four, and AI and machine-learning researchers at five.
+
+<Exhibit
+  n={3}
+  title="Postings that ask for AI skills grew more than seven times faster than the job market"
+  sub="Growth in job postings, AI-skill roles vs. all roles"
+  source="PwC 2026 Global AI Jobs Barometer"
+  sourceUrl="https://kyodonewsprwire.jp/release/202606150856"
+  table={[['Segment', 'Posting growth'], ['Postings requiring AI skills', '+69%'], ['All job postings', '+9%']]}
+>
+  <Bars unit="%" data={[
+    { label: 'Postings requiring AI skills', value: 69, display: '+69%', hl: true },
+    { label: 'All job postings', value: 9, display: '+9%' },
+  ]} />
+</Exhibit>
+
+For readers in Southeast Asia, the geography matters. Lightcast's country comparison puts Singapore at the top of the world for the share of postings asking for AI skills, at 4.769% — nearly double the US share. Hong Kong, Luxembourg and Spain follow. If you are in the Philippines, the most AI-intensive labour market on the planet is a short flight away, and many of its employers hire remotely across the region.
+
+<Exhibit
+  n={4}
+  title="Singapore has the highest share of job postings asking for AI skills — nearly double the US"
+  sub="Share of job postings that mention AI skills, selected markets"
+  source="Lightcast, data for the Stanford AI Index 2026"
+  sourceUrl="https://lightcast.io/resources/blog/stanford-ai-2026"
+  note="Singapore's figure is 4.769%, shown rounded. The US figure is the national share from the same Lightcast analysis."
+  table={[['Market', 'Share of postings mentioning AI skills'], ['Singapore', '4.769%'], ['Hong Kong', '3.5%'], ['Luxembourg', '3.4%'], ['Spain', '3.3%'], ['United States', '2.5%']]}
+>
+  <Bars unit="%" max={5} data={[
+    { label: 'Singapore', value: 4.769, display: '4.8%', hl: true },
+    { label: 'Hong Kong', value: 3.5, display: '3.5%' },
+    { label: 'Luxembourg', value: 3.4, display: '3.4%' },
+    { label: 'Spain', value: 3.3, display: '3.3%' },
+    { label: 'United States', value: 2.5, display: '2.5%' },
+  ]} />
+</Exhibit>
+
+**The third force is speed.** The skills themselves are moving. PwC found that the skills employers ask for are changing 66% faster in AI-exposed jobs than in others. The clearest example is agentic AI — systems that plan and take actions, not just answer questions. Lightcast found agentic-AI skills went from 0.06% of US postings in 2024 to 0.23% in 2025, about 90,000 ads. That is still small. But it nearly quadrupled in a year, and it is the kind of skill no syllabus written three years ago could have included.
+
+<Exhibit
+  n={5}
+  title="Demand for agentic-AI skills nearly quadrupled in a year — from a small base"
+  sub="Share of US job postings mentioning agentic-AI skills"
+  source="Lightcast, data for the Stanford AI Index 2026"
+  sourceUrl="https://lightcast.io/resources/blog/stanford-ai-2026"
+  note="About 90,000 US postings in 2025. Small in absolute terms; the point is the rate of change."
+  table={[['Year', 'Share of US postings'], ['2024', '0.06%'], ['2025', '0.23%']]}
+>
+  <Columns unit="%" max={0.25} data={[
+    { label: '2024', value: 0.06, display: '0.06%' },
+    { label: '2025', value: 0.23, display: '0.23%', hl: true },
+  ]} />
+</Exhibit>
+
+Put the three forces together and you get a market that is paying more, hiring more and changing faster — which sounds like pure good news for anyone trying to get in. It is not quite. The next section explains why.
+
+## The evidence: credentials are loosening, but the entry door is narrowing
+
+If you read only one section of this guide, read this one. Two findings, both robust, appear to contradict each other. They do not, and the way they fit together is the whole basis of my thesis.
+
+### Finding one: degree requirements are falling
+
+PwC's 2025 analysis found that between 2019 and 2024 the share of job postings requiring a degree fell in exactly the jobs AI touches most. In AI-augmented jobs — where AI helps people do their work — it dropped from 66% to 59%. In AI-automated jobs — where AI can take over tasks — it dropped from 53% to 44%. Employers are, slowly, shifting from credentials towards demonstrated skill.
+
+<Exhibit
+  n={6}
+  title="Fewer AI-exposed jobs ask for a degree than five years ago"
+  sub="Share of job postings requiring a degree, 2019 vs. 2024"
+  source="PwC 2025 Global AI Jobs Barometer"
+  sourceUrl="https://www.aap.com.au/aapreleases/cision20250603ae00811/"
+  table={[['Job type', '2019', '2024'], ['AI-augmented jobs', '66%', '59%'], ['AI-automated jobs', '53%', '44%']]}
+>
+  <Slope left="2019" right="2024" unit="%" max={70} min={40} items={[
+    { label: 'AI-augmented jobs', a: 66, b: 59, hl: true },
+    { label: 'AI-automated jobs', a: 53, b: 44 },
+  ]} />
+</Exhibit>
+
+Read the numbers carefully, though. A majority of AI-augmented postings — 59% — still ask for a degree. The trend is real, but "degrees don't matter" is not what the data says. What it says is that a degree is becoming *one* kind of evidence among several, and that employers are increasingly willing to accept other kinds.
+
+### Finding two: entry-level roles now want senior skills
+
+The harder news comes from PwC's 2026 edition, which looked at 2.4 million US entry-level job postings. AI-exposed entry-level roles were seven times more likely to ask for senior-level skills than other entry-level roles. In plain terms: employers want juniors who arrive already useful.
+
+That is the advertised side. The hiring side is starker. Erik Brynjolfsson, Bharat Chandar and Ruyu Chen at the Stanford Digital Economy Lab used ADP payroll records covering millions of US workers to track what happened to employment by age and AI exposure. In their August 2026 revision, with data through June 2026, employment of 22- to 25-year-olds in AI-exposed occupations stood 19% below where it would have been had it kept pace with less-exposed peers. Experienced workers showed no comparable gap. The mechanism was reduced hiring of young workers, not more layoffs — and the decline was concentrated in occupations where AI mostly substitutes for tasks, while jobs where AI mostly complements people were flat or growing.
+
+<Exhibit
+  n={7}
+  title="The squeeze is at the front door: entry-level roles ask for more, and fewer young people are being hired"
+  sub="Entry-level postings and early-career employment, United States"
+  source="PwC 2026 Global AI Jobs Barometer; Brynjolfsson, Chandar & Chen, Stanford Digital Economy Lab (rev. Aug 2026)"
+  sourceUrl="https://digitaleconomy.stanford.edu/publications/canaries-in-the-coal-mine/"
+  note="The 19% figure is relative to less-exposed peers, not an absolute fall, and the authors describe it as descriptive rather than causal. Payroll data through June 2026."
+>
+  <Stats items={[
+    { value: '7×', label: 'more likely that an AI-exposed entry-level role asks for senior-level skills', source: 'PWC 2026' },
+    { value: '2.4M', label: 'US entry-level job postings in that analysis', source: 'PWC 2026' },
+    { value: '−19%', label: 'employment of 22–25-year-olds in AI-exposed jobs vs. where it would be at peers’ pace', source: 'STANFORD DEL · 2026' },
+  ]} />
+</Exhibit>
+
+### How the two findings fit together
+
+They fit because they describe the same shift from two sides. Employers are relaxing the *proxy* (the degree) and raising the *bar* (what you can already do). If AI can now handle many of the routine tasks that used to be how juniors learned on the job — first drafts, simple analyses, boilerplate code — then the remaining entry-level work is the part that needs judgement. A credential tells an employer you could probably learn that judgement eventually. A shipped, measured project shows you already have some of it.
+
+There is one more nuance worth holding onto. PwC's 2025 data found that jobs in more AI-exposed occupations still *grew* between 2019 and 2024 — by 38% — just more slowly than the 65% growth in less-exposed occupations. That is not a collapse. It is a market where the jobs are still there, but the competition for each one is sharper and the price of entry is higher.
+
+<Exhibit
+  n={8}
+  title="AI-exposed occupations kept growing — just more slowly than the rest of the market"
+  sub="Job growth by AI exposure of occupation, 2019–2024"
+  source="PwC 2025 Global AI Jobs Barometer"
+  sourceUrl="https://www.aap.com.au/aapreleases/cision20250603ae00811/"
+  table={[['Occupation group', 'Job growth, 2019–2024'], ['Less AI-exposed', '+65%'], ['More AI-exposed', '+38%']]}
+>
+  <Bars unit="%" data={[
+    { label: 'Less AI-exposed occupations', value: 65, display: '+65%' },
+    { label: 'More AI-exposed occupations', value: 38, display: '+38%', hl: true },
+  ]} />
+</Exhibit>
+
+A word on the quality of this evidence, since you are making real decisions with it. PwC and Lightcast measure *job advertisements*, not hires; an ad that mentions "AI" may be keyword dressing rather than a real requirement. The Stanford study measures actual payroll, which makes it stronger, but it is US-only and descriptive. None of these sources is Philippine. I come back to these limits at the end; for now, the safest reading is that three independent methods — ad analysis, skills analysis and payroll data — all point the same way.
+
+## A framework: the proof ladder and the five paths
+
+If proof is the currency, you need a way to tell how much you have. The simple model I use for this is what I call the proof ladder.
+
+<Exhibit
+  n={9}
+  title="Most beginners stop at “built”; interviews start at “shipped” and offers usually need “measured”"
+  sub="Author's framework: the proof ladder — five levels of evidence that you can do AI work"
+  note="Framework by the author. The rungs are cumulative: each assumes the one before it."
+>
+  <Flow steps={[
+    { title: 'Learned', text: 'Courses, certificates, a degree. Necessary context; weak evidence on its own.' },
+    { title: 'Built', text: 'It runs on your laptop. A notebook, a demo, a tutorial extended.' },
+    { title: 'Shipped', text: 'Deployed at a link someone else can use. At least one real user.', hl: true },
+    { title: 'Measured', text: 'One honest number against a baseline: minutes saved, errors caught, cost per request.', hl: true },
+    { title: 'Survived', text: 'It met real usage, broke, and you fixed it. You can explain what you changed and why.' },
+  ]} />
+</Exhibit>
+
+The ladder matters because each rung answers a different doubt in a hiring manager's head. *Learned* answers "do they know the vocabulary?" *Built* answers "can they code?" *Shipped* answers "can they finish something outside a syllabus?" *Measured* answers "do they know whether it works?" And *survived* answers the question that matters most for any role touching production AI: "what happens when it breaks?" The entry-level squeeze in Exhibit 7 is, in ladder terms, employers moving the minimum from *built* to *measured*.
+
+The second half of the framework is a map. Job titles in AI change every year or two, so don't anchor on them. A more useful way to choose is to ask yourself two questions: **how deep into the model do you want to go** (from using models to building them), and **how close to the customer and their problem do you want to be** (from back office to in the room).
+
+<Exhibit
+  n={10}
+  title="Choose a path by how deep you want to go and how close to the customer you want to be"
+  sub="Author's framework: where common AI roles sit on two axes, and what each one looks like day to day"
+  note="Framework by the author. Role placement is indicative; individual jobs vary. The table scrolls sideways on small screens."
+>
+  <Matrix
+    x="Depth of model work"
+    y="Closeness to customer"
+    quads={[
+      { title: 'AI strategist / consultant', text: 'Decides what is worth building and helps people adopt it' },
+      { title: 'Forward-deployed engineer', text: 'Builds and ships AI inside a customer’s systems', hl: true },
+      { title: 'Data & AI operations', text: 'Keeps data, labels and evaluations trustworthy' },
+      { title: 'Research & model engineering', text: 'Trains, fine-tunes and improves models themselves' },
+    ]}
+    points={[{ label: 'AI / ML engineer', x: 50, y: 50 }]}
+  />
+  <div style="margin-top:28px"><Compare
+  cols={['AI / ML engineer', 'Forward-deployed engineer', 'AI strategist', 'Research / model eng.', 'Data & AI ops']}
+  hlCol={1}
+  rows={[
+    { k: 'In one line', v: ['Builds the AI system and keeps it running', 'Makes AI work for one customer, in production', 'Decides what is worth building and why', 'Makes the model itself better', 'Makes sure the data and tests can be trusted'] },
+    { k: 'A typical day', v: ['Code, APIs, data pipelines, tests', 'Customer calls, integration, debugging, shipping', 'Workshops, business cases, slide decks', 'Experiments, training runs, reading papers', 'Labelling, quality checks, evaluation sets'] },
+    { k: 'You will enjoy it if', v: ['You like building things that run reliably', 'You like people and messy problems as much as code', 'You like the why more than the how', 'You love maths and patient experiments', 'You are careful and like catching mistakes'] },
+    { k: 'First thing to build', v: ['A deployed app with tests', 'A tool a real user relies on', 'A business case for one AI use', 'A reproduced result from a paper', 'An evaluation set for a real task'] },
+    { k: 'Common way in', v: ['Software or data roles', 'Engineering plus client-facing work', 'Analyst, product or consulting roles', 'Graduate research', 'QA, analytics or domain expert roles'] },
+  ]}
+/></div>
+</Exhibit>
+
+You don't have to pick forever. Most people move around this map; my own path started bottom-right in genomics research and ended up top-right. Pick the box that matches what you enjoy **now**, and build your first rungs of proof for that box. The rest of this section goes through each path in turn.
+
+## Deep dives: the five paths
+
+Exhibit 11 summarises what each path demands at each rung of the ladder, and the strongest public demand signal for each. The subsections below explain the reasoning.
+
+<Exhibit
+  n={11}
+  title="Every path has its own version of proof — and every one of them has a public demand signal"
+  sub="Author's framework: the proof ladder by career path, with the strongest available demand evidence"
+  source="Demand row: LinkedIn Jobs on the Rise 2026 (US), via VnExpress; Lightcast via Fortune (FDE)"
+  sourceUrl="https://e.vnexpress.net/news/tech/tech-news/ai-roles-dominate-fastest-growing-jobs-in-us-5004966.html"
+  note="Rungs are the author's framework. LinkedIn rankings are US-only and reported secondhand; data annotators stand in for the wider data & AI operations family. The table scrolls sideways on small screens."
+>
+  <Compare
+    cols={['AI / ML engineer', 'Forward-deployed engineer', 'AI strategist', 'Research / model eng.', 'Data & AI ops']}
+    hlCol={1}
+    rows={[
+      { k: 'Demand signal', v: ['#1 on LinkedIn Jobs on the Rise 2026 (US)', 'Postings up more than 1,000% year on year, Jan–Aug 2026', '#2 on LinkedIn Jobs on the Rise 2026 (US)', '#5 on LinkedIn Jobs on the Rise 2026 (US)', 'Data annotators #4 on LinkedIn Jobs on the Rise 2026 (US)'] },
+      { k: 'Proof that gets interviews', v: ['A deployed app with tests and a README', 'A tool one real user relies on weekly', 'A one-page business case with a baseline number', 'A reproduced paper result, code public', 'An evaluation set for a real task, with labelling guide'] },
+      { k: 'Proof that gets offers', v: ['Measured quality and cost per request, plus error analysis', 'Before-and-after numbers from that user, plus what you cut', 'A recommendation someone acted on, and what happened', 'A small extension or ablation beyond the paper', 'Agreement rates between labellers, and errors you caught'] },
+      { k: 'Proof that gets promoted', v: ['A system that survived real traffic and an incident', 'A handover: someone else runs it without you', 'An adopted programme with tracked results', 'Published or production-adopted research', 'An evaluation suite that gates releases'] },
+      { k: 'Most common failure mode', v: ['Demo-ware: impressive, never deployed', 'All people skills, no shipped code', 'Slides with no numbers', 'Theory with no working code', 'Treated as clerical; never shows judgement'] },
+    ]}
+  />
+</Exhibit>
+
+### Path 1: AI / ML engineer
+
+**What the work is.** The AI engineer builds the system around the model: the data pipelines that feed it, the retrieval layer that gives it context, the API that serves it, the tests that catch regressions and the monitoring that tells you when quality slips. In 2026 most of this work involves calling large models rather than training them, but the engineering is not lighter for that — it is different. A retrieval system that answers from the wrong document version is an engineering bug, not a model problem.
+
+**The skills ladder.** Python beyond notebooks, SQL, git and one cloud platform are the floor. Above that sit the skills juniors usually lack: designing an evaluation set, measuring cost and latency per request, handling rate limits and failures gracefully, and knowing when a smaller, cheaper model is good enough. Senior AI engineers are distinguished less by knowing more frameworks than by knowing which failure is coming next.
+
+**Evidence of demand.** AI engineer topped LinkedIn's US Jobs on the Rise list for 2026, as reported secondhand. It is the broadest of the five paths and the one most job ads mean when they say "AI".
+
+**How people break in.** Usually sideways from software engineering or data roles. For a junior without that background, the realistic route is a portfolio that reaches *measured* on the ladder: one deployed project with a test set, an honest accuracy number and a cost per request. The common failure mode is demo-ware — a slick chatbot that never left localhost and has no answer to "how do you know it works?"
+
+### Path 2: Forward-deployed engineer
+
+**What the work is.** The forward-deployed engineer (FDE) makes AI work for one customer, inside that customer's systems: scoping a messy problem, integrating with their data and identity systems, shipping, and staying until it runs without them. The role originated at Palantir in the early 2010s and, according to *The Pragmatic Engineer*, Palantir had more FDEs than conventional software engineers until around 2016.
+
+**The skills ladder.** Everything the AI engineer needs, plus the ability to run a discovery conversation, cut scope without losing the client, and explain trade-offs to executives. The senior version owns an outcome rather than a ticket.
+
+**Evidence of demand.** Lightcast data reported by *Fortune* shows FDE postings up more than 1,000% in January–August 2026 compared with the same period a year earlier, with a median advertised salary above $188,000 against about $145,000 for traditional US software engineers. Those are US figures, and the role is still small in absolute terms, but no title in this guide is growing faster.
+
+**How people break in.** Experience bars vary widely. *The Pragmatic Engineer* reported that Palantir hires FDEs with about a year of post-college experience, while Ramp prefers five or more years for its senior FDEs. Salesforce reported in March 2026 that 40–50% of moves into its Agentforce FDE team were internal transfers. For most readers, then, this is a second or third job rather than a first one — but it is a realistic target for career shifters who already sit close to customers. I have written a separate deep dive on the role for anyone considering it seriously.
+
+### Path 3: AI strategist / consultant
+
+**What the work is.** Deciding what is worth building, and helping an organisation adopt it. That means mapping processes, sizing benefits, sequencing a portfolio of use cases, writing the governance rules and — most underrated — managing the change in how people work.
+
+**The skills ladder.** At the bottom: structured problem-solving, business-case maths, clear writing. In the middle: enough technical literacy to know what a model can and cannot do reliably, and to tell a vendor demo from a production system. At the top: a track record of recommendations that were acted on and paid back.
+
+**Evidence of demand.** AI consultants and strategists ranked second on LinkedIn's US Jobs on the Rise list for 2026, as reported secondhand.
+
+**How people break in.** From analyst, product, operations or consulting roles. The failure mode is the strategist who has never built anything and therefore cannot tell what is hard. My advice to aspiring strategists is the same as to engineers: build one small thing yourself, end to end, so that your slides are grounded in what actually breaks.
+
+### Path 4: Research and model engineering
+
+**What the work is.** Making the model itself better — training, fine-tuning, evaluation research, efficiency work. It is the most mathematically demanding path and the one where frontier labs concentrate.
+
+**The skills ladder.** Linear algebra, probability, optimisation and deep-learning frameworks at the floor; the ability to design a clean experiment and read results sceptically in the middle; original contributions at the top.
+
+**Evidence of demand.** AI and machine-learning researchers ranked fifth on LinkedIn's 2026 US list, as reported secondhand.
+
+**How people break in.** Usually through graduate research. This is the one path where my "proof beats paper" thesis is weakest, and I say more about that in the counterpoints. Even here, though, the proof that stands out is code: a reproduced paper result that someone else can run, and ideally a small extension of it.
+
+### Path 5: Data and AI operations
+
+**What the work is.** Keeping the inputs and the tests trustworthy: labelling and annotation, data-quality checks, building and maintaining evaluation sets, reviewing model output, and spotting drift. It is the least glamorous path on the map and, in my experience, one of the most important. A model can only be as good as the evaluation that tells you whether it is good.
+
+**The skills ladder.** Care and consistency at the floor; writing labelling guidelines, measuring agreement between labellers and spotting systematic errors in the middle; owning an evaluation suite that gates whether a model ships at the top.
+
+**Evidence of demand.** Data annotators ranked fourth on LinkedIn's 2026 US list, as reported secondhand.
+
+**How people break in.** From QA, analytics, annotation or domain-expert roles. The failure mode is being treated as clerical labour: if you never move beyond labelling into designing the tests, the role can be automated around you. The way up is to own the *judgement* — the guidelines, the edge cases, the decision about what counts as correct.
+
+<Note kind="field">
+I have taught bootcamps and corporate cohorts at CIIT and Eskwelabs since 2023. The advice I give every cohort is the same: credentials open the door, but shipped work is what gets discussed in the interview. Build a small, real thing — a dashboard a manager actually uses, a scraper that saves a team an afternoon — and be ready to explain every trade-off you made.
+</Note>
+
+## Case examples
+
+Frameworks are easier to trust when you can see them operating. Here are three cases, two public and one from my own record.
+
+**Case 1: Salesforce fills a scarce role from the inside.** In March 2026 Salesforce reported that it had tripled its Agentforce forward-deployed engineering team in six months, that 40–50% of moves into the role were internal transfers, and that since September 2025 it had run a six-week onboarding programme for new FDEs. It said it values curiosity over credentials. Venture firm a16z, writing about the same role, advised founders to hire for hustle and curiosity rather than advanced degrees, noting the job does not require a PhD. *The lesson:* when a role grows faster than the market can supply it, employers fall back on people whose work they have already seen. For a career shifter, the most underrated route into AI is the internal one — becoming visibly useful with AI inside the organisation you already work for.
+
+**Case 2: proof as a number, not a title.** My first industry role, as a data scientist at AIA Digital+, involved building a data pipeline for next-best-action models that reduced the full-time effort needed for that model development by up to 95%. Later, at TDCX AI in Singapore, I led work on an LLM-based simulator that cut agent time-to-proficiency by at least 20%. Neither of those numbers came from my degrees. Both are what made the next conversation easier. *The lesson:* the career currency is a measured change in something a manager already tracks — effort, time, error rate, cost.
+
+**Case 3: hackathons as compressed proof.** Before and alongside my industry work, I competed in public hackathons: third at USHER 2022, second of 122 teams in the youth category of the UN Big Data Hackathon 2023, first at the DOH-DAP Hack4Health 2024 with a fraud-detection platform for unified health data, and first at ICSC Hack-A-Street 2025. *The lesson:* a good hackathon forces you up the ladder in 48 hours — you must ship something, demo it to strangers, and defend it under questioning. Those are the same muscles an interview tests.
+
+<Note kind="field">
+Four hackathon podiums between 2022 and 2025 taught me where the scrutiny goes. The model is rarely the interesting part. The questions that decide whether a project is taken seriously are who will use it, how you know it works, and what happens when the data is bad — and they are the same questions a good interviewer will ask about your portfolio.
+</Note>
+
+## Counterpoints
+
+An argument worth acting on should survive its strongest objections. Here are the four I hear most often, stated as strongly as I can, with my honest assessment of where each one is right.
+
+<Note kind="counter" label="Objection 1: A master's or PhD still matters">
+Credentials are the most legible signal in hiring. Most AI-augmented postings still ask for a degree; frontier research labs overwhelmingly hire PhDs; and in many Asian markets, visa rules and HR filters treat a degree as a hard gate. Telling young people to skip credentials for a portfolio is risky advice.
+</Note>
+
+<Note kind="response">
+Partly right, and I would not tell anyone to skip a degree. The data in Exhibit 6 shows 59% of AI-augmented postings still ask for one, and for the research path graduate study remains the usual way in. My claim is narrower: among candidates who clear the credential filter, proof decides who gets the offer, and for the applied paths the filter itself is loosening. I did a master's at AIM and I'm not against them — do one because you want the depth, structure or network, or because a visa route requires it, not because you think it substitutes for shipped work. It does not.
+</Note>
+
+<Note kind="counter" label="Objection 2: AI will shrink these jobs before you're hired">
+Why invest a year building AI skills when AI is automating the junior work you would be hired to do? The Stanford payroll data already shows young workers in exposed jobs being hired less. By the time you are ready, the role may not exist.
+</Note>
+
+<Note kind="response">
+The squeeze is real — Exhibit 7 is in this guide precisely because it is. But look at what the same research found: the decline is concentrated where AI substitutes for tasks, while roles where AI complements people were flat or growing, and experienced workers saw no comparable gap. Exposed occupations still grew 38% over five years (Exhibit 8), and AI-skill postings grew 69% (Exhibit 3). The objection is a reason to aim at complementary work — judging, integrating and being accountable for AI output — and to arrive with experience-like proof. It is not a reason to stay out.
+</Note>
+
+<Note kind="counter" label="Objection 3: Just learn prompt engineering">
+Models are increasingly operated in plain language. The fastest route into AI is to become excellent at prompting — no code, no maths, no deployment required.
+</Note>
+
+<Note kind="response">
+Prompting is now table stakes, not a career. "Prompt engineer" was a hot title a few years ago and is now mostly a skill inside other jobs. Look at where demand is actually moving: agentic-AI skills nearly quadrupled as a share of postings in a year (Exhibit 5), and agents are systems — they need tools, permissions, evaluation and monitoring. Learn to prompt well, by all means. Then learn to measure whether the prompt works, which is where the job begins.
+</Note>
+
+<Note kind="counter" label="Objection 4: Everyone has a portfolio now">
+Hiring managers are drowning in identical "chat with your PDF" projects. A portfolio is no longer a differentiator; it is noise.
+</Note>
+
+<Note kind="response">
+Right about the noise, which is exactly why the ladder matters. A tutorial project sits at *built*. What almost nobody has is a project with a real user, a measured number and a write-up of what broke — the *shipped*, *measured* and *survived* rungs. Domain is the other differentiator: a tool for a specific process in insurance, health or customer service, built by someone who has worked in that process, does not look like anyone else's portfolio.
+</Note>
+
+## Implications by reader type
+
+The same thesis implies different moves depending on where you are standing. Here is how I would apply it to each of the three readers this guide is for.
+
+### If you are a student
+
+Your advantage is a low cost of failure. You can try two or three directions this year and lose nothing but a few weekends. Your risk is the opposite of a career shifter's: you have time but no evidence that you can finish something outside a syllabus. So use the time to climb the ladder early. Turn one class project into something with a real user — a student organisation, a professor, a family business — and measure it. Keep the path open, but lean towards the AI engineering or research paths if you enjoy the maths, and treat a data or AI operations internship as a feature, not a fallback: it teaches you how real data behaves, which most graduates learn painfully in their first job.
+
+On maths: the research path needs a lot of it — linear algebra, probability, optimisation. The applied paths need solid statistical intuition: averages versus distributions, sampling, precision versus recall, and healthy suspicion of any single number. Take the maths courses seriously now, because you will never again have this much structured time to learn them.
+
+### If you are a fresh graduate
+
+You are the reader the entry-level squeeze affects most directly. Your advantage is recent, rigorous training and a thesis or capstone you can turn into a shipped project in a few weeks. The single highest-return move available to you is to take that thesis off your laptop: deploy it, give it an evaluation set, work out its cost per request, and write a one-page README on what broke. That moves you from *learned* to *measured* on the work you have already done.
+
+Then go narrow. Pick a domain — finance, health, logistics, government — and build a second project on real public data from it. Apply selectively, linking the project that matches each role, rather than sending the same CV everywhere. And look seriously at Singapore and regional remote roles: Exhibit 4 shows where AI-skill demand is densest.
+
+### If you are switching careers
+
+You have less free time than anyone else on this page, and more of the scarcest input in applied AI: domain knowledge. You know where the work actually hurts — which process is slow, which report nobody trusts, which tickets keep coming back. The Salesforce case suggests the best route is often internal. Automate one painful step in your current job, with permission and non-sensitive data; measure the minutes saved; write it up; share it. Aim first for a hybrid role — the "AI person" on an operations, finance or QA team — rather than jumping straight to a pure engineering title.
+
+Is it too late at 30 or 40? No. What changes with age is your free time and your tolerance for a pay cut, so plan for that honestly, and expect it to take longer than a bootcamp advert suggests.
+
+### If you work in BPO or shared services
+
+This subsection is for the many Filipinos reading from a production floor, a QA desk or a workforce team. An IMF working paper using Philippine Labour Force Survey data found that roughly a third of Filipino workers are highly exposed to AI — but about 60% of those are in roles where AI is more likely to complement than replace them. BPO carries the highest displacement risk, which is exactly why it is worth moving now.
+
+<Exhibit
+  n={12}
+  title="About one in three Filipino workers is highly exposed to AI — most of them in roles AI can augment"
+  sub="Share of Philippine workers in highly AI-exposed occupations"
+  source="IMF Working Paper WP/25/43 (Cucio & Hennig, 2025)"
+  sourceUrl="https://www.imf.org/en/publications/wp/issues/2025/02/21/artificial-intelligence-and-the-philippine-labor-market-mapping-occupational-exposure-and-562171"
+  note="The IMF reports about one third highly exposed; of those, about 60% are also highly complementary (AI more likely to augment than displace). BPO carries the highest displacement risk. Exposure is estimated from occupational tasks, not observed job losses."
+>
+  <Waffle value={33} display="~1 in 3" label="Filipino workers in highly AI-exposed occupations — about 60% of them in roles AI is more likely to augment" />
+</Exhibit>
+
+The IT-BPM industry crossed **$40 billion in revenue with 1.9 million workers in 2025**, and its 2026 targets are $42 billion and 1.97 million workers. It is full of processes that are documented, measured and repetitive — exactly where AI systems pay back first. That makes the people who know those processes from the inside a natural fit for the teams that will rebuild them. A BPO floor already runs on the measurement discipline AI projects need: handle time, quality scores, calibration. Few industries train people to think in baselines so thoroughly.
+
+- **Agents and senior agents:** you know which tickets repeat and why. Start with the career-shifter track below and aim for data and AI operations or an internal automation team.
+- **QA analysts:** quality forms and calibration sessions are evaluation work. Learning to build evaluation sets for AI tools is a short step from what you already do.
+- **Team leads and workforce managers:** you already think in handle time, quality scores and staffing. That is how a forward-deployed engineer or AI strategist scopes a project.
+- **Trainers:** you know how people learn a new process. AI adoption is mostly that problem.
+
+## What to do next: your 90 days
+
+Whatever your track, the learning order is deliberately boring, and the most common mistake I see is collecting courses instead of finishing things:
+
+1. **Fundamentals.** Python, SQL, git and basic statistics — enough to build without copying a tutorial.
+2. **Working with models.** Call an LLM API, train one simple model, and add search over your own documents.
+3. **One shipped project.** Deployed, used by a real person, with one number you measure. This is the step most beginners skip.
+4. **Evaluation and reliability.** A test set, error analysis, cost per request, and basic monitoring.
+5. **Specialise.** Only now pick a path from the map and a domain you care about.
+
+Pick the track below that sounds most like you. Each one has the path that usually fits, the skills to learn first, one project to build, and a 90-day plan that walks you up the proof ladder.
+
+<TrackPicker tracks={[
+  {
+    id: 'student',
+    label: 'Student',
+    title: "You're still in school",
+    start: "You have time, cheap access to courses and tools, and nobody expects you to be senior yet. What you're missing is evidence that you can finish something outside a syllabus.",
+    edge: 'A low cost of failure. You can try two or three directions this year and lose nothing but a few weekends.',
+    path: 'Keep it open. Lean towards AI / ML engineering, or research and model engineering if you love the maths. A data and AI operations internship is a great first job — it teaches you how real data behaves.',
+    skills: [
+      'Python beyond notebooks: functions, packages, git',
+      'SQL, because every real dataset lives in a database',
+      'The statistics and linear algebra you already take — connected to code',
+      'Calling an LLM API and checking whether its answers are right',
+    ],
+    project: "A small assistant that answers questions about something you know well — your org's FAQs or a course handbook — tested against 30 real questions with known answers.",
+    plan: [
+      { when: 'Days 1–30', focus: 'Foundations', text: 'Python, git and SQL until you can build without a tutorial open. Commit one small script a week to a public repo.' },
+      { when: 'Days 31–60', focus: 'First build', text: 'Find one real user — an org, a professor, a family business. Scope a tiny tool for them and ship a rough version 1.' },
+      { when: 'Days 61–90', focus: 'Prove it', text: 'Add a test set, write a one-page README on what broke, and demo it to your user. Put the link at the top of your CV for internship season.' },
+    ],
+  },
+  {
+    id: 'fresh-grad',
+    label: 'Fresh grad',
+    title: 'You just graduated',
+    start: "You have the degree, maybe a thesis or capstone, and job ads asking for experience you can't have yet.",
+    edge: 'Recent, rigorous training — and a thesis or capstone you can turn into a shipped project in a few weeks.',
+    path: 'AI / ML engineer if you enjoy coding every day. Forward-deployed engineer if you like people and messy problems as much as code. Data and AI operations is a solid on-ramp to either.',
+    skills: [
+      'Turning a notebook into a small API or web app',
+      'One cloud platform, well enough to deploy and pay for it',
+      'Evaluation: building a test set and measuring a system against it',
+      'Writing a short design doc a manager can read in five minutes',
+    ],
+    project: 'Re-ship your thesis or capstone as something people can use: a deployed API or app, an evaluation report, and the cost to run it per request.',
+    plan: [
+      { when: 'Days 1–30', focus: 'Re-ship', text: 'Take your thesis or capstone off your laptop. Deploy it, write the README, record a two-minute walkthrough.' },
+      { when: 'Days 31–60', focus: 'Go narrow', text: 'Pick a domain — finance, health, logistics, government. Build a second project on real public data from that domain.' },
+      { when: 'Days 61–90', focus: 'Get in rooms', text: 'Talk to ten people doing the job you want. Apply selectively, linking the project that matches each role.' },
+    ],
+  },
+  {
+    id: 'shifter',
+    label: 'Career shifter',
+    title: "You're switching from another career",
+    start: 'You already have a job, a field you know well, and less free time than anyone else on this page. You might be a BPO agent or team lead, an analyst, an engineer from another discipline, or a teacher.',
+    edge: 'Domain knowledge. You know where the work actually hurts: which process is slow, which report nobody trusts, which tickets keep coming back. That is the scarcest input in applied AI.',
+    path: 'Forward-deployed engineer or AI strategist if you come from operations, BPO, consulting or teaching. Data and AI operations if you come from QA, analytics or annotation. AI / ML engineer if you already write code as an engineer elsewhere.',
+    skills: [
+      'Enough Python and SQL to automate part of your own work',
+      'How LLM tools fail: made-up answers, privacy leaks, runaway cost',
+      'Measuring a process before and after a change',
+      'Explaining trade-offs to non-technical managers — you probably do this already',
+    ],
+    project: 'Automate one painful step in your current job, with permission and non-sensitive data — for example, drafting first replies to repetitive tickets. Measure the minutes saved per week.',
+    plan: [
+      { when: 'Days 1–30', focus: 'Learn on your own work', text: 'A few focused hours a week of Python and SQL, applied to a spreadsheet or report you already maintain.' },
+      { when: 'Days 31–60', focus: 'Build inside', text: "Get your manager's OK and build a small tool that saves your team time, using synthetic or non-sensitive data." },
+      { when: 'Days 61–90', focus: 'Make it visible', text: 'Write a one-page case study: baseline, change, result, what broke. Share it internally, then look at internal AI or automation teams first.' },
+    ],
+  },
+]} />
+
+<Note kind="warn" label="A word on company data">
+If you are building inside your current job, never paste customer or employee data into a public AI tool, and get written permission before you build anything on company systems. Handling data responsibly is part of the skill you are trying to show.
+</Note>
+
+At the end of the 90 days, check yourself against this list. A junior portfolio that gets interviews usually has:
+
+1. **One project that is actually deployed.** A link someone can click — not a notebook on your laptop.
+2. **A real user.** Even one person who uses it weekly beats a hundred GitHub stars.
+3. **A number.** Minutes saved, errors caught, accuracy on a test set, cost per request. Pick one and measure it honestly against a baseline.
+4. **A write-up of what broke.** Bad data, prompts that failed on edge cases, costs that surprised you. This is what you will talk about in interviews.
+5. **A domain.** Insurance, health, logistics, education, customer service. Domain knowledge is the fastest way to look senior early.
+
+If you can tick all five, you are on the *measured* rung, which is where the entry-level bar now sits. If you can tick four, you know exactly what to do in the next 30 days.
+
+## Limitations and methodology
+
+I have tried to keep every number in this guide traceable, and I want to be equally clear about what those numbers cannot tell you.
+
+- **Job ads are not jobs.** PwC and Lightcast analyse postings. A posting that mentions "AI" may be aspirational or keyword-stuffed, and wage premiums are advertised pay, not realised pay. Postings also overstate demand in hot fields, where employers advertise more speculatively.
+- **The strongest hiring evidence is American.** The Stanford payroll study is the best evidence on actual hiring, but it covers US workers, and its authors describe it as descriptive rather than causal. The PwC entry-level analysis is also US-only. I have found no equivalent hiring data for the Philippines.
+- **Exposure is not displacement.** The IMF study estimates exposure from the tasks in each occupation. It tells you where AI could change work, not where jobs have been lost.
+- **Some figures are secondhand.** The LinkedIn rankings come from a news report rather than LinkedIn's own publication, and the Salesforce figures are the company's own account of its programme. I have labelled them accordingly.
+- **The sources have interests.** PwC sells AI advisory services; LinkedIn and Lightcast sell labour-market data; Salesforce sells AI agents. None of that makes their numbers wrong, but it is a reason to prefer findings that several independent sources agree on — which is why I lean hardest on the pattern across sources rather than any single figure.
+- **My own observations are one practitioner's.** The field notes describe what I have seen teaching and hiring. They are useful as illustration; they are not a sample.
+- **The framework is mine.** The proof ladder and the five-path map are tools for thinking, not measured categories. Real jobs blur the boundaries.
+
+## The door is narrower, and proof is the key
+
+The AI job market in 2026 is paying more, hiring more and changing faster than almost any other part of the economy — while quietly raising the bar at the front door. Employers are relaxing the proxy and raising the standard. That combination punishes people who wait for a credential to do the talking, and rewards people who arrive already holding a shipped, measured, battle-tested piece of work.
+
+So pick your track above. Put the next 90 days in your calendar — literally, as blocked time. Ship something small in the first 30, even if it is rough. Then measure it, write down what broke, and show it to someone. Sideways is normal. Proof is what turns sideways into forward.
+
+<Note kind="field" label="An invitation">
+If you build something using this guide, I would love to see it. Send me the link through the [contact form](/#contact) — tell me which track you followed and what broke along the way.
+</Note>

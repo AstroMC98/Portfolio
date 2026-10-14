@@ -1,0 +1,51 @@
+---
+/**
+ * "Signal M" — the M is a pipeline graph; its final node is the live output.
+ * Geometry mirrors scripts/brand.mjs (48-unit grid).
+ */
+interface Props {
+  size?: number;
+  lockup?: boolean;
+  class?: string;
+}
+const { size = 34, lockup = false, class: cls } = Astro.props;
+---
+<span class:list={['logo', cls]}>
+  <svg class="logo__mark" viewBox="0 0 48 48" width={size} height={size} aria-hidden="true">
+    <polyline points="9,39 9,11 24,28 39,11 39,39" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round" />
+    <circle cx="9" cy="39" r="3.6" fill="var(--ink)" stroke="currentColor" stroke-width="2.4" />
+    <circle cx="9" cy="11" r="3.6" fill="var(--ink)" stroke="currentColor" stroke-width="2.4" />
+    <circle cx="24" cy="28" r="3.6" fill="var(--ink)" stroke="currentColor" stroke-width="2.4" />
+    <circle cx="39" cy="11" r="3.6" fill="var(--ink)" stroke="currentColor" stroke-width="2.4" />
+    <circle class="logo__out" cx="39" cy="39" r="4.8" fill="var(--signal)" />
+  </svg>
+  {lockup && (
+    <span class="logo__type">
+      <span class="logo__name">Marc Castro</span>
+      <span class="logo__tag">AI systems · in production</span>
+    </span>
+  )}
+</span>
+
+<style>
+  .logo { display: inline-flex; align-items: center; gap: 12px; color: var(--text); }
+  .logo__mark { flex: none; overflow: visible; }
+  .logo__out { transform-origin: 39px 39px; transition: transform 0.4s var(--ease-out); }
+  :global(a:hover) > .logo .logo__out { transform: scale(1.25); }
+  .logo__type { display: grid; line-height: 1.05; }
+  .logo__name {
+    font-family: var(--font-display);
+    font-stretch: 90%;
+    font-weight: 650;
+    font-size: 1.12rem;
+    letter-spacing: -0.015em;
+  }
+  .logo__tag {
+    margin-top: 3px;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+</style>

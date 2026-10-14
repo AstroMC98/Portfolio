@@ -1,0 +1,172 @@
+---
+import { ROLES, LANES, MILESTONES, NOW, TIMELINE_START, TIMELINE_END } from '../data/experience';
+
+// Swimlane geometry (SVG user units)
+const W = 1200;
+const X0 = 150;
+const X1 = 1180;
+const AXIS_Y = 84;
+const LANE_H = 58;
+const yearW = (X1 - X0) / (TIMELINE_END - TIMELINE_START);
+const x = (t: number) => X0 + (t - TIMELINE_START) * yearW;
+const laneY = (i: number) => AXIS_Y + 26 + i * LANE_H;
+const H = laneY(LANES.length) + 8;
+const years = Array.from({ length: TIMELINE_END - TIMELINE_START + 1 }, (_, i) => TIMELINE_START + i);
+
+const SHORT: Record<string, string> = {
+  ias: 'Intelligent AI Solutions · Lead AI Eng.',
+  ciit: 'CIIT & Eskwelabs · Instructor',
+  pshs: 'PSHS · Sr. DS Consultant',
+  tdcx: 'TDCX AI · DS Manager',
+  aia: 'AIA Digital+ · DS',
+  aim: 'AIM · MS Data Science',
+  pgc: 'PGC',
+};
+
+const cards = ROLES.filter((r) => r.lane !== 'education');
+---
+<section class="section career" id="experience" aria-labelledby="career-title">
+  <span class="coord">§06 · route map</span>
+  <div class="wrap">
+    <header class="section-head" data-reveal>
+      <p class="eyebrow"><span class="idx">06</span> Experience</p>
+      <h2 id="career-title">From genomics research to <em>enterprise LLMs.</em></h2>
+      <p>Parallel lanes show where industry delivery, consulting and teaching ran at the same time.</p>
+    </header>
+
+    <div class="lanes-scroll" data-reveal>
+      <svg class="swim" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Career timeline 2020 to present: Philippine Genome Center 2020–21, MS Data Science at AIM 2021–22, AIA Digital+ 2022–23, TDCX AI 2023–24, Intelligent AI Solutions 2024–present, alongside PSHS consulting 2024–25 and teaching at CIIT & Eskwelabs since 2023.">
+        <defs>
+          <linearGradient id="ongoing" x1="0" x2="1">
+            <stop offset="0.75" stop-color="#3df5a7" />
+            <stop offset="1" stop-color="#3df5a7" stop-opacity="0.15" />
+          </linearGradient>
+        </defs>
+
+        {years.map((yr) => (
+          <g class="swim__year">
+            <line x1={x(yr)} x2={x(yr)} y1={AXIS_Y - 6} y2={H - 4} />
+            {yr < TIMELINE_END && <text x={x(yr) + 6} y={AXIS_Y - 10}>{yr}</text>}
+          </g>
+        ))}
+
+        {MILESTONES.map((m, i) => {
+          const top = 12 + (i % 2) * 22; // stagger labels on two rows
+          return (
+            <g class:list={['swim__ms', `swim__ms--${m.kind}`]}>
+              <path d={`M${x(m.at)} ${top} l5 5 l-5 5 l-5 -5z`} />
+              <line x1={x(m.at)} x2={x(m.at)} y1={top + 10} y2={AXIS_Y - 2} />
+              <text x={x(m.at) + 9} y={top + 9}>{m.label}</text>
+            </g>
+          );
+        })}
+
+        {LANES.map((l, i) => (
+          <g class="swim__lane">
+            <rect x="0" y={laneY(i) - 4} width={W} height={LANE_H - 8} rx="8" />
+            <text x="16" y={laneY(i) + 22}>{l.label.toUpperCase()}</text>
+          </g>
+        ))}
+
+        {ROLES.map((r) => {
+          const li = LANES.findIndex((l) => l.id === r.lane);
+          const x1 = x(r.start);
+          const x2 = x(r.end ?? NOW);
+          return (
+            <g class:list={['swim__bar', { 'swim__bar--now': !r.end, 'swim__bar--edu': r.lane === 'education' }]}>
+              <rect x={x1} y={laneY(li) + 2} width={x2 - x1} height={LANE_H - 20} rx="6" fill={!r.end ? 'url(#ongoing)' : undefined} />
+              <text x={x1 + 10} y={laneY(li) + 25}>{SHORT[r.id]}</text>
+            </g>
+          );
+        })}
+
+        <g class="swim__now">
+          <line x1={x(NOW)} x2={x(NOW)} y1={AXIS_Y - 4} y2={H - 4} />
+          <text x={x(NOW) - 6} y={H - 12} text-anchor="end">NOW</text>
+        </g>
+      </svg>
+    </div>
+
+    <ol class="roles">
+      {cards.map((r) => (
+        <li class:list={['role', { 'role--current': r.current }]} data-reveal>
+          <div class="role__when">
+            <span class="mono">{r.dates}</span>
+            {r.current && <span class="chip chip--signal"><span class="status-dot" aria-hidden="true"></span>Current</span>}
+          </div>
+          <div class="role__what">
+            <h3 class="role__title">{r.title}</h3>
+            <p class="role__org">{r.org}{r.orgNote && <span class="muted"> — {r.orgNote}</span>}</p>
+            <ul class="role__bullets">{r.bullets.map((b) => <li>{b}</li>)}</ul>
+          </div>
+          {r.metric && (
+            <div class="role__metric">
+              <span class="role__num">{r.metric.value}</span>
+              <span class="role__mlabel">{r.metric.label}</span>
+            </div>
+          )}
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .lanes-scroll {
+    overflow-x: auto;
+    margin-bottom: clamp(48px, 6vw, 72px);
+    padding: 22px 18px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: rgb(17 23 21 / 0.55);
+    scrollbar-width: thin;
+  }
+  .swim { min-width: 860px; width: 100%; font-family: var(--font-mono); }
+  .swim__year line { stroke: var(--line); stroke-dasharray: 2 4; }
+  .swim__year text { fill: var(--muted); font-size: 12px; letter-spacing: 0.08em; }
+  .swim__lane rect { fill: rgb(10 13 12 / 0.6); stroke: var(--line); }
+  .swim__lane text { fill: var(--muted); font-size: 10.5px; letter-spacing: 0.18em; }
+  .swim__bar rect { fill: var(--line-2); }
+  .swim__bar text { fill: var(--text); font-size: 12px; }
+  .swim__bar--now rect { fill: url(#ongoing); filter: drop-shadow(0 0 10px rgb(61 245 167 / 0.35)); }
+  .swim__bar--now text { fill: var(--ink); font-weight: 600; }
+  .swim__bar--edu rect { fill: transparent; stroke: var(--muted); stroke-dasharray: 4 4; }
+  .swim__ms path { fill: var(--amber); }
+  .swim__ms--paper path { fill: var(--text-2); }
+  .swim__ms line { stroke: var(--line-2); }
+  .swim__ms text { fill: var(--text-2); font-size: 10.5px; }
+  .swim__now line { stroke: var(--signal); stroke-width: 1.5; }
+  .swim__now text { fill: var(--signal); font-size: 10.5px; letter-spacing: 0.2em; }
+
+  .roles { display: grid; border-top: 1px solid var(--line); }
+  .role {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr) 260px;
+    gap: clamp(20px, 3vw, 48px);
+    padding-block: clamp(28px, 3.5vw, 44px);
+    border-bottom: 1px solid var(--line);
+  }
+  .role__when { display: grid; gap: 12px; align-content: start; justify-items: start; }
+  .role__when .mono { font-size: 12px; letter-spacing: 0.06em; color: var(--muted); }
+  .role__title { font-family: var(--font-display); font-stretch: 84%; font-weight: 650; font-size: clamp(1.35rem, 1.1rem + 0.9vw, 1.85rem); letter-spacing: -0.015em; }
+  .role__org { margin-top: 6px; color: var(--signal); font-weight: 500; }
+  .role__org .muted { font-weight: 400; }
+  .role__bullets { margin-top: 16px; display: grid; gap: 10px; }
+  .role__bullets li { position: relative; padding-left: 20px; color: var(--text-2); max-width: 720px; }
+  .role__bullets li::before { content: ''; position: absolute; left: 0; top: 0.72em; width: 8px; height: 1px; background: var(--signal); }
+  .role__you { margin-top: 18px; padding: 14px 16px; border-radius: 10px; background: var(--ink-2); border: 1px solid var(--line); color: var(--text); font-size: 0.93rem; max-width: 720px; }
+  .role__you .mono { display: block; margin-bottom: 4px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .role__metric { display: grid; gap: 8px; align-content: start; padding-left: 22px; border-left: 1px solid var(--line); }
+  .role__num { font-family: var(--font-display); font-stretch: 72%; font-weight: 700; font-size: clamp(1.8rem, 1.2rem + 1.8vw, 2.9rem); line-height: 1; letter-spacing: -0.01em; color: var(--signal); }
+  .role__mlabel { font-size: 0.88rem; color: var(--text-2); line-height: 1.45; }
+
+  @media (max-width: 1080px) {
+    .role { grid-template-columns: 170px minmax(0, 1fr); }
+    .role__metric { grid-column: 2; border-left: 0; padding-left: 0; }
+  }
+  @media (max-width: 680px) {
+    .role { grid-template-columns: 1fr; gap: 14px; }
+    .role__metric { grid-column: auto; }
+    .role__when { display: flex; align-items: center; flex-wrap: wrap; }
+  }
+</style>

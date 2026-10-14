@@ -1,0 +1,290 @@
+---
+/**
+ * Burst-traffic lab: a faithful, time-scaled simulation of the two limiters in
+ * d2lt-enhanced/rate_limiter.py (classic module-global counter vs. sliding window + asyncio.Lock).
+ * Runs entirely in the browser — no API calls.
+ */
+interface Props {
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
+---
+<figure class:list={['lab', { 'lab--compact': compact }]} data-lab>
+  <header class="lab__head">
+    <div>
+      <p class="lab__kicker mono"><span class="lab__live" aria-hidden="true"></span>Interactive · runs in your browser</p>
+      <h3 class="lab__title">Burst-traffic lab</h3>
+      <p class="lab__sub">
+        The same burst of LLM calls through both rate limiters from this case file. The provider rejects anything over the
+        limit in any rolling 1-second window (HTTP 429); rejected calls retry after a 1 s back-off.
+      </p>
+    </div>
+    <div class="lab__controls">
+      <label>
+        <span class="mono">Burst size <output data-out="burst">40</output></span>
+        <input type="range" min="10" max="80" step="5" value="40" data-in="burst" />
+      </label>
+      <label>
+        <span class="mono">Provider limit <output data-out="limit">10</output>/s</span>
+        <input type="range" min="5" max="20" step="1" value="10" data-in="limit" />
+      </label>
+      <button class="btn btn--primary btn--sm" data-run>Run again <span class="arrow" aria-hidden="true">↻</span></button>
+    </div>
+  </header>
+
+  <div class="lab__lanes">
+    {[
+      { key: 'classic', name: 'Classic', desc: 'Module-global counter, no lock' },
+      { key: 'sliding', name: 'Sliding window + asyncio.Lock', desc: 'What shipped' },
+    ].map((l) => (
+      <div class:list={['lane', `lane--${l.key}`]} data-lane={l.key}>
+        <div class="lane__label">
+          <b>{l.name}</b>
+          <span class="mono">{l.desc}</span>
+        </div>
+        <svg class="lane__chart" viewBox="0 0 800 120" preserveAspectRatio="none" aria-hidden="true" data-chart></svg>
+        <dl class="lane__stats">
+          <div><dt class="mono">429 errors</dt><dd data-stat="errors">—</dd></div>
+          <div><dt class="mono">Peak calls / 1 s</dt><dd data-stat="peak">—</dd></div>
+          <div><dt class="mono">All done at</dt><dd data-stat="done">—</dd></div>
+        </dl>
+      </div>
+    ))}
+  </div>
+  <div class="lab__axis mono" data-axis aria-hidden="true"></div>
+  <figcaption class="lab__cap">
+    <span class="lab__key lab__key--ok"></span>accepted
+    <span class="lab__key lab__key--err"></span>rejected (429) — then retried
+    <span class="lab__note">Time is scaled from the production 60-second window to 1 second. Both limiters are simulated exactly as written in <code>rate_limiter.py</code>.</span>
+  </figcaption>
+  <p class="sr-only" aria-live="polite" data-summary></p>
+</figure>
+
+<style>
+  .lab { margin: 0; padding: clamp(20px, 3vw, 32px); border: 1px solid rgb(61 245 167 / 0.35); border-radius: var(--radius-lg); background: radial-gradient(700px 260px at 100% 0%, rgb(61 245 167 / 0.07), transparent 70%), var(--ink-2); display: grid; gap: 22px; }
+  .lab__head { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; align-items: end; }
+  .lab__kicker { display: inline-flex; align-items: center; gap: 8px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--signal); }
+  .lab__live { width: 7px; height: 7px; border-radius: 50%; background: var(--signal); animation: pulse 2.4s infinite; }
+  .lab__title { margin-top: 8px; font-family: var(--font-display); font-stretch: 72%; font-weight: 800; font-size: clamp(1.8rem, 1.3rem + 1.4vw, 2.6rem); text-transform: uppercase; line-height: 1; }
+  .lab__sub { margin-top: 10px; color: var(--text-2); font-size: 0.92rem; max-width: 560px; }
+  .lab__controls { display: grid; gap: 14px; }
+  .lab__controls label { display: grid; gap: 6px; }
+  .lab__controls .mono { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .lab__controls output { color: var(--text); font-weight: 600; }
+  .lab__controls input[type='range'] { width: 100%; accent-color: var(--signal); }
+  .lab__controls .btn { justify-self: start; }
+
+  .lab__lanes { display: grid; gap: 12px; }
+  .lane { display: grid; grid-template-columns: 180px minmax(0, 1fr) 300px; gap: 18px; align-items: center; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: rgb(10 13 12 / 0.6); }
+  .lane__label { display: grid; gap: 4px; }
+  .lane__label b { font-weight: 600; font-size: 0.95rem; }
+  .lane__label .mono { font-size: 10.5px; color: var(--muted); letter-spacing: 0.04em; }
+  .lane--sliding .lane__label b { color: var(--signal); }
+  .lane__chart { width: 100%; height: 110px; display: block; background-image: linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: calc(100% / var(--secs, 6)) 100%; border-bottom: 1px solid var(--line-2); }
+  .lane__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .lane__stats dt { font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .lane__stats dd { margin-top: 4px; font-family: var(--font-display); font-stretch: 72%; font-weight: 800; font-size: 1.9rem; line-height: 1; font-variant-numeric: tabular-nums; }
+  .lane--classic [data-stat='errors'] { color: var(--danger); }
+  .lane--sliding [data-stat='errors'] { color: var(--signal); }
+  .lab__axis { position: relative; height: 14px; margin-left: calc(180px + 18px + 16px); margin-right: calc(300px + 18px + 16px); font-size: 10px; color: var(--muted); }
+  .lab__axis :global(span) { position: absolute; transform: translateX(-50%); }
+  .lab__cap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; font-size: 0.82rem; color: var(--muted); }
+  .lab__key { width: 12px; height: 12px; border-radius: 3px; display: inline-block; margin-left: 6px; }
+  .lab__key--ok { background: var(--signal); }
+  .lab__key--err { background: var(--danger); }
+  .lab__note { flex-basis: 100%; font-size: 0.78rem; }
+  .lab__note code { font-family: var(--font-mono); color: var(--text-2); }
+
+  @media (max-width: 1100px) {
+    .lane { grid-template-columns: minmax(0, 1fr); }
+    .lab__axis { display: none; }
+  }
+  @media (max-width: 760px) {
+    .lab__head { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  type Send = { t: number; ok: boolean };
+  const W = 1; // window (scaled from 60 s)
+  const BUFFER = 0.1 / 60; // the 100 ms buffer, scaled the same way
+  const BACKOFF = 1; // naive retry after a 429
+  const EPS = 1e-9;
+
+  /** Provider: rejects a call if `limit` calls were already accepted in (t - W, t]. */
+  function provider(limit: number) {
+    const accepted: number[] = [];
+    return (t: number) => {
+      const inWindow = accepted.filter((a) => a > t - W + EPS).length;
+      if (inWindow < limit) { accepted.push(t); return true; }
+      return false;
+    };
+  }
+
+  /** Classic limiter, as written: module-global counter, reset by whichever sleeper wakes. */
+  function simulateClassic(burst: number, limit: number): Send[] {
+    const accept = provider(limit);
+    const sends: Send[] = [];
+    let calls = 0;
+    let windowStart = 0;
+    // Event queue of coroutine resumptions: [time, kind]; kind 'arrive' runs the check, 'wake' runs the post-sleep reset.
+    const q: { t: number; kind: 'arrive' | 'wake' }[] = Array.from({ length: burst }, () => ({ t: 0, kind: 'arrive' as const }));
+    let guard = 0;
+    while (q.length && guard++ < 20000) {
+      q.sort((a, b) => a.t - b.t);
+      const ev = q.shift()!;
+      const now = ev.t;
+      if (ev.kind === 'arrive') {
+        const elapsed = now - windowStart;
+        if (calls >= limit && elapsed < W) {
+          q.push({ t: now + (W - elapsed), kind: 'wake' });
+          continue;
+        }
+      } else {
+        calls = 0; // every waking coroutine resets the shared counter
+        windowStart = now;
+      }
+      calls += 1;
+      const ok = accept(now);
+      sends.push({ t: now, ok });
+      if (!ok) q.push({ t: now + BACKOFF, kind: 'arrive' });
+    }
+    return sends;
+  }
+
+  /** Shipped limiter: asyncio.Lock serialises acquire(); sleep exactly until the oldest call ages out. */
+  function simulateSliding(burst: number, limit: number): Send[] {
+    const accept = provider(limit);
+    const sends: Send[] = [];
+    const times: number[] = [];
+    let lockFree = 0;
+    const pending = Array.from({ length: burst }, () => 0);
+    let guard = 0;
+    while (pending.length && guard++ < 20000) {
+      const arrival = pending.shift()!;
+      let now = Math.max(arrival, lockFree);
+      while (times.length && times[0] < now - W) times.shift();
+      if (times.length >= limit) {
+        now = now + (W - (now - times[0])) + BUFFER;
+        while (times.length && times[0] < now - W) times.shift();
+      }
+      times.push(now);
+      lockFree = now;
+      const ok = accept(now);
+      sends.push({ t: now, ok });
+      if (!ok) pending.push(now + BACKOFF);
+    }
+    return sends;
+  }
+
+  function peakPerWindow(sends: Send[]) {
+    const ts = sends.map((s) => s.t).sort((a, b) => a - b);
+    let best = 0;
+    for (let i = 0, j = 0; i < ts.length; i++) {
+      while (ts[i] - ts[j] >= W - EPS) j++;
+      best = Math.max(best, i - j + 1);
+    }
+    return best;
+  }
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const NS = 'http://www.w3.org/2000/svg';
+
+  document.querySelectorAll<HTMLElement>('[data-lab]').forEach((lab) => {
+    const inputs = {
+      burst: lab.querySelector<HTMLInputElement>('[data-in="burst"]')!,
+      limit: lab.querySelector<HTMLInputElement>('[data-in="limit"]')!,
+    };
+    const outs = {
+      burst: lab.querySelector<HTMLOutputElement>('[data-out="burst"]')!,
+      limit: lab.querySelector<HTMLOutputElement>('[data-out="limit"]')!,
+    };
+    const axis = lab.querySelector<HTMLElement>('[data-axis]')!;
+    const summary = lab.querySelector<HTMLElement>('[data-summary]')!;
+    let raf = 0;
+
+    const run = () => {
+      cancelAnimationFrame(raf);
+      const burst = Number(inputs.burst.value);
+      const limit = Number(inputs.limit.value);
+      outs.burst.value = String(burst);
+      outs.limit.value = String(limit);
+
+      const results = { classic: simulateClassic(burst, limit), sliding: simulateSliding(burst, limit) };
+      const end = Math.max(...Object.values(results).flat().map((s) => s.t));
+      const secs = Math.max(3, Math.ceil(end + 0.6));
+      const BUCKET = 0.1;
+      const nb = Math.ceil(secs / BUCKET);
+
+      // Shared y-scale so the two lanes are visually comparable.
+      const bucketsOf = (sends: Send[]) => {
+        const b = Array.from({ length: nb }, () => ({ ok: 0, err: 0 }));
+        sends.forEach((s) => { const k = Math.min(nb - 1, Math.floor(s.t / BUCKET + EPS)); s.ok ? b[k].ok++ : b[k].err++; });
+        return b;
+      };
+      const all = { classic: bucketsOf(results.classic), sliding: bucketsOf(results.sliding) };
+      const maxH = Math.max(...Object.values(all).flat().map((b) => b.ok + b.err), 1);
+
+      axis.innerHTML = Array.from({ length: secs + 1 }, (_, i) => `<span style="left:${(i / secs) * 100}%">${i}s</span>`).join('');
+
+      const draws: (() => void)[] = [];
+      (['classic', 'sliding'] as const).forEach((key) => {
+        const laneEl = lab.querySelector<HTMLElement>(`[data-lane="${key}"]`)!;
+        const svg = laneEl.querySelector<SVGSVGElement>('[data-chart]')!;
+        svg.style.setProperty('--secs', String(secs));
+        svg.innerHTML = '';
+        const bw = 800 / nb;
+        all[key].forEach((b, i) => {
+          if (!b.ok && !b.err) return;
+          const x = i * bw + bw * 0.15;
+          const w = bw * 0.7;
+          const hOk = (b.ok / maxH) * 112;
+          const hErr = (b.err / maxH) * 112;
+          const mk = (y: number, h: number, fill: string) => {
+            const r = document.createElementNS(NS, 'rect');
+            r.setAttribute('x', String(x)); r.setAttribute('y', String(y));
+            r.setAttribute('width', String(w)); r.setAttribute('height', String(Math.max(h, 1.5)));
+            r.setAttribute('fill', fill);
+            r.style.opacity = reduce ? '1' : '0';
+            r.dataset.t = String(i * BUCKET);
+            svg.append(r);
+          };
+          if (b.ok) mk(120 - hOk, hOk, '#3df5a7');
+          if (b.err) mk(120 - hOk - hErr, hErr, '#ff7a7a');
+        });
+        const sends = results[key];
+        const errors = sends.filter((s) => !s.ok).length;
+        const done = Math.max(...sends.filter((s) => s.ok).map((s) => s.t));
+        laneEl.querySelector('[data-stat="errors"]')!.textContent = String(errors);
+        laneEl.querySelector('[data-stat="peak"]')!.textContent = String(peakPerWindow(sends));
+        laneEl.querySelector('[data-stat="done"]')!.textContent = `${done.toFixed(1)}s`;
+        draws.push(() => svg.querySelectorAll<SVGRectElement>('rect').forEach((r) => (r.style.opacity = '1')));
+        if (key === 'classic') summary.textContent = `Classic limiter: ${errors} rate-limit errors.`;
+        else summary.textContent += ` Sliding window: ${errors} errors.`;
+      });
+
+      if (reduce) return;
+      // Sweep reveal left-to-right.
+      const start = performance.now();
+      const dur = 1400;
+      const rects = Array.from(lab.querySelectorAll<SVGRectElement>('[data-chart] rect'));
+      const tick = (now: number) => {
+        const p = Math.min(1, (now - start) / dur);
+        const tNow = p * secs;
+        rects.forEach((r) => { if (Number(r.dataset.t) <= tNow) r.style.opacity = '1'; });
+        if (p < 1) raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    };
+
+    inputs.burst.addEventListener('input', run);
+    inputs.limit.addEventListener('input', run);
+    lab.querySelector('[data-run]')!.addEventListener('click', run);
+
+    // Run once when it scrolls into view.
+    const io = new IntersectionObserver((es) => {
+      if (es.some((e) => e.isIntersecting)) { run(); io.disconnect(); }
+    }, { threshold: 0.3 });
+    io.observe(lab);
+  });
+</script>

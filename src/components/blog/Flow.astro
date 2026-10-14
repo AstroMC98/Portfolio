@@ -1,0 +1,16 @@
+---
+/** Numbered process flow; mark the step(s) the argument hinges on with hl. */
+interface Props {
+  steps: { title: string; text?: string; hl?: boolean }[];
+}
+const { steps } = Astro.props;
+---
+<ol class="flow-ex" style={`--n:${steps.length}`}>
+  {steps.map((s, i) => (
+    <li class:list={['flow-ex__step', { 'flow-ex__step--hl': s.hl }]}>
+      <span class="flow-ex__n">{String(i + 1).padStart(2, '0')}</span>
+      <span class="flow-ex__t">{s.title}</span>
+      {s.text && <span class="flow-ex__d">{s.text}</span>}
+    </li>
+  ))}
+</ol>

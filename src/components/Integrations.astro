@@ -1,0 +1,61 @@
+---
+import { INTEGRATIONS } from '../data/deploy';
+import { PROJECTS } from '../data/projects';
+const titleOf = new Map(PROJECTS.map((p) => [p.id, p.title]));
+---
+<div class="intg" data-reveal>
+  <div class="intg__head">
+    <h3 class="intg__title">Systems I’ve wired AI into</h3>
+    <p class="intg__sub">Forward-deployed work is mostly integration: identity, data, runtime and the interfaces people actually use.</p>
+  </div>
+  <div class="intg__grid">
+    {INTEGRATIONS.map((g) => (
+      <div class="intg__col">
+        <p class="intg__group mono">{g.group}</p>
+        <ul>
+          {g.items.map((it) => (
+            <li>
+              {it.ids.length ? (
+                <a href={`/work/${it.ids[0]}/`} title={`Used in: ${it.ids.map((id) => titleOf.get(id)).join(', ')}`}>
+                  <span class="intg__dot" aria-hidden="true"></span>{it.name}<span class="intg__go" aria-hidden="true">→</span>
+                </a>
+              ) : (
+                <span class="intg__plain"><span class="intg__dot intg__dot--off" aria-hidden="true"></span>{it.name}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .intg { margin-bottom: clamp(48px, 6vw, 72px); border: 1px solid var(--line); border-radius: var(--radius-lg); background: rgb(17 23 21 / 0.6); overflow: hidden; }
+  .intg__head { display: flex; justify-content: space-between; align-items: end; gap: 20px; flex-wrap: wrap; padding: 24px 26px; border-bottom: 1px solid var(--line); }
+  .intg__title { font-family: var(--font-display); font-stretch: 72%; font-weight: 800; font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem); text-transform: uppercase; letter-spacing: 0; }
+  .intg__sub { color: var(--muted); font-size: 0.9rem; max-width: 460px; }
+  .intg__grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .intg__col { padding: 20px 20px 24px; border-left: 1px solid var(--line); }
+  .intg__col:first-child { border-left: 0; }
+  .intg__group { font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--signal); margin-bottom: 14px; }
+  .intg__col ul { display: grid; gap: 4px; }
+  .intg__col a, .intg__plain { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 8px; font-size: 0.88rem; color: var(--text); }
+  .intg__col ul { margin-inline: -8px; }
+  .intg__col a { transition: background-color 0.2s, color 0.2s; }
+  .intg__col a:hover { background: var(--ink-3); color: var(--signal); }
+  .intg__dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 8px var(--signal-glow); }
+  .intg__dot--off { background: var(--line-2); box-shadow: none; }
+  .intg__plain { color: var(--text-2); }
+  .intg__go { margin-left: auto; color: var(--muted); opacity: 0; transition: opacity 0.2s; }
+  .intg__col a:hover .intg__go { opacity: 1; }
+  @media (max-width: 1100px) {
+    .intg__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .intg__col { border-left: 0; border-top: 1px solid var(--line); }
+    .intg__col:nth-child(even) { border-left: 1px solid var(--line); }
+  }
+  @media (max-width: 560px) {
+    .intg__grid { grid-template-columns: 1fr; }
+    .intg__col:nth-child(even) { border-left: 0; }
+  }
+</style>

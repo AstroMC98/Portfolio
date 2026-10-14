@@ -1,0 +1,34 @@
+---
+const ticks = [
+  { id: 'spec', n: '02', label: 'Summary' },
+  { id: 'impact', n: '03', label: 'Impact' },
+  { id: 'approach', n: '04', label: 'Approach' },
+  { id: 'work', n: '05', label: 'Work' },
+  { id: 'experience', n: '06', label: 'Experience' },
+  { id: 'stack', n: '07', label: 'Stack' },
+  { id: 'recognition', n: '08', label: 'Recognition' },
+  { id: 'contact', n: '09', label: 'Contact' },
+];
+---
+<nav class="rail" data-rail aria-label="Section progress">
+  <div class="rail__track"><span class="rail__fill" data-rail-fill></span></div>
+  {ticks.map((t) => (
+    <a class="rail__tick" href={`#${t.id}`} data-rail-tick>
+      <span class="rail__dot" aria-hidden="true"></span>
+      <span class="rail__label mono"><b>{t.n}</b> {t.label}</span>
+    </a>
+  ))}
+</nav>
+
+<style>
+  .rail { position: fixed; left: 22px; top: 110px; bottom: 48px; width: 12px; z-index: 40; display: none; }
+  @media (min-width: 1500px) { .rail { display: block; } }
+  .rail__track { position: absolute; left: 5.5px; top: 0; bottom: 0; width: 1px; background: var(--line); }
+  .rail__fill { position: absolute; inset: 0; background: linear-gradient(var(--signal), var(--signal-2)); transform-origin: top; transform: scaleY(0); box-shadow: 0 0 10px var(--signal-glow); }
+  .rail__tick { position: absolute; left: 0; display: flex; align-items: center; gap: 12px; transform: translateY(-50%); }
+  .rail__dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ink); border: 1px solid var(--line-2); transition: all 0.3s; }
+  .rail__label { font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); opacity: 0; transform: translateX(-6px); transition: all 0.3s var(--ease-out); white-space: nowrap; background: var(--ink); padding: 2px 6px; border-radius: 4px; }
+  .rail__label b { color: var(--signal); font-weight: 500; }
+  .rail__tick:hover .rail__label, .rail__tick:focus-visible .rail__label { opacity: 1; transform: none; }
+  .rail__tick.is-active .rail__dot { background: var(--signal); border-color: var(--signal); box-shadow: 0 0 12px var(--signal); }
+</style>

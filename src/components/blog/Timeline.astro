@@ -1,0 +1,16 @@
+---
+/** Vertical milestone timeline. state: 'done' (past), 'hl' (the one that matters now), or default (upcoming). */
+interface Props {
+  items: { date: string; title: string; text?: string; state?: 'done' | 'hl' }[];
+}
+const { items } = Astro.props;
+---
+<ol class="tl">
+  {items.map((it) => (
+    <li class:list={['tl__item', { 'tl__item--hl': it.state === 'hl', 'tl__item--done': it.state === 'done' }]}>
+      <span class="tl__date">{it.date}</span>
+      <span class="tl__t">{it.title}</span>
+      {it.text && <span class="tl__d">{it.text}</span>}
+    </li>
+  ))}
+</ol>

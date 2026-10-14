@@ -1,0 +1,498 @@
+---
+title: "AI Governance That Ships: Moving Accountability From the Policy Binder Into the Request Path"
+dek: "Half of organisations using AI have already seen it go wrong, and most governance programmes still live in documents nobody's code reads. Here is what regulators actually require of engineers, the seven controls that turn policy into evidence, and a 90-day plan to build them."
+date: 2026-12-02
+kicker: Governance
+motif: shield
+tags: [Governance, LLMOps, Production]
+thesis: "AI governance fails when it lives in policy documents and works only when it is encoded as controls in the request path that produce evidence an auditor can read."
+takeaways:
+  - "The risk is no longer hypothetical: recorded AI incidents rose from 233 in 2024 to 362 in 2025, and 51% of organisations using AI report at least one negative consequence (Stanford AI Index; McKinsey)."
+  - "Breaches cluster where controls are missing, not where policies are: 97% of organisations that reported an AI breach lacked proper AI access controls, and only 34% audit for unsanctioned AI (IBM, 2025)."
+  - "The EU AI Act's 2026 omnibus delayed high-risk obligations to December 2027 and August 2028 — but prohibitions, AI literacy, GPAI rules and Article 50 transparency already apply. The obligations that remain are mostly engineering: logs, oversight, monitoring and incident reporting."
+  - "Seven controls do most of the work: inventory, identity-bound access, quotas, traceability, release evals, drift monitoring and incident response. Each must run on every request and leave evidence behind."
+  - "Agents raise the stakes: 23% of organisations were scaling agents by late 2025, and Gartner expects over 40% of agentic projects to be cancelled by 2027, partly for inadequate risk controls. Autonomy must be earned with controls, not granted by default."
+  - "A 30/60/90-day plan can take most organisations from policy-only to auditable: gateway and inventory first, traces and evals second, drift and incident drills third."
+sources:
+  - label: "Stanford HAI — AI Index 2025, Responsible AI chapter"
+    url: "https://hai.stanford.edu/ai-index/2025-ai-index-report/responsible-ai"
+  - label: "Stanford HAI — AI Index 2026, Responsible AI chapter"
+    url: "https://hai.stanford.edu/ai-index/2026-ai-index-report/responsible-ai"
+  - label: "McKinsey — The state of AI: How organizations are rewiring to capture value (Mar 2025)"
+    url: "https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai-how-organizations-are-rewiring-to-capture-value"
+  - label: "McKinsey — The state of AI in 2025 (Nov 2025)"
+    url: "https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai-2025"
+  - label: "McKinsey — The state of AI (Aug 2026)"
+    url: "https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai"
+  - label: "IBM — Cost of a Data Breach 2025: 13% of organizations reported breaches of AI models or applications (30 Jul 2025)"
+    url: "https://newsroom.ibm.com/2025-07-30-ibm-report-13-of-organizations-reported-breaches-of-ai-models-or-applications,-97-of-which-reported-lacking-proper-ai-access-controls"
+  - label: "European Commission — AI Act regulatory framework"
+    url: "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
+  - label: "Council of the EU — AI: Council gives final green light to simplify and streamline rules (29 Jun 2026)"
+    url: "https://www.consilium.europa.eu/en/press/press-releases/2026/06/29/artificial-intelligence-council-gives-final-green-light-to-simplify-and-streamline-rules/"
+  - label: "EU AI Act — Article 4: AI literacy"
+    url: "https://artificialintelligenceact.eu/article/4/"
+  - label: "EU AI Act — Article 12: Record-keeping"
+    url: "https://artificialintelligenceact.eu/article/12/"
+  - label: "EU AI Act — Article 14: Human oversight"
+    url: "https://artificialintelligenceact.eu/article/14/"
+  - label: "EU AI Act — Article 26: Obligations of deployers of high-risk AI systems"
+    url: "https://artificialintelligenceact.eu/article/26/"
+  - label: "EU AI Act — Article 50: Transparency obligations"
+    url: "https://artificialintelligenceact.eu/article/50/"
+  - label: "EU AI Act — Article 73: Reporting of serious incidents"
+    url: "https://artificialintelligenceact.eu/article/73/"
+  - label: "EU AI Act — Article 99: Penalties"
+    url: "https://artificialintelligenceact.eu/article/99/"
+  - label: "NIST — AI Risk Management Framework"
+    url: "https://www.nist.gov/itl/ai-risk-management-framework"
+  - label: "NIST — AI 600-1 Generative AI Profile (26 Jul 2024)"
+    url: "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+  - label: "NIST — AI 600-1 full text (PDF)"
+    url: "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf"
+  - label: "ISO — ISO/IEC 42001:2023 AI management systems"
+    url: "https://www.iso.org/standard/42001"
+  - label: "Vanta — ISO 42001 Annex A controls (secondary summary)"
+    url: "https://www.vanta.com/collection/iso-42001/iso-42001-controls"
+  - label: "OWASP — Top 10 for LLM Applications 2025"
+    url: "https://genai.owasp.org/llm-top-10/"
+  - label: "McCarthy Tétrault — Moffatt v. Air Canada: misrepresentation by an AI chatbot (19 Feb 2024)"
+    url: "https://www.mccarthy.ca/en/insights/blogs/techlex/moffatt-v-air-canada-misrepresentation-ai-chatbot"
+  - label: "DutchNews — Tax office fined €2.7m for discriminating against dual national families (8 Dec 2021)"
+    url: "https://www.dutchnews.nl/news/2021/12/tax-office-fined-e2-7m-for-discriminating-against-dual-national-families/"
+  - label: "Chen, Zaharia & Zou — How is ChatGPT's behavior changing over time? (arXiv 2307.09009; HDSR 2024)"
+    url: "https://arxiv.org/abs/2307.09009"
+  - label: "Outlook Business — Over 40% of agentic AI projects will be scrapped by 2027, says Gartner (25 Jun 2025)"
+    url: "https://www.outlookbusiness.com/artificial-intelligence/over-40-of-agentic-ai-projects-will-be-scrapped-by-2027-says-gartner"
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Columns from '../../components/blog/Columns.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Lines from '../../components/blog/Lines.astro';
+import Stats from '../../components/blog/Stats.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Timeline from '../../components/blog/Timeline.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">In February 2024, a Canadian tribunal ruled on an unusual defence. A passenger had relied on Air Canada's website chatbot, which told him he could claim a bereavement fare retroactively; another page on the same site said he could not. Air Canada argued, in effect, that the chatbot was a separate entity responsible for its own actions. The tribunal rejected that, held that the chatbot was part of Air Canada's website, and found the airline liable for negligent misrepresentation because it had not taken reasonable care to ensure the information was accurate. The sum involved was small. The principle was not: an organisation owns what its AI says, and "the model did it" is not a defence.</p>
+
+Every organisation I work with now has an AI policy. Very few can answer, for any given output, three questions on the day something goes wrong: *Who asked? What did the system see? What did it say, and who acted on it?* That gap — between governance on paper and governance in the code path — is where most production AI risk lives, and it is the part engineers own.
+
+My argument is this: **AI governance fails when it lives in policy documents and works only when it is encoded as controls in the request path that produce evidence an auditor can read.** A policy says what must be true. A control makes it true on every request. And evidence — logs, eval reports, access decisions, incident records — is the only thing that lets anyone, inside or outside the organisation, check that it was.
+
+The article starts with the incident and breach data, which show where governance actually fails. It then sets out what the EU AI Act (including the 2026 omnibus changes), the NIST AI Risk Management Framework and ISO/IEC 42001 actually require of engineers. It proposes a control map of seven controls, goes deep on each — how to implement it and how to measure it — and looks at why agentic AI raises the stakes. After three cases, it takes on the strongest objections, sets out implications for boards, risk teams and engineers, and closes with a 30/60/90-day plan and the limits of the evidence.
+
+## Context: why this matters now
+
+### Incidents are compounding
+
+The AI Incident Database, tracked in Stanford's AI Index, recorded 233 AI incidents in 2024 — up 56.4% on 2023 — and 362 in 2025. The database relies on public reporting, so it undercounts; but the trend is unambiguous.
+
+<Exhibit
+  n={1}
+  title="Publicly recorded AI incidents have more than doubled in two years"
+  sub="Incidents recorded in the AI Incident Database, per year"
+  source="Stanford AI Index 2025 and 2026, Responsible AI chapters"
+  sourceUrl="https://hai.stanford.edu/ai-index/2026-ai-index-report/responsible-ai"
+  note="2023 is derived from the reported 56.4% increase to 233 in 2024 (233 ÷ 1.564 ≈ 149). The database records publicly reported incidents only, so it reflects visibility as well as frequency."
+  table={[["Year", "Recorded incidents"], ["2023 (derived)", "~149"], ["2024", 233], ["2025", 362]]}
+>
+  <Columns data={[
+    { label: "2023", value: 149, display: "~149" },
+    { label: "2024", value: 233 },
+    { label: "2025", value: 362, hl: true },
+  ]} />
+</Exhibit>
+
+Inside organisations the picture is similar. McKinsey's surveys show the share of respondents whose organisations had experienced at least one negative consequence from AI rising from 44% in early 2024 to 47% in early 2025 and 51% in late 2025, with inaccuracy the most common. Explainability was the second most reported risk, yet not among the most commonly mitigated.
+
+<Exhibit
+  n={2}
+  title="More than half of organisations using AI now report at least one negative consequence"
+  sub="% of respondents reporting at least one negative consequence from AI use at their organisation"
+  source="McKinsey, The State of AI (Mar 2025, 1,491 respondents; Nov 2025, 1,993 respondents)"
+  sourceUrl="https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai-2025"
+  note="Self-reported survey data from three separate waves with different samples; the early-2024 figure is as reported in the March 2025 edition. Read as a direction of travel, not a precise trend."
+  table={[["Survey wave", "% reporting a negative consequence"], ["Early 2024", 44], ["Early 2025", 47], ["Late 2025", 51]]}
+>
+  <Lines yMin={0} yMax={60} unit="%" series={[
+    { name: "At least one negative consequence", hl: true, points: [{ x: "Early 2024", y: 44 }, { x: "Early 2025", y: 47 }, { x: "Late 2025", y: 51 }] },
+  ]} />
+</Exhibit>
+
+### Policies are spreading faster than controls
+
+The same data contain good news. Stanford's 2026 AI Index found that the share of organisations with no responsible-AI policies fell from 24% to 11%, and AI-specific governance roles grew 17%. McKinsey found organisations mitigating an average of four AI risks, up from two in 2022. Governance is no longer a niche concern.
+
+But a policy is a statement of intent. The question that matters is whether intent reaches production, and three forces are making that harder. Usage is decentralising: anyone with a browser can use a model, so the perimeter of "our AI" now includes tools nobody approved. Systems are becoming compound: a single answer may involve a rewritten query, a retrieval step over permissioned documents, a model call to a vendor whose model can change, and a tool call that writes to a database. And autonomy is rising: agents act, rather than merely suggest. Each force widens the gap between what the policy says and what the system does.
+
+## The evidence: where governance actually fails
+
+### Breaches follow missing controls, not missing policies
+
+IBM's 2025 Cost of a Data Breach study is the most practical governance data I know of, because it connects failures to specific missing controls. 13% of organisations reported breaches of AI models or applications, and of those, 97% lacked proper AI access controls. Among all breached organisations, 63% lacked an AI governance policy, and only 34% audited for unsanctioned AI. One in five reported a breach involving "shadow AI" — tools used without approval — which added about $670,000 to the average breach cost, against a global average breach cost of $4.44 million.
+
+<Exhibit
+  n={3}
+  title="Almost every organisation with an AI breach lacked AI access controls — and two-thirds don’t look for unsanctioned AI"
+  sub="Selected findings, % of organisations (bases differ — see note)"
+  source="IBM Cost of a Data Breach Report 2025"
+  sourceUrl="https://newsroom.ibm.com/2025-07-30-ibm-report-13-of-organizations-reported-breaches-of-ai-models-or-applications,-97-of-which-reported-lacking-proper-ai-access-controls"
+  note="Bases differ: the 97% is among organisations that reported an AI model or application breach; the 63% is among breached organisations; the 34% and 20% are across organisations studied. Shadow AI added about $670K to average breach cost (global average $4.44M; US $10.22M)."
+  table={[["Finding", "%"], ["AI-breached orgs lacking proper AI access controls", 97], ["Breached orgs without an AI governance policy", 63], ["Orgs that audit for unsanctioned AI", 34], ["Orgs with a breach involving shadow AI", 20], ["Orgs reporting an AI model or app breach", 13]]}
+>
+  <Bars unit="%" max={100} data={[
+    { label: "Lacked AI access controls", sub: "among orgs with an AI breach", value: 97, hl: true },
+    { label: "No AI governance policy", sub: "among breached orgs", value: 63 },
+    { label: "Audit for unsanctioned AI", sub: "all orgs studied", value: 34, hl: true },
+    { label: "Breach involved shadow AI", sub: "1 in 5", value: 20 },
+    { label: "Reported an AI model or app breach", value: 13 },
+  ]} />
+</Exhibit>
+
+The striking contrast is between 63% and 97%. A missing policy is common among breached organisations; a missing access control is almost universal among AI-breached ones. That is consistent with my thesis: the control, not the document, is what separates organisations that were breached through AI from those that were not. The survey cannot prove causation, but it points engineering effort in the right direction.
+
+### Ownership is thin at the top, and review is thin at the bottom
+
+In McKinsey's March 2025 survey, 28% of respondents said their CEO oversees AI governance and 17% said their board does; CEO oversight was among the attributes most correlated with bottom-line impact from generative AI. At the other end of the chain, 27% said their organisations review all generative AI output before it is used, while a similar share said they check 20% or less.
+
+<Exhibit
+  n={4}
+  title="About one in four organisations put AI governance under the CEO — and about one in four review all gen-AI output before use"
+  sub="% of respondents"
+  source="McKinsey, The State of AI (Mar 2025; 1,491 participants)"
+  sourceUrl="https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai-how-organizations-are-rewiring-to-capture-value"
+  note="Self-reported by survey respondents. A similar share to the 27% said they check 20% or less of gen-AI output."
+  table={[["Measure", "%"], ["CEO oversees AI governance", 28], ["Review all gen-AI output before use", 27], ["Board oversees AI governance", 17]]}
+>
+  <Bars unit="%" max={100} data={[
+    { label: "CEO oversees AI governance", value: 28, hl: true },
+    { label: "Review all gen-AI output before use", value: 27 },
+    { label: "Board oversees AI governance", value: 17 },
+  ]} />
+</Exhibit>
+
+Both numbers point to the same problem. Ownership at the top without controls below produces policy; review at the bottom without ownership above produces inconsistent manual effort that does not scale. Neither produces evidence. The answer is not "review everything" — at volume, that is unaffordable and, as the research on human oversight shows, often ineffective. It is to make the system enforce what can be enforced, record what happened, and send humans the cases where their judgement adds value.
+
+## The regulatory landscape: what each framework actually asks of engineers
+
+### The EU AI Act, after the omnibus
+
+The EU AI Act entered into force on 1 August 2024. Prohibited practices and AI-literacy duties applied from 2 February 2025; general-purpose AI (GPAI) and governance rules from 2 August 2025; and general application from 2 August 2026. In June 2026 the Council gave final approval to the "digital omnibus" simplification package, in force from 27 July 2026, which moved the deadlines that most organisations were worried about.
+
+<Exhibit n={5} title="The EU AI Act’s high-risk deadlines moved — prohibitions, literacy, GPAI rules and transparency did not" sub="Key application dates, including the 2026 digital omnibus changes" source="European Commission; Council of the EU (29 Jun 2026)" sourceUrl="https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai">
+  <Timeline items={[
+    { date: "1 AUG 2024", title: "AI Act enters into force", state: "done" },
+    { date: "2 FEB 2025", title: "Prohibited practices and AI-literacy duties apply", state: "done" },
+    { date: "2 AUG 2025", title: "General-purpose AI and governance rules apply", state: "done" },
+    { date: "2 AUG 2026", title: "General application, including Article 50 transparency", text: "The omnibus did not delay transparency obligations.", state: "done" },
+    { date: "2 DEC 2026", title: "End of three-month grace period for watermarking", text: "Added by the omnibus." },
+    { date: "2 AUG 2027", title: "Regulatory sandboxes deadline", text: "Moved by the omnibus." },
+    { date: "2 DEC 2027", title: "High-risk obligations for stand-alone (Annex III) systems", text: "e.g. biometrics, education, employment — moved from Aug 2026.", state: "hl" },
+    { date: "2 AUG 2028", title: "High-risk obligations for AI embedded in regulated products (Annex I)" },
+  ]} />
+</Exhibit>
+
+The omnibus also added a new prohibition on AI used to generate non-consensual intimate imagery or child sexual abuse material. The practical reading is simple: the delay buys time for high-risk *conformity*, not for the engineering that conformity will require. Several obligations already apply, and the high-risk ones that do not yet apply are mostly things you cannot retrofit in a quarter.
+
+Read article by article, the Act is more of an engineering specification than many teams realise:
+
+- **Article 4 (AI literacy, applies now):** providers and deployers must take measures to ensure a sufficient level of AI literacy among staff who operate or use AI systems.
+- **Article 50 (transparency, applies now):** people must be told when they are interacting with an AI system unless it is obvious; providers of systems generating synthetic audio, image, video or text must mark outputs as AI-generated in a machine-readable way where technically feasible; deployers must disclose deepfakes and AI-generated text published to inform the public, unless a human has editorial responsibility.
+- **Article 12 (record-keeping, high-risk):** systems must technically allow automatic recording of events over their lifetime, sufficient to identify risks, support post-market monitoring and monitor operation.
+- **Article 14 (human oversight, high-risk):** overseers must be able to understand the system's limits, stay aware of automation bias, interpret outputs, override them and stop the system.
+- **Article 26 (deployers of high-risk systems):** assign oversight to people with competence and authority, monitor operation, keep system-generated logs for at least six months, inform affected workers and people, and report serious incidents.
+- **Article 73 (serious incidents):** providers must report within 15 days of becoming aware, within 2 days for widespread infringements, and within 10 days where a death is involved — and must not alter the system in ways that would affect the investigation before informing authorities.
+
+Every item on that list is either a log, a control, a user-interface element or a process with a clock. None of it is satisfied by a policy PDF.
+
+<Exhibit
+  n={6}
+  title="Fines scale with the severity of the breach — up to 7% of worldwide turnover"
+  sub="Maximum fine as % of worldwide annual turnover, or a fixed amount if higher"
+  source="EU AI Act, Article 99"
+  sourceUrl="https://artificialintelligenceact.eu/article/99/"
+  note="For SMEs (and, under the amended text, small mid-caps) the lower of the two amounts applies."
+  table={[["Violation", "Max % turnover", "Or up to"], ["Prohibited practices", "7%", "€35M"], ["Other obligations", "3%", "€15M"], ["Misleading information to authorities", "1%", "€7.5M"]]}
+>
+  <Bars unit="%" data={[
+    { label: "Prohibited practices", sub: "or up to €35M", value: 7, hl: true },
+    { label: "Other obligations", sub: "or up to €15M", value: 3 },
+    { label: "Misleading information", sub: "or up to €7.5M", value: 1 },
+  ]} />
+</Exhibit>
+
+### NIST and ISO: the voluntary frameworks that shape audits
+
+The **NIST AI Risk Management Framework** (January 2023) is voluntary and organises risk management into four functions: Govern, Map, Measure and Manage. Its **Generative AI Profile, NIST AI 600-1** (July 2024), names 12 risks that are unique to or exacerbated by generative AI — including confabulation, data privacy, information security, harmful bias, human–AI configuration and value-chain and component integration — and maps suggested actions to each. NIST is revising the RMF under the US AI Action Plan, but the four functions are a stable vocabulary.
+
+**ISO/IEC 42001** (December 2023) is different in kind: a certifiable AI management-system standard, in the same family as ISO 27001. Its Annex A is reported to list 38 controls across nine areas, from AI policy and impact assessment to the AI system life cycle, data and third-party relationships. As with 27001, an organisation selects applicable controls and justifies its choices in a Statement of Applicability, which is exactly the kind of artefact an auditor reads.
+
+These frameworks are converging in practice. Stanford's 2026 survey asked which frameworks influence organisations' responsible-AI programmes.
+
+<Exhibit
+  n={7}
+  title="The EU AI Act, ISO 42001 and NIST’s RMF are the three frameworks most shaping company AI programmes"
+  sub="% of surveyed organisations naming each framework as an influence on their responsible-AI programme"
+  source="Stanford AI Index 2026, Responsible AI chapter"
+  sourceUrl="https://hai.stanford.edu/ai-index/2026-ai-index-report/responsible-ai"
+  note="Organisations could name more than one framework."
+  table={[["Framework", "% of organisations"], ["EU AI Act", 43], ["ISO/IEC 42001", 36], ["NIST AI RMF", 33]]}
+>
+  <Bars unit="%" max={100} data={[
+    { label: "EU AI Act", value: 43, hl: true },
+    { label: "ISO/IEC 42001", value: 36 },
+    { label: "NIST AI RMF", value: 33 },
+  ]} />
+</Exhibit>
+
+<Exhibit n={8} title="Three frameworks, one engineering backlog: each ultimately asks for logs, oversight, monitoring and an incident path" sub="What each framework requires, read from an engineer’s seat" note="Author’s synthesis of the primary texts cited. Simplified; not legal advice.">
+  <Compare
+    cols={["EU AI Act", "NIST AI RMF + AI 600-1", "ISO/IEC 42001"]}
+    rows={[
+      { k: "Legal force", v: ["Binding regulation; fines up to 7% of turnover", "Voluntary framework", "Voluntary, certifiable standard"] },
+      { k: "Unit of work", v: ["The AI system and its risk category", "Risks across Govern, Map, Measure, Manage", "The management system and its controls"] },
+      { k: "Logging", v: ["Automatic event logs over the lifetime (Art. 12); deployers keep 6+ months (Art. 26)", "Measure and Manage functions; incident disclosure is a primary GAI consideration", "Life-cycle and operation controls; records as audit evidence"] },
+      { k: "Human oversight", v: ["Understand, override and stop the system (Art. 14)", "Human–AI configuration is one of 12 named GAI risks", "Use-of-AI and responsibility controls"] },
+      { k: "Incidents", v: ["Report within 15 / 2 / 10 days (Art. 73)", "Incident disclosure and response actions", "Nonconformity and corrective action"] },
+      { k: "What an auditor asks for", v: ["Technical documentation, logs, oversight design", "Evidence of mapped risks and measured controls", "Statement of Applicability, records, internal audits"] },
+    ]}
+  />
+</Exhibit>
+
+The practical conclusion: build once against the strictest common denominator — the EU's logging, oversight and incident requirements — and map the evidence to NIST functions and ISO controls. The backlog is the same.
+
+## A framework: governance as a control plane
+
+I think of AI governance as a control plane that sits in the request path between users and models. Every request passes through it; every control in it leaves evidence. Seven controls do most of the work.
+
+<Exhibit n={9} title="Each governance question maps to a control that runs on every request and a record an auditor can read" sub="Author’s control map for production AI systems" note="Author’s framework, drawn from systems I have built and the regulatory texts above.">
+  <Compare
+    cols={["Governance question", "Control in the request path", "Evidence it produces", "Headline metric"]}
+    rows={[
+      { k: "1. Inventory", v: ["What AI do we run, and how risky is each?", "Registry: every model, endpoint and use case with owner and risk tier; unregistered calls blocked at the gateway", "Registry entry per use case", "% of AI traffic through registered routes"] },
+      { k: "2. Access", v: ["Who can use it, and see what?", "SSO identity on every call; role-based access at retrieval and on tool actions", "Access decision per request", "% of requests with a resolved identity"] },
+      { k: "3. Quotas", v: ["Can it be abused or run up costs?", "Per-user and per-app quotas and rate limits, fail mode set by risk tier", "Quota and 429 logs", "Spend per user; blocked-request rate"] },
+      { k: "4. Traceability", v: ["What did it see and say?", "Trace ID linking prompt, retrieved sources, model version, output and action", "Retained trace per request", "% complete traces; time to reconstruct"] },
+      { k: "5. Release evals", v: ["Is it good enough for this use?", "Versioned eval set and thresholds as a release gate", "Versioned eval report per release", "Pass rate on gated metrics"] },
+      { k: "6. Drift", v: ["Is it still behaving as approved?", "Input, output and quality drift monitors with alert thresholds", "Drift dashboards and alerts", "Time from drift to detection"] },
+      { k: "7. Incidents", v: ["What happens when it goes wrong?", "Kill switch, rollback, escalation path, reporting clock", "Incident log and post-mortems", "Time to contain; new eval cases per incident"] },
+    ]}
+  />
+</Exhibit>
+
+The test for every control is the same: **if an auditor asked you to prove this control operated last Tuesday at 3 p.m., could you?** If the answer depends on someone's memory or a spreadsheet updated by hand, the control is a policy wearing a costume.
+
+"Evidence an auditor can read" has three properties. It is **complete**: produced for every request, not sampled when someone remembers. It is **joinable**: the access decision, the trace, the model version and the eval report share identifiers, so a single output can be followed from request to release. And it is **trustworthy**: written by the system rather than by the people it governs, retained for a defined period and protected from quiet edits. Most organisations have fragments of all seven controls. What they usually lack is the joining — and without it, each fragment answers a question nobody asked.
+
+## Deep dive 1: inventory and access — know what runs, and who runs it
+
+### Mechanism
+
+You cannot govern what you cannot see. The inventory is the foundation for every other control: it tells you which systems need which tier of logging, evaluation and oversight. In practice, a spreadsheet inventory decays within weeks. The inventory that stays accurate is the one enforced by architecture — a single AI gateway through which all model calls flow, where a call from an unregistered application is rejected. The registry then becomes a by-product of operation rather than a documentation exercise.
+
+Access control is where IBM's data say the damage happens. In a retrieval-augmented system, access control has to apply in two places: who may call the system at all, and which documents the retrieval step may return *for this user*. A model that can retrieve the whole knowledge base will, sooner or later, summarise a document for someone who should not have seen it. The control is to filter retrieval by the caller's identity and group membership before anything reaches the model's context.
+
+<Note kind="field">
+On the enterprise RAG platform I led, every chat endpoint resolved the user through the company's identity provider, and retrieval was scoped by team-level groups so that sensitive knowledge bases were visible only to authorised staff. Because the access check sat in shared middleware rather than in each endpoint, a new endpoint inherited it by default instead of by someone remembering.
+</Note>
+
+### Failure mode
+
+Shadow AI. IBM found one in five organisations had a breach involving unsanctioned AI and only 34% audit for it. The usual cause is not malice; it is friction. If the sanctioned route is slower or worse than a personal account, people route around it. A gateway that is fast, has good models and requires no paperwork for low-risk uses is a governance control disguised as a developer convenience.
+
+### How to measure it
+
+Three numbers: the share of AI traffic that flows through registered routes (estimate the denominator from network egress to known AI providers); the share of registered use cases with a named owner and a risk tier; and the share of requests with a resolved identity. Below 90% on the first, the inventory is fiction.
+
+## Deep dive 2: quotas and traceability — limit the blast radius, keep the receipts
+
+### Quotas, and the fail-open question
+
+Quotas look like cost control, and they are; but they are also a security control. OWASP's 2025 Top 10 for LLM applications lists "unbounded consumption" alongside prompt injection and excessive agency. A per-user, per-application quota caps the damage from a compromised credential, a runaway agent loop or a scraping attempt.
+
+The design decision that matters is what happens when the quota service itself fails. On the enterprise RAG platform, per-user monthly credit limits were enforced by a single decorator on every authenticated endpoint. A confirmed over-limit returned HTTP 429 with a structured body showing the limit, usage and remaining credit. But if the credit-tracking service was unavailable, the decorator logged a warning and let the request through — a deliberate fail-open choice, because for an internal knowledge assistant, blocking every employee because a billing service hiccupped was the worse outcome.
+
+That was the right call for that risk tier, and it would be the wrong call for others. A system that can move money, change records or send external communications should fail closed: if the control cannot run, the action does not happen. The governance point is that the fail mode is a policy decision that must be written down per risk tier and implemented in code — not left to whatever the developer's exception handler happened to do.
+
+```python
+# Simplified sketch of the pattern: one decorator, fail mode set by risk tier
+def governed(tier):
+    def wrap(endpoint):
+        async def inner(request, *args, **kwargs):
+            user = resolve_identity(request)            # control 2: access
+            try:
+                if await over_quota(user, endpoint):    # control 3: quotas
+                    return quota_exceeded(user)         # HTTP 429, logged
+            except QuotaServiceError:
+                log.warning("quota check unavailable", tier=tier)
+                if tier.fail_closed:                    # high tier: no control, no action
+                    return service_unavailable()
+            with trace(user, endpoint) as t:            # control 4: traceability
+                return await endpoint(request, *args, trace=t, **kwargs)
+        return inner
+    return wrap
+```
+
+### Traceability
+
+Traceability is the control that answers "what did it see and say?" For a modern AI system, a useful trace links, under one ID: the user and their roles; the original and any rewritten query; the retrieved documents and their versions; the model and prompt version; the output; and any action taken. Article 12 of the AI Act requires high-risk systems to support exactly this kind of lifetime event logging, and Article 26 requires deployers to keep logs for at least six months.
+
+Two design details matter. First, log the *rewritten* query, not just the user's message — retrieval quality problems and many injection attempts live in the rewrite. On the RAG platform, the query-rewrite step used tool calling, which returns schema-valid arguments and avoids the silent JSON-parsing failures that prompt-engineered output suffers in around 5% of zero-shot calls; every rewritten query was logged for audit. Second, generate stable reference IDs. In a triage prototype I built with Claude, every decision was appended to an audit log with a timestamp and a deterministic reference ID derived from the case text, so the same case submitted twice could be recognised. That was adequate for a prototype; production needs unique IDs, tamper-evident storage and a retention policy.
+
+### Failure mode and measurement
+
+The failure mode is logging that exists but cannot answer questions — free-text application logs with no shared ID, or traces that omit retrieval. A second failure mode is logging that creates its own privacy risk: traces contain personal data and must be access-controlled and retained no longer than necessary. Measure the share of requests with a complete trace, and run a quarterly drill: pick a random output from last month and time how long it takes to reconstruct it end to end. If the answer is days, the control is not working.
+
+## Deep dive 3: release evals and drift — prove it was good, notice when it stops
+
+### Release evals as a gate
+
+An eval is the governance artefact that answers "is it accurate enough for this use?" with something other than a demo. The mechanism is a versioned evaluation set drawn from real use, a set of metrics with thresholds agreed with the use-case owner, and a pipeline that blocks release when a gated metric falls below threshold. The report is versioned with the release, so an auditor can see what was tested and what passed.
+
+The hard part is scoring open-ended outputs at volume. On the LLMOps evaluation platform I built, evaluators were pluggable modules whose code lived in git while their prompts, weights and thresholds lived in a database, so the evaluation logic itself was version-controlled and its configuration was auditable. Several "judge" evaluators scored each output; an ensemble combined them with confidence weights; and when a human reviewer corrected a score, each judge's weight was updated through an exponential moving average (α = 0.2), so judges that agreed with humans gained influence gradually rather than from a single correction. After calibration, the ensemble reached a Spearman correlation of 0.89 with expert human raters on our evaluation data. The governance value is not the number; it is that every score is reproducible and every human correction is recorded and used.
+
+### Drift
+
+Approval is a snapshot; production is a film. Inputs drift as users find new uses, retrieval corpora change, and hosted models change underneath a stable name. Chen, Zaharia and Zou documented this for GPT-4: its accuracy on identifying prime versus composite numbers fell from 84% in March 2023 to 51% in June 2023, while GPT-3.5 moved in the opposite direction, and the June version was less willing to answer sensitive questions and made more formatting mistakes in generated code. If your eval passed in March and you never re-ran it, you do not know what you are running in June.
+
+The control is continuous monitoring at three levels: input drift (are queries changing?), output drift (are answers changing?), and quality drift (are eval scores on a fixed canary set changing?). On the evaluation platform, a cheap check compared the centroid of recent answer embeddings with a frozen baseline using cosine similarity — linear in the embedding dimension, so it could run on every batch — and windows that crossed the threshold triggered a more expensive maximum mean discrepancy (MMD) test for confirmation. The centroid check misses changes in spread that leave the mean unchanged; that is an accepted trade-off for a first-line alarm.
+
+### Failure mode and measurement
+
+The failure mode for evals is the set that never changes: it measures what mattered at launch and slowly stops representing real use. Every incident should add at least one case to the eval set. For drift, the failure mode is alerts nobody owns. Measure time from a drift event to its detection, the share of drift alerts acknowledged by a named owner, and how often the canary set is re-run after a vendor model change — ideally automatically, on every version change.
+
+## Deep dive 4: incident response — the control that proves the others
+
+### Mechanism
+
+Incident response is where governance becomes visible to outsiders. It has four parts: a **kill switch** that can disable a use case or route it to a fallback without a deployment; **rollback** to a known-good prompt, model and index version, which is only possible if those are versioned; an **escalation path** with named owners and a clock; and a **post-mortem** that produces changes to controls and eval sets, not just a document.
+
+The clock is no longer just internal. Article 73 of the AI Act sets reporting deadlines for serious incidents involving high-risk systems — 15 days in general, 2 days for widespread infringements, 10 days where a death is involved — and prohibits altering the system in ways that would affect the investigation before informing authorities. That last requirement is an engineering constraint: you need to be able to contain an incident (kill switch, routing) without destroying the evidence (versions, traces).
+
+### Failure mode
+
+The failure mode is the incident nobody classifies as an incident. A chatbot gives a wrong policy answer; a support agent corrects it; nothing is recorded. Air Canada's case is the public version of that pattern. Most organisations have far more AI incidents than their incident log shows, because "the model was wrong" is treated as a support ticket rather than as a signal.
+
+### How to measure it
+
+Time to contain (from first report to kill switch or fallback); time to reconstruct (from report to a full trace of the affected outputs); the share of incidents producing a new eval case or control change; and the result of a twice-yearly drill in which a team must contain and reconstruct a simulated incident against the clock.
+
+## Agentic AI raises the stakes
+
+Everything above gets harder when the system acts. An assistant that drafts an email creates a liability only if someone sends it; an agent that sends it creates one immediately. OWASP's Top 10 for LLM applications names "excessive agency" as a distinct risk for this reason.
+
+<Exhibit
+  n={10}
+  title="Agents are moving from experiment to production faster than the controls around them"
+  sub="Selected indicators of agentic AI adoption and risk"
+  source="McKinsey (Nov 2025; Aug 2026); Gartner prediction via Outlook Business (Jun 2025)"
+  sourceUrl="https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai"
+  note="McKinsey figures are self-reported survey data from different waves (Nov 2025: 1,993 respondents; Aug 2026: 1,719). The Gartner figure is a prediction, reported secondhand; it cites escalating costs, unclear business value and inadequate risk controls."
+>
+  <Stats items={[
+    { value: "62%", label: "of organisations experimenting with AI agents", source: "MCKINSEY · NOV 2025" },
+    { value: "23%", label: "already scaling agents somewhere in the business", source: "MCKINSEY · NOV 2025" },
+    { value: "40%", label: "of large organisations scaling agents", source: "MCKINSEY · AUG 2026" },
+    { value: ">40%", label: "of agentic AI projects predicted to be cancelled by end-2027", source: "GARTNER · JUN 2025" },
+  ]} />
+</Exhibit>
+
+Gartner's prediction is worth reading carefully: it attributes the expected cancellations to escalating costs, unclear business value *or inadequate risk controls*. Governance is not just a brake on agents; it is a precondition for keeping them.
+
+The useful question for each agent is how much autonomy it has earned. I place agent actions on two axes: how autonomously the agent acts, and how large and irreversible the consequence of a wrong action is.
+
+<Exhibit n={11} title="Grant autonomy in proportion to reversibility: an agent should earn the right to act unsupervised on consequential actions" sub="Author’s framework for setting controls on agent actions" note="Author’s framework. Most production agents today should sit on the left; moving right requires evidence from evals, traces and incident history.">
+  <Matrix
+    x="Agent autonomy (suggests → acts unsupervised)"
+    y="Blast radius of a wrong action"
+    quads={[
+      { title: "Human approves each action", text: "Payments, record changes, external messages — agent proposes, a person confirms; fail closed", hl: true },
+      { title: "Earned autonomy only", text: "Unsupervised consequential actions require eval evidence, spend and scope limits, kill switch and full traces" },
+      { title: "Assistive", text: "Drafts and suggestions; standard logging and quotas" },
+      { title: "Automate with guardrails", text: "Reversible, low-impact actions — tight scopes, quotas, sampled review", hl: true },
+    ]}
+  />
+</Exhibit>
+
+In practice, three controls change for agents. **Scopes** shrink: an agent gets the narrowest tool permissions that complete the task, granted per task rather than per agent. **Approvals** become structural: consequential tool calls go through an approval step that the agent cannot bypass, enforced in the tool layer rather than in the prompt. And **traces** extend to the whole plan: the sequence of tool calls, inputs and intermediate outputs, not just the final answer.
+
+## Case examples
+
+**Air Canada (2024): you own your AI's outputs.** A tribunal rejected the argument that a chatbot was a separate entity and held the airline liable for its negligent misrepresentation. The governance lesson is twofold. Customer-facing answers about policy must be grounded in, and traceable to, the authoritative source; and an organisation needs the traces to show what its system said and why. A system that answered from, and cited, the bereavement policy page — the one that contradicted the chatbot — would very likely have prevented the dispute.
+
+**The Dutch tax administration (2021): data you should not have is a liability.** The Dutch Data Protection Authority fined the tax administration €2.75 million for processing applicants' dual nationality in an unlawful and discriminatory way when deciding whom to investigate for benefits fraud; the data should have been deleted years earlier. An inventory that covers features and data sources, not just models, plus retention enforced in code, is the control that would have surfaced it.
+
+**GPT-4's 2023 drift: the vendor's model is not a constant.** Chen, Zaharia and Zou showed material behaviour changes in a hosted model within three months. The lesson is to pin model versions where providers allow it, re-run a canary eval set on every version change, and treat an unannounced behaviour change as an incident.
+
+<Note kind="field">
+On the enterprise RAG platform I led, credit enforcement lives in one decorator applied to every authenticated endpoint. Changing the policy is a single code change that applies everywhere at once, and the 429 responses it produces are the evidence that it is working. That is what I mean by governance in the request path: the policy and its evidence change together.
+</Note>
+
+## Counterpoints
+
+<Note kind="counter" label="Objection 1: Governance slows innovation">
+Every control adds latency, cost and process. Teams that wait for a registry entry, an eval suite and a risk tier before shipping will be overtaken by competitors who ship first and fix later. Heavy governance is a luxury for regulated incumbents.
+</Note>
+
+<Note kind="response">
+This is right about governance done as paperwork: review boards and approval forms do slow teams down, and the McKinsey data show organisations struggling to scale value even as they add policies. But controls in the request path are different. A gateway that handles identity, quotas and tracing is infrastructure that every team reuses; a new use case inherits it on day one. Evals are how you ship model upgrades quickly without fear. And Gartner's cancellation forecast suggests the bigger threat to agentic programmes is losing trust after an incident, not moving too slowly beforehand. The objection should change *how* you govern — tiered, automated, light for low-risk uses — not *whether*.
+</Note>
+
+<Note kind="counter" label="Objection 2: Regulation will be delayed again, so wait">
+The EU already pushed high-risk obligations back by more than a year. Standards are unfinished, guidance keeps changing and the US federal approach has shifted. Building to a moving target wastes money; better to wait until the rules settle.
+</Note>
+
+<Note kind="response">
+The objection is right that dates move and that building to the letter of an unfinished standard is wasteful. It is wrong about what is moving. Prohibitions, AI literacy, GPAI rules and Article 50 transparency already apply; liability for what your AI says, as Air Canada found, does not wait for any regulation; and IBM's breach data describe costs organisations are paying now. The controls in this article — inventory, access, tracing, evals, drift, incidents — are what every framework converges on (Exhibit 8). They are worth building for operational reasons alone, and they become your compliance evidence when the dates arrive. The work that is wise to defer is formal conformity assessment, not engineering.
+</Note>
+
+<Note kind="counter" label="Objection 3: The model vendors handle safety">
+Frontier providers invest heavily in safety, publish system cards, filter harmful content and offer enterprise terms. A company deploying their models should rely on that work rather than duplicate it.
+</Note>
+
+<Note kind="response">
+Vendors handle a real share of model-level safety, and you should use it. But almost every control in Exhibit 9 sits on your side of the API. The vendor does not know who your user is, which documents they may see, how much they should spend, what your eval thresholds are or when to call your regulator. The IBM breaches were overwhelmingly access-control failures — a deployer's responsibility. The AI Act assigns distinct obligations to deployers precisely because the provider cannot meet them. And the GPT-4 drift study shows that a vendor's model can change beneath you, which is a reason for your own evals, not for trust.
+</Note>
+
+## Implications by stakeholder
+
+### Boards and executives
+
+Ask for evidence, not assurances. Three requests will tell you more than any policy review: the AI inventory with owners and risk tiers; the percentage of AI traffic flowing through the governed gateway; and the most recent incident drill, with time to contain and time to reconstruct. Put AI governance under a named executive — the McKinsey data associate CEO-level oversight with impact — and fund the platform team that builds the controls as shared infrastructure, not as a tax on each project.
+
+### Risk and compliance
+
+Shift from documents to evidence. Map each obligation you care about — Article 12 logs, Article 14 oversight, Article 26 retention, Article 73 clocks, ISO 42001 Annex A controls — to a specific control and a specific artefact the system produces. Write fail modes per risk tier. Then sample the evidence: pick outputs at random and ask engineering to reconstruct them. Compliance teams that can read a trace are worth more than ones that can write a policy.
+
+### Engineering and platform teams
+
+Own the control plane. Build the gateway, the trace schema and the eval pipeline once, and make them the easiest path for every team. Treat prompts, retrieval indexes and model versions as versioned artefacts. Set fail-open or fail-closed explicitly. And make "what would an auditor need to see?" a design-review question, alongside latency and cost.
+
+## What to do next: a 30/60/90-day plan
+
+<Exhibit n={12} title="Ninety days is enough to move from policy-only to auditable for most organisations" sub="Recommended sequence for putting governance into the request path" note="Author’s framework. Assumes an existing AI policy and at least one production AI system; adjust scope for organisation size.">
+  <Timeline items={[
+    { date: "DAYS 1–30", title: "See everything", text: "Stand up an AI gateway; register every use case with owner and risk tier; route sanctioned traffic through it; estimate shadow-AI egress; write fail modes per tier.", state: "done" },
+    { date: "DAYS 31–60", title: "Record and gate", text: "Identity on every call; retrieval scoped by role; per-user quotas; trace schema with retention; versioned eval sets and thresholds as a release gate for the highest-tier systems.", state: "hl" },
+    { date: "DAYS 61–90", title: "Watch and respond", text: "Drift monitors and canary evals on every model change; kill switch and rollback per use case; incident playbook with regulatory clocks; first reconstruction drill." },
+    { date: "QUARTERLY", title: "Prove it", text: "Report traffic coverage, trace completeness, eval pass rates, drift detection time and drill results to the accountable executive." },
+  ]} />
+</Exhibit>
+
+The order matters. Visibility comes first because every later control depends on knowing what exists. Traceability and evals come second because they create the evidence. Drift and incident response come third because they depend on both. A team that starts with a 60-page policy and a governance committee will, at day 90, have a policy and a committee. A team that starts with a gateway will have a system that can answer the three questions from the opening of this article.
+
+## Limitations and methodology
+
+The evidence here has limits. Incident counts come from a database of publicly reported incidents, so they measure visibility as well as frequency. The McKinsey, Stanford and IBM figures are survey-based and largely self-reported; IBM's study covers breached organisations, so its percentages describe that population, not all firms, and its correlations between missing controls and breaches are not causal estimates. The McKinsey waves use different samples, and the agent figures mix two survey waves with a Gartner prediction that I read only in secondary reporting. My account of the EU AI Act is drawn from the Commission, the Council and an annotated version of the text, and simplifies obligations that depend on role and risk category; it is not legal advice. The ISO 42001 control count comes from a secondary summary because the standard is paywalled. The Chen, Zaharia and Zou drift result concerns one task on one model in 2023. Finally, the control map, the agent matrix and the 90-day plan are my own frameworks, drawn from systems I have built; the field notes describe those systems, and figures such as the 0.89 correlation apply to our evaluation data, not to evaluation in general.
+
+## Governance is what the system does
+
+The organisations that will handle the next few years well are not the ones with the longest AI policies. They are the ones that can pick any output from last month and show who asked, what the system saw, what it said, which version said it, what tests that version passed, and what happened when something went wrong. That is not a compliance aspiration; it is a set of controls that can be built in a quarter.
+
+AI governance fails when it lives in policy documents and works only when it is encoded as controls in the request path that produce evidence an auditor can read. Write the policy, by all means. Then put it where the requests go.
+
+<Note kind="insight">
+Accountability is not a role on an org chart. It is the ability to reconstruct, for any output, who asked, what the system saw, what it said, and who was allowed to act on it. If your system cannot do that today, that is your governance roadmap.
+</Note>

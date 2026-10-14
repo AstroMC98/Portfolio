@@ -1,0 +1,51 @@
+/* ── Design tokens — "Dark Systems Editorial" ───────────────────────────── */
+:root {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --ink: #0a0d0c;
+  --ink-2: #111715;
+  --ink-3: #172019;
+  --line: #1e2824;
+  --line-2: #2a3732;
+
+  /* Text */
+  --text: #ecefea;
+  --text-2: #c4cbc6;
+  --muted: #8b958f;
+
+  /* Accents */
+  --signal: #3df5a7;
+  --signal-2: #23c987;
+  --signal-dim: rgb(61 245 167 / 0.1);
+  --signal-glow: rgb(61 245 167 / 0.35);
+  --amber: #ffb547;
+  --amber-dim: rgb(255 181 71 / 0.12);
+  --danger: #ff7a7a;
+
+  /* Type */
+  --font-display: 'Archivo Variable', 'Arial Narrow', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Archivo Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-md: 1.125rem;
+  --fs-lg: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --fs-xl: clamp(1.75rem, 1.3rem + 1.8vw, 2.75rem);
+  --fs-2xl: clamp(2.5rem, 1.6rem + 3.8vw, 4.75rem);
+  --fs-hero: clamp(3rem, 1.4rem + 6.6vw, 8.25rem);
+  --fs-numeral: clamp(4rem, 2rem + 8vw, 10rem);
+
+  /* Layout */
+  --wrap: 1320px;
+  --gutter: clamp(16px, 4vw, 40px);
+  --radius: 14px;
+  --radius-lg: 22px;
+  --section-pad: clamp(80px, 9vw, 128px);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur: 0.5s;
+}

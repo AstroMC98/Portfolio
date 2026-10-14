@@ -1,0 +1,109 @@
+---
+import { HACKATHONS, PUBLICATIONS, SPEAKING } from '../data/recognition';
+---
+<section class="section recog" id="recognition" aria-labelledby="recog-title">
+  <span class="coord">§08 · honours</span>
+  <div class="wrap">
+    <header class="section-head" data-reveal>
+      <p class="eyebrow"><span class="idx">08</span> Recognition</p>
+      <h2 id="recog-title">Four podiums. Two national titles. <em>Peer-reviewed.</em></h2>
+    </header>
+
+    <ol class="podium">
+      {HACKATHONS.map((h) => (
+        <li class:list={['pod panel', { 'pod--gold': h.place === '1st' }]} data-reveal>
+          <span class="pod__place">{h.place.replace(/\D/g, '')}<sup>{h.place.replace(/\d/g, '')}</sup></span>
+          <span class="pod__badge mono">{h.badge}</span>
+          <h3 class="pod__name">{h.name}</h3>
+          <p class="pod__what">{h.what}</p>
+          <p class="pod__meta mono">{h.year} · {h.scope}{h.field && ` · ${h.field}`}</p>
+        </li>
+      ))}
+    </ol>
+
+    <div class="recog__split">
+      <div data-reveal>
+        <h3 class="sub-h"><span class="mono">Publications</span></h3>
+        <ol class="pubs">
+          {PUBLICATIONS.map((p, i) => (
+            <li class="pub">
+              <span class="pub__n mono">[{i + 1}]</span>
+              <div>
+                <p class="pub__title">{p.title}</p>
+                <p class="pub__meta mono">
+                  {p.venue} · <a href={p.href} target="_blank" rel="noopener">{p.id} ↗</a>
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div data-reveal>
+        <h3 class="sub-h"><span class="mono">Speaking &amp; training</span></h3>
+        <ol class="talks">
+          {SPEAKING.map((s) => (
+            <li class="talk">
+              <span class="talk__group mono">{s.group}</span>
+              <div>
+                <p class="talk__title">{s.title}</p>
+                <p class="talk__org">{s.org}</p>
+              </div>
+              <span class="talk__date mono">{s.date}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .podium { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .pod { padding: 26px 24px 24px; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+  .pod__place {
+    font-family: var(--font-display);
+    font-stretch: 72%;
+    font-weight: 800;
+    font-size: clamp(5rem, 3rem + 4vw, 8rem);
+    line-height: 0.8;
+    letter-spacing: -0.015em;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--line-2);
+  }
+  .pod__place sup { font-size: 0.32em; font-style: normal; font-weight: inherit; vertical-align: top; position: relative; top: 0.3em; margin-left: 4px; -webkit-text-stroke: 0; color: var(--muted); }
+  .pod--gold { border-color: rgb(255 181 71 / 0.3); background: radial-gradient(320px 200px at 0% 0%, rgb(255 181 71 / 0.09), transparent 70%), var(--ink-2); }
+  .pod--gold .pod__place { color: var(--amber); -webkit-text-stroke: 0; text-shadow: 0 0 40px rgb(255 181 71 / 0.3); }
+  .pod--gold .pod__place sup { color: var(--amber); }
+  .pod__badge { margin-top: 8px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .pod--gold .pod__badge { color: var(--amber); }
+  .pod__name { font-weight: 600; font-size: 1.1rem; line-height: 1.25; }
+  .pod__what { color: var(--text-2); font-size: 0.9rem; }
+  .pod__meta { margin-top: auto; padding-top: 10px; font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
+
+  .recog__split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: clamp(32px, 5vw, 72px); margin-top: clamp(56px, 7vw, 96px); }
+  .sub-h { padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .sub-h .mono { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--signal); }
+
+  .pub { display: grid; grid-template-columns: 36px 1fr; gap: 12px; padding-block: 20px; border-bottom: 1px solid var(--line); }
+  .pub__n { font-size: 12px; color: var(--muted); padding-top: 4px; }
+  .pub__title { font-family: var(--font-display); font-stretch: 100%; font-style: normal; font-size: 1.1rem; line-height: 1.4; }
+  .pub__meta { margin-top: 8px; font-size: 11.5px; color: var(--muted); }
+  .pub__meta a { color: var(--signal); border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+  .pub__meta a:hover { border-color: var(--signal); }
+
+  .talk { display: grid; grid-template-columns: 96px 1fr auto; gap: 16px; align-items: baseline; padding-block: 16px; border-bottom: 1px solid var(--line); }
+  .talk__group { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--signal); }
+  .talk__title { font-weight: 500; line-height: 1.35; }
+  .talk__org { margin-top: 4px; font-size: 0.85rem; color: var(--muted); }
+  .talk__date { font-size: 11px; color: var(--text-2); white-space: nowrap; }
+
+  @media (max-width: 1080px) {
+    .podium { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .recog__split { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .podium { grid-template-columns: 1fr; }
+    .talk { grid-template-columns: 1fr; gap: 4px; }
+  }
+</style>

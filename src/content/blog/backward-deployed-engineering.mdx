@@ -1,0 +1,436 @@
+---
+title: "Backward Deployed Engineering? Maybe It's Not BDE. Maybe It's Called Upstream Engineering."
+dek: "Forward-deployed engineers carry the product into the customer's world. Somebody has to carry the customer's world back into the product, or every deployment stays a custom project. A deep dive into the economics, mechanics and organisational design of the return path."
+date: 2026-10-28
+kicker: Opinion
+motif: loop
+tags: [Forward Deployed, Opinion, Careers]
+thesis: "The forward-deployed model only reaches software economics if field learnings flow back into the product, and that return path is a distinct job (call it Upstream Engineering) that deserves an owner, a budget and one metric: how much custom code the next deployment does not need."
+takeaways:
+  - "FDE demand has exploded: postings rose more than 1,000% year on year in 2026. Without a return path, every new FDE adds custom code rather than product."
+  - "The services-to-software story is real but conditional. ServiceNow, Workday and Palantir each added 12–21 points of gross margin after going public; turning field work into product is the mechanism, not a guarantee."
+  - "What flows upstream is concrete: integration patterns, connectors, eval sets, controls and prompts. Each needs a readiness test before it is generalised."
+  - "Extract on the third occurrence, and only when the variation can be expressed as configuration. Earlier than that, you are guessing at the abstraction."
+  - "Name the role, keep it off sales quota, and measure it by the custom-code share of the next deployment."
+  - "Product managers, platform teams and FDEs each cover part of the loop. Nobody owns all of it by default. That gap is the job."
+sources:
+  - label: "a16z — Trading Margin for Moat: Why the Forward Deployed Engineer Is the Hottest Job in Startups (4 Jun 2025)"
+    url: "https://a16z.com/services-led-growth/"
+  - label: "The Pragmatic Engineer — Forward deployed engineers (12 Aug 2025)"
+    url: "https://newsletter.pragmaticengineer.com/p/forward-deployed-engineers"
+  - label: "Fortune — Forward-deployed engineers: the fast-growing six-figure job (Lightcast data, 3 Sep 2026)"
+    url: "https://fortune.com/2026/09/03/forward-deployed-engineers-fast-growing-six-figure-silicon-valley-job-integrate-ai-with-customers-tech-careers-palantir/"
+  - label: "Salesforce News — Forward deployed engineers are making AI jobs more human (18 Mar 2026)"
+    url: "https://www.salesforce.com/news/stories/forward-deployed-engineers-making-ai-jobs-more-human/"
+  - label: "Channel Dive — Anthropic, AWS and FDE certifications; Gartner estimate of ~2,000 FDEs (5 Oct 2026)"
+    url: "https://www.channeldive.com/news/anthropic-aws-forward-deployed-engineer-certifications/832157/"
+  - label: "Anthropic — Claude Frontier Academy (2 Oct 2026)"
+    url: "https://www.anthropic.com/news/claude-frontier-academy"
+  - label: "Bessemer Venture Partners — The State of AI 2025 (13 Aug 2025)"
+    url: "https://www.bvp.com/atlas/the-state-of-ai-2025"
+  - label: "SEC EDGAR — Palantir Technologies 10-K filings (revenue and cost of revenue, FY2018–FY2025)"
+    url: "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001321655&type=10-K"
+  - label: "Eric von Hippel — Democratizing Innovation, Chapter 2 (MIT Press, 2005; Creative Commons)"
+    url: "https://web.mit.edu/evhippel/www/books/DI/Chapter2.pdf"
+  - label: "Eric von Hippel — 'Sticky Information' and the Locus of Problem Solving (Management Science, 1994)"
+    url: "https://dspace.mit.edu/handle/1721.1/127247"
+  - label: "David Heinemeier Hansson — 'Good frameworks are extracted, not invented' (dhh.dk, 2005)"
+    url: "https://dhh.dk/arc/000416.html"
+  - label: "Rule of three (computer programming) — attributed to Don Roberts, popularised in Fowler's Refactoring (1999)"
+    url: "https://en.wikipedia.org/wiki/Rule_of_three_(computer_programming)"
+  - label: "Sandi Metz — The Wrong Abstraction (20 Jan 2016)"
+    url: "https://sandimetz.com/blog/2016/1/20/the-wrong-abstraction"
+  - label: "Martin Fowler — Team Topologies (25 Jul 2023)"
+    url: "https://martinfowler.com/bliki/TeamTopologies.html"
+  - label: "Aja Hammerly — Friction Logs (Google Developer Relations practice; 2018, republished 2019)"
+    url: "https://dev.to/thagomizer/friction-logs-3110"
+  - label: "U.S. Army — Center for Army Lessons Learned celebrates 30 years (24 Jul 2015)"
+    url: "https://www.army.mil/article/152822/center_for_army_lessons_learned_celebrates_30_years_of_service_to_the_army"
+  - label: "NASA — Aviation Safety Reporting System program overview"
+    url: "https://asrs.arc.nasa.gov/overview/summary.html"
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Stats from '../../components/blog/Stats.astro';
+import Slope from '../../components/blog/Slope.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Lines from '../../components/blog/Lines.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Timeline from '../../components/blog/Timeline.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">People sometimes ask me, half-joking, whether there is such a thing as a "backward deployed engineer." It is a better question than it sounds. A forward-deployed engineer carries the product out into a customer's messy reality: their identity system, their half-documented data, their approval chains. But somebody has to carry that reality back. The workarounds, the integration patterns, the evaluation criteria and the failure modes all need turning into product, or the company ends up rebuilding the same thing for every client and calling it a platform.</p>
+
+My argument in this piece is simple to state and harder to execute. **The forward-deployed model only reaches software economics if field learnings flow back into the product, and that return path is a distinct job.** I call it Upstream Engineering. It deserves an owner, a budget and a single headline metric: how much custom code the *next* deployment does not need.
+
+Here is the route. I start with why the question has become urgent in 2026, then look at what the public evidence says about services-led companies that did grow into software margins, and what it cannot say. I then set out a framework for the return path and take it apart in four deep dives: what flows upstream, when a pattern is ready to be extracted, where the role sits in an organisation, and why field knowledge is so hard to move in the first place. After that come case examples from software history and from other industries that solved a version of this problem decades ago, my own field notes, the strongest objections I know, what this means for each stakeholder, and a 90-day plan.
+
+## Context: why the return path matters now
+
+Forward-deployed engineering stopped being a Palantir curiosity some time in 2025. By 2026 it was the fastest-growing title in technology. Lightcast data reported by Fortune shows FDE postings up **more than 1,000%** in January–August 2026 against the same period a year earlier, while overall tech postings grew 13%. Salesforce says it tripled its Agentforce FDE team in six months. Anthropic has committed $100M to train 10,000 "Frontier Deployed Engineers" at partner firms by the end of 2027. Meanwhile a Gartner analyst estimates that only about 2,000 engineers currently fit the role.
+
+<Exhibit
+  n={1}
+  title="Demand for forward-deployed engineers is growing far faster than the supply of people who can do the job"
+  sub="Selected indicators of FDE demand and supply, 2026"
+  source="Lightcast via Fortune (3 Sep 2026); Salesforce News (18 Mar 2026); Anthropic (2 Oct 2026); Gartner via Channel Dive (5 Oct 2026)"
+  sourceUrl="https://fortune.com/2026/09/03/forward-deployed-engineers-fast-growing-six-figure-silicon-valley-job-integrate-ai-with-customers-tech-careers-palantir/"
+>
+  <Stats items={[
+    { value: ">1,000%", label: "growth in FDE job postings, Jan–Aug 2026 vs. 2025 (all tech postings: +13%)", source: "LIGHTCAST · FORTUNE" },
+    { value: "3×", label: "growth of Salesforce’s Agentforce FDE team in six months", source: "SALESFORCE · MAR 2026" },
+    { value: "10,000", label: "“Frontier Deployed Engineers” Anthropic plans to train at partners by end-2027", source: "ANTHROPIC · OCT 2026" },
+    { value: "~2,000", label: "engineers estimated to genuinely fit the FDE role today", source: "GARTNER · OCT 2026" },
+  ]} />
+</Exhibit>
+
+Read those four numbers together and a problem appears. The industry is about to put many thousands of engineers inside customer environments, most of them new to the role, each one under pressure to make *this* customer successful *this* quarter. That is exactly the setting in which every deployment becomes a bespoke project. A bespoke project is perfectly good business for a consultancy. It is a slow disaster for a software company, because the valuation assumes that the cost of serving customer number fifty is far lower than the cost of serving customer number five.
+
+The forward-deployed model has a well-known answer to this, and it is worth stating precisely, because it is usually stated loosely. The answer is not "FDEs are expensive but worth it." The answer is that FDEs are a *temporary* cost that becomes a permanent asset, but only if what they learn is converted into product. a16z, whose essay did more than any other to popularise the model, puts the feedback loop at the centre: "It's critical to have the right feedback loops and clean information sharing between the front lines and product." The same essay warns against "games of telephone" between the field and the roadmap. That sentence carries the whole economic case for the model, yet most companies leave the work it describes without an owner.
+
+## The evidence: what services-led growth actually shows
+
+The strongest evidence for services-led growth comes from enterprise software companies that started with heavy implementation work and grew into software-like margins. a16z cites two: ServiceNow, whose gross margin was 63.2% at IPO and 79% in 2024, and Workday, which went from 54.1% to 75%. The essay describes both IPO figures as "far below the ideal ~80% for software."
+
+<Exhibit
+  n={2}
+  title="Two services-heavy software companies added 16–21 points of gross margin after going public"
+  sub="Gross margin at IPO and in 2024, %"
+  source="a16z, Trading Margin for Moat (4 Jun 2025)"
+  sourceUrl="https://a16z.com/services-led-growth/"
+  table={[['Company', 'Gross margin at IPO', 'Gross margin 2024'], ['ServiceNow', '63.2%', '79%'], ['Workday', '54.1%', '75%']]}
+>
+  <Slope left="At IPO" right="2024" unit="%" min={50} max={85} items={[
+    { label: "ServiceNow", a: 63.2, b: 79 },
+    { label: "Workday", a: 54.1, b: 75, hl: true },
+  ]} />
+</Exhibit>
+
+Palantir is the more interesting case, because it invented the forward-deployed role. Its 10-K filings with the SEC let us compute gross margin directly from reported revenue and cost of revenue. In FY2019, the last full year before its 2020 listing, gross margin was 67.4%. By FY2024 it was 80.2%, and in FY2025 it reached 82.4%.
+
+<Exhibit
+  n={3}
+  title="Palantir, the company that invented the FDE, moved from a 67% to an 82% gross margin in six years"
+  sub="GAAP gross margin by fiscal year, % (revenue minus cost of revenue, over revenue)"
+  source="Author’s calculation from Palantir 10-K filings, SEC EDGAR"
+  sourceUrl="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001321655&type=10-K"
+  note="Computed from revenue and cost of revenue as reported in annual 10-K filings (XBRL data). GAAP figures include stock-based compensation in cost of revenue. Margin expansion has many causes beyond productisation, including pricing, customer mix and hosting costs."
+  table={[['Fiscal year', 'Revenue ($M)', 'Cost of revenue ($M)', 'Gross margin'], ['2018', 595.4, 165.4, '72.2%'], ['2019', 742.6, 242.4, '67.4%'], ['2020', 1092.7, 352.5, '67.7%'], ['2021', 1541.9, 339.4, '78.0%'], ['2022', 1905.9, 408.5, '78.6%'], ['2023', 2225.0, 431.1, '80.6%'], ['2024', 2865.5, 566.0, '80.2%'], ['2025', 4475.4, 789.2, '82.4%']]}
+>
+  <Lines yMin={60} yMax={85} unit="%" series={[
+    { name: "Palantir gross margin", points: [
+      { x: "FY18", y: 72.2 }, { x: "FY19", y: 67.4 }, { x: "FY20", y: 67.7 }, { x: "FY21", y: 78.0 },
+      { x: "FY22", y: 78.6 }, { x: "FY23", y: 80.6 }, { x: "FY24", y: 80.2 }, { x: "FY25", y: 82.4 },
+    ] },
+  ]} />
+</Exhibit>
+
+The other half of the evidence is the starting point many AI companies are in today. Bessemer's *State of AI 2025*, based on 20 high-growth AI startups, found that its fastest-scaling cohort, which it calls "Supernovas", averages only about 25% gross margin ("often negative"). Its steadier "Shooting Stars" average about 60%. Against the ~80% that software investors treat as the benchmark, both cohorts have a long way to climb.
+
+<Exhibit
+  n={4}
+  title="Today’s fastest-growing AI companies start 20–55 points below the software margin benchmark"
+  sub="Average gross margin, %, by cohort"
+  source="Bessemer Venture Partners, The State of AI 2025 (13 Aug 2025); software benchmark as described by a16z (Jun 2025)"
+  sourceUrl="https://www.bvp.com/atlas/the-state-of-ai-2025"
+  note="Bessemer’s figures are averages across a small sample (20 companies studied; ten Supernovas surveyed). Bessemer attributes Shooting Stars’ lower margins mainly to model costs, not services. The ~80% benchmark is a rule of thumb, not a measurement."
+  table={[['Cohort', 'Average gross margin'], ['Software benchmark (rule of thumb)', '~80%'], ['AI “Shooting Stars”', '~60%'], ['AI “Supernovas”', '~25% (often negative)']]}
+>
+  <Bars unit="%" max={100} data={[
+    { label: "Software benchmark", sub: "rule of thumb", value: 80, display: "~80%" },
+    { label: "AI Shooting Stars", sub: "Bessemer cohort", value: 60, display: "~60%" },
+    { label: "AI Supernovas", sub: "Bessemer cohort", value: 25, display: "~25%", hl: true },
+  ]} />
+</Exhibit>
+
+It is important to be honest about what these exhibits do and do not prove. They show that services-heavy software companies *can* grow into software margins. They do not show *why*. Gross margin expands for many reasons: price increases, a shift towards larger customers, cheaper hosting, partners absorbing implementation, and accounting choices about what counts as cost of revenue. There is also obvious survivorship bias: we study ServiceNow and Workday because they made it, not the services-heavy companies that stalled as consultancies. And Bessemer's AI margins are dragged down mainly by inference costs, which forward-deployed engineering does not fix.
+
+So the evidence supports a weaker claim than the one usually made, and I think the weaker claim is the useful one. **Margin expansion in services-led companies is possible, and it requires something to convert repeated implementation work into product.** The published accounts tell us that conversion happened. They say very little about who did it, how, or at what cost. That gap is the subject of the rest of this piece.
+
+## A framework: the upstream loop
+
+"Backward deployed" is catchy, but it describes a direction, not a job. The job is closer to what river engineers mean by *upstream*: working at the source so that everything downstream gets easier. I define **Upstream Engineering** as the discipline of noticing patterns across deployments and turning them into primitives (connectors, controls, evaluators, templates, configuration surfaces) that the next deployment can reuse without new code.
+
+The economic logic is easiest to see as a curve. Without a return path, the custom-code share of each deployment stays roughly flat: every client is a new project, and the experience lives only in the heads of the people who did it. With a return path, the share falls with each deployment, because each one leaves something behind.
+
+<Exhibit
+  n={5}
+  title="The return path is what turns services into software: each deployment should need less custom code than the last"
+  sub="Share of a deployment built as custom code, with and without an upstream loop"
+  note="Illustrative — not measured data. The curves show the shape of the argument, not observed values."
+>
+  <Lines yMax={100} unit="%" series={[
+    { name: "No upstream loop", points: [{ x: "Client 1", y: 80 }, { x: "Client 2", y: 78 }, { x: "Client 3", y: 77 }, { x: "Client 4", y: 76 }, { x: "Client 5", y: 75 }, { x: "Client 6", y: 75 }] },
+    { name: "With upstream engineering", points: [{ x: "Client 1", y: 80 }, { x: "Client 2", y: 65 }, { x: "Client 3", y: 50 }, { x: "Client 4", y: 38 }, { x: "Client 5", y: 30 }, { x: "Client 6", y: 25 }] },
+  ]} />
+</Exhibit>
+
+The loop that produces the second curve has five steps. Forward deployment covers the first two; upstream engineering covers the middle; product and platform teams own the last mile together.
+
+<Exhibit n={6} title="Forward deployment and upstream engineering are two halves of one loop" sub="Author’s framework: the field-to-product loop" note="Author’s framework.">
+  <Flow steps={[
+    { title: "Deploy", text: "An FDE ships into a customer environment and solves that customer’s version of the problem." },
+    { title: "Notice", text: "The same workaround, connector or evaluation criterion appears at a second and third client." },
+    { title: "Extract", text: "An upstream engineer generalises it into a primitive with a configuration surface, tests and docs.", hl: true },
+    { title: "Productise", text: "Product and platform teams adopt it: versioned, supported, on the roadmap." },
+    { title: "Redeploy", text: "The next FDE starts further ahead, and finds the next pattern." },
+  ]} />
+</Exhibit>
+
+Three properties of this loop matter more than the diagram suggests. First, it is a **loop, not a hand-off**: the value of each extraction is only realised when the next deployment uses it, so the upstream engineer needs to see the redeploy step, not just the extract step. Second, the loop has a **cadence**: patterns that wait six months to be extracted have usually forked into five incompatible variants by then. Third, it is **asymmetric in visibility**: a deployment going live is a visible event with a customer attached, while an extraction that saves three weeks on the next deployment is invisible unless somebody measures it. That third property is why the work gets neglected, and why naming it matters.
+
+## Deep dive 1: what actually flows upstream
+
+"Field learnings" is too vague to manage. In AI deployments I see five recurring kinds of artefact that can make the trip from a customer environment into product. They differ in how they show up in the field, what the product version looks like, and how you know they are ready.
+
+<Exhibit n={7} title="Five kinds of field artefact can become product, and each has its own signal that it is ready" sub="Author’s framework: what flows upstream in AI deployments" note="Author’s framework, drawn from the categories of work that recur in enterprise AI deployments.">
+  <Compare
+    cols={['Field form', 'Product form', 'Ready when…', 'Measure']}
+    rows={[
+      { k: 'Integration patterns', v: ['Custom glue to an identity system, document store or ticketing tool', 'A documented, supported integration pattern with a reference implementation', 'Three clients needed the same shape of glue', 'Days from kickoff to first data flowing'] },
+      { k: 'Connectors', v: ['A one-off script that pulls from a client’s system of record', 'A versioned connector with auth, paging, retries and rate limits built in', 'The system is common in your segment, not just one client’s', 'Share of deployments using a stock connector'] },
+      { k: 'Eval sets', v: ['A spreadsheet of test questions a client’s experts wrote', 'An evaluation suite with criteria, weights and graders as configuration', 'Criteria repeat across clients even when the content differs', 'Time to a trusted quality baseline for a new client'] },
+      { k: 'Controls', v: ['Per-client access rules, spend caps, redaction, audit logging', 'Policy primitives: role-based access, quotas, audit trails as settings', 'Security or compliance reviews keep asking for the same thing', 'Security-review cycles per deployment'] },
+      { k: 'Prompts and workflows', v: ['A prompt tuned in a client’s environment for their documents', 'A template library with variables, tests and version history', 'The structure is stable while the wording varies', 'Prompt edits that need an engineer'] },
+    ]}
+  />
+</Exhibit>
+
+**Integration patterns** are the most common and the least glamorous. Every enterprise AI deployment spends its first weeks connecting to things: single sign-on, a document repository, a CRM, a data warehouse behind a VPN. The first time, an FDE writes glue. The third time, the glue has a shape. The upstream move is not necessarily to build a product feature; often it is to publish a reference implementation and a decision guide, which is cheaper and almost as effective. The failure mode is treating every integration as a connector to be built, which produces a long tail of half-maintained adapters.
+
+**Connectors** are the subset of integrations worth owning. The test I use is whether the target system is common in your segment or just common among your current clients. A connector to a widely used document platform pays back across the market. A connector to one bank's in-house archive does not, however many weeks it took to build. Mature connectors also carry the hard-won operational lessons that one-off scripts lack: pagination, retry with backoff, respecting the source system's rate limits, and incremental sync.
+
+**Eval sets** are where AI deployments differ most from classic SaaS implementations. Every serious AI deployment ends up with a definition of "good" written by the client's domain experts: what a correct answer looks like, which errors are tolerable, what tone is acceptable. The content of these evaluations is client-specific. The *structure* (criteria, weights, graders, thresholds) repeats remarkably often. Extracting that structure into configuration is, in my experience, one of the highest-return upstream moves in applied AI, because it shortens the most anxious phase of any deployment: the weeks before the client trusts the system's quality.
+
+**Controls** flow upstream through a different channel: security and compliance reviews. When three clients' security teams each ask for per-user spend limits, audit logs of every model call and role-based document access, those are no longer client requests. They are product requirements that happen to arrive through procurement. Treating them as such shortens every future security review.
+
+**Prompts and workflows** are the most volatile category, and the one most often extracted too early. Prompts tuned for one client's documents rarely transfer as text. What transfers is the structure: the slots, the output format, the tests that pin behaviour down. The product form is a template library with versioning and tests, not a folder of "best prompts."
+
+How do you measure whether this is working? Each row in Exhibit 7 has a measure in its last column, and they share a property: each is observed on the *next* deployment, not the current one. That is the defining feature of upstream work. Its output lands one deployment later.
+
+## Deep dive 2: the mechanics of extraction
+
+The hardest judgement in upstream engineering is not *how* to generalise something. It is *when*. Generalise too late and the pattern has forked into incompatible variants across five clients. Generalise too early and you build an abstraction around one client's quirks, which every subsequent client then has to fight.
+
+Software engineering has a long-standing heuristic for this, the **rule of three**: attributed to Don Roberts and popularised in Martin Fowler's *Refactoring* (1999), it says that when similar code appears three times, it should be extracted. Two instances are not yet enough. Sandi Metz's 2016 essay *The Wrong Abstraction* explains the cost of ignoring the heuristic in one sentence: "duplication is far cheaper than the wrong abstraction." She describes how a premature abstraction decays. Each new requirement fits *almost*, so someone adds a parameter and a conditional, and eventually the shared code is a tangle that serves several unrelated purposes.
+
+That decay pattern is exactly what happens when an FDE team "productises" the first client's solution. The second client needs a parameter. The third needs a flag. By the fifth, the "product" is the first client's code with a configuration file that only its author understands.
+
+Repetition alone is not enough, though. The second test is **configurability**: can the variation between clients be expressed as data rather than code? A retrieval strategy that differs only in which index to search and how many results to rerank is configurable. A workflow that differs in its fundamental sequence of steps is not, or at least not yet. Those two tests give the triage matrix I use.
+
+<Exhibit n={8} title="Pull a pattern upstream only once it repeats, and only if its variation can become configuration" sub="Author’s framework: triage for field learnings" note="Author’s framework.">
+  <Matrix
+    x="How often it repeats across clients"
+    y="How configurable the variation is"
+    quads={[
+      { title: "Template it", text: "Configurable but rare: a documented recipe or reference implementation is enough" },
+      { title: "Upstream it", text: "Repeats and configurable: make it a product primitive with a settings surface", hl: true },
+      { title: "Leave it in the field", text: "One client’s quirk: keep it in their deployment, documented, and do not generalise" },
+      { title: "Rethink the product", text: "Repeats but resists configuration: a missing core capability, not a feature" },
+    ]}
+  />
+</Exhibit>
+
+The bottom-right quadrant deserves more attention than it usually gets. When something keeps recurring but every instance is different enough that no configuration surface captures it, the field is telling you that the product's core model is wrong. No amount of extraction fixes that; it is a product strategy conversation, and the upstream engineer's job is to escalate it with evidence rather than to keep patching.
+
+Before anything is extracted, I run a short checklist. It is deliberately boring:
+
+1. **Three instances.** Can I point to at least three deployments that needed this? If I can only point to two, I write it down and wait.
+2. **Named variation.** Can I list exactly what differed between the instances? If the list is "everything", it is not a pattern.
+3. **Configuration surface.** Can each difference be a setting, a registered module, or a data record, rather than a branch in code?
+4. **Owner after extraction.** Who will support this in a year? If the answer is "the FDE who wrote it", it is not product yet.
+5. **First consumer.** Which upcoming deployment will use it? Extraction without a named next consumer usually produces shelfware.
+
+The failure mode on the other side is subtler. Teams that have been burned by premature abstraction sometimes stop extracting altogether. They call it pragmatism. In practice it means the FDE team's codebase grows linearly with the client count, and nobody notices until the fifteenth deployment takes as long as the second.
+
+## Deep dive 3: organisational design
+
+If the return path is a job, where does it sit? I see three workable designs, and each has a predictable failure.
+
+**Inside the FDE organisation.** A senior FDE or a small "field platform" group owns extraction for the FDE team's own reuse. This is the fastest to set up and closest to the evidence. Its failure mode is that extracted primitives stay in an FDE-owned shared library that the core product never adopts. The company then has two products: the official one and the one that actually ships to customers.
+
+**Inside the platform or product engineering organisation.** Upstream engineers sit with the core product teams and pull patterns in. This gives extracted work a supported home. Its failure mode is distance: engineers who no longer see deployments start building for imagined needs. The Team Topologies model, as Martin Fowler summarises it, is useful here. It describes platform teams whose "primary benefit… is to reduce the cognitive load on stream-aligned teams", and "enabling" teams of specialists whose role is to grow skills inside other teams. In those terms, an upstream engineer is an enabling function between the field and the platform, which is why neither side owns it naturally.
+
+**Rotation.** FDEs rotate between field and product engineering on a fixed cycle, carrying patterns with them. Palantir's history suggests this can work at scale. According to The Pragmatic Engineer, when Foundry launched around 2016, FDEs moved back into engineering, "bringing their experience from the field to that core product." Ramp embeds FDEs within core product engineering teams. The failure mode of rotation is that extraction happens only at rotation boundaries, and patterns noticed mid-cycle get lost.
+
+The comparison below sets the upstream role against the roles it is most often confused with.
+
+<Exhibit n={9} title="Upstream engineering sits between the field and the platform, and is measured on the next deployment rather than the current one" sub="Author’s comparison of adjacent roles" note="Author’s framework.">
+  <Compare
+    cols={['Forward deployed engineer', 'Upstream engineer', 'Platform engineer', 'Product manager']}
+    hlCol={1}
+    rows={[
+      { k: 'Faces', v: ['One customer at a time', 'Many deployments at once', 'Internal engineering teams', 'The market and the roadmap'] },
+      { k: 'Core output', v: ['A working deployment', 'Reusable primitives extracted from deployments', 'Infrastructure and tooling', 'Priorities and specifications'] },
+      { k: 'Time horizon', v: ['This quarter, this client', 'The next three deployments', 'The next year of engineering', 'The next two to four quarters'] },
+      { k: 'Success metric', v: ['Customer live and adopting', 'Less custom code per new deployment', 'Reliability and developer velocity', 'Adoption and revenue'] },
+      { k: 'Failure mode', v: ['Heroic one-offs that never generalise', 'Abstracting too early from one client', 'Building for imagined needs', 'Roadmap disconnected from the field'] },
+    ]}
+  />
+</Exhibit>
+
+**Incentives** decide whether any of these designs works. a16z's advice on FDE teams applies with more force to upstream work: implementation leads rarely want to carry a quota, and quotas can drive counterproductive behaviour. An upstream engineer on a sales-linked target will extract whatever closes this quarter's deal, which is the opposite of the job. The incentive that works is tied to the next deployment's effort, not the current deal's value.
+
+**Metrics** make the role legible. I would track four, each defined so that it can be observed rather than estimated. None of the targets is universal; the numbers in any dashboard depend on your product and segment.
+
+<Exhibit n={10} title="Four metrics make the upstream role visible, and all of them are read on the next deployment" sub="Author’s framework: an upstream engineering scorecard" note="Author’s framework. Definitions only; appropriate targets depend on product and segment, and any example values would be illustrative, not measured.">
+  <Compare
+    cols={['Definition', 'Why it matters', 'Watch out for']}
+    rows={[
+      { k: 'Custom-code share per deployment', v: ['Lines (or story points) written specifically for one client, over the total for that deployment', 'The headline metric: it should fall as primitives accumulate', 'Gaming by moving custom logic into “configuration” that only one client uses'] },
+      { k: 'Time to first value', v: ['Days from kickoff to the first production workflow a client uses', 'Captures the effect of connectors, integration patterns and eval templates together', 'Client-side delays (procurement, security) that no extraction can fix'] },
+      { k: 'Primitive reuse rate', v: ['Share of new deployments using each extracted primitive within two quarters', 'Separates real product from shelfware', 'Counting “used” when a primitive was forked rather than configured'] },
+      { k: 'Field-to-product latency', v: ['Days from the third sighting of a pattern to a supported primitive', 'Measures the loop’s cadence; long latency means forked variants', 'Optimising speed at the expense of the configurability test'] },
+    ]}
+  />
+</Exhibit>
+
+## Deep dive 4: why field knowledge is hard to move
+
+If the return path is so valuable, why is it so often missing? The best explanation I know comes from innovation research, not software.
+
+In 1994 the MIT economist Eric von Hippel introduced the idea of **"sticky" information**: information that is costly to move from where it is generated to where it would be used. His central finding is that problem-solving tends to happen where the sticky information sits, and that when moving it is expensive, organisations either split the problem into pieces or invest in reducing the stickiness. Field knowledge from AI deployments is about as sticky as information gets. It is tacit ("this client's documents use headers inconsistently"), contextual ("the security team will only accept this if logs stay in-region"), and spread across Slack threads, notebooks and one engineer's memory.
+
+Von Hippel's later work adds a second, more encouraging point: users and field practitioners innovate a great deal, and much of that innovation can be harvested. His *Democratizing Innovation* (2005) summarises eight studies across industrial and consumer products. In every one of them, a meaningful share of users had built or modified products for their own use.
+
+<Exhibit
+  n={11}
+  title="Across eight studies, 10–36% of users built or modified products for their own needs: the field innovates whether or not the vendor listens"
+  sub="Share of sampled users who developed or modified a product for their own use, %"
+  source="von Hippel, Democratizing Innovation (MIT Press, 2005), Table 2.1, summarising eight studies (1988–2004)"
+  sourceUrl="https://web.mit.edu/evhippel/www/books/DI/Chapter2.pdf"
+  note="Samples range from employees of 74 firms to 291 individual users. Von Hippel cautions that all studies were probably affected by response bias, so these are not population rates. Extreme sports: the chapter text reports 32% innovating (Franke and Shah 2003); the table’s 37.8% matches that study’s response rate, so the text figure is used."
+  table={[['Field (users sampled)', 'Share innovating'], ['Pipe hanger hardware (employees in 74 firms)', '36%'], ['Extreme sporting equipment (197 club members)', '32%'], ['Library information systems (102 libraries)', '26%'], ['Printed circuit CAD (136 user firms)', '24.3%'], ['Surgical equipment (261 surgeons)', '22%'], ['Mountain biking equipment (291 riders)', '19.2%'], ['Apache security features (131 webmasters)', '19.1%'], ['Outdoor consumer products (153 catalogue recipients)', '9.8%']]}
+>
+  <Bars unit="%" max={40} data={[
+    { label: "Pipe hanger hardware", value: 36, hl: true },
+    { label: "Extreme sports gear", value: 32 },
+    { label: "Library info systems", value: 26 },
+    { label: "Circuit CAD software", value: 24.3 },
+    { label: "Surgical equipment", value: 22 },
+    { label: "Mountain bike gear", value: 19.2 },
+    { label: "Apache security", value: 19.1 },
+    { label: "Outdoor products", value: 9.8 },
+  ]} />
+</Exhibit>
+
+The parallel with forward deployment is direct. An FDE is a professional "lead user" embedded inside the customer. They modify the product constantly because their job requires it. The question von Hippel's work raises is not whether that innovation happens. It does. The question is whether the vendor has a mechanism to collect it, and that mechanism costs money because the information is sticky.
+
+Organisations that have reduced stickiness tend to do three things. They **structure the capture**: Google's developer relations teams, as Aja Hammerly describes, write "friction logs" that frame every small usability problem around a concrete user scenario, and route them to "the appropriate product manager and engineering team". They **make reporting safe**: under NASA's Aviation Safety Reporting System, people who report safety information may be eligible for protection from civil penalties, and the programme "issues alerting messages to persons in a position to correct them". And they **give the return path its own institution**: the US Army created its Center for Army Lessons Learned in August 1985, after the 1983 Grenada operation, specifically to collect, analyse, disseminate and archive lessons from training and combat. None of these organisations left the return path to goodwill.
+
+## Case examples
+
+**Palantir: the FDE company that had to become a product company.** The Pragmatic Engineer's account of Palantir describes two engineering roles: "Devs", whose focus was "one capability, many customers", and "Deltas" (FDEs), whose focus was "one customer, many capabilities." Until about 2016, Palantir had more FDEs than conventional software engineers. Foundry launched that year, and FDEs moved back into engineering, carrying their field experience into the core product. The lesson is not that Palantir found a clever org chart. It is that a company built on forward deployment eventually had to make a deliberate, large-scale move of field knowledge into product, and the gross-margin series in Exhibit 3 is at least consistent with that move having paid off, though it cannot prove it.
+
+**OpenAI: a return path built in from the start.** The same Pragmatic Engineer piece describes how OpenAI's FDE team, formed in early 2025 and grown to more than ten engineers, feeds the product. There are regular knowledge-sharing sessions with Research, "usually bi-weekly", fortnightly readouts with Product, and an "FDE Field notes" Slack channel. In one call-centre deployment, the team took data back to Research, and the work also improved the Realtime API. The article adds that "The FDE team is a big contributor to OpenAI's Agents SDK." That last detail is upstream engineering in its purest form: field work becoming a developer-facing product primitive. The lesson is that the return path can be designed in at team formation, with cadence and named channels, rather than retrofitted after the codebase has forked.
+
+**Rails: the canonical extraction.** In 2005 David Heinemeier Hansson wrote that Rails owed its origin to Basecamp, and that the experience formed his hypothesis that "good frameworks are extracted, not invented." Rails was pulled out of a working application after the patterns had proved themselves in production, not designed in advance. The lesson for AI platform teams is the order of operations. Build the real thing for a real user first, then extract. The reverse order produces frameworks for problems nobody has.
+
+These cases, and the analogues from other fields, line up on a single timeline that is older than most people assume.
+
+<Exhibit n={12} title="Institutions for carrying field knowledge back to the source are decades older than the FDE title" sub="Selected examples from defence, research, software and AI" source="U.S. Army (2015); von Hippel (1994, 2005); Fowler, Refactoring (1999); DHH (2005); Hammerly (2018); The Pragmatic Engineer (2025)" sourceUrl="https://newsletter.pragmaticengineer.com/p/forward-deployed-engineers">
+  <Timeline items={[
+    { date: "AUG 1985", title: "US Army creates the Center for Army Lessons Learned", text: "Set up after the 1983 Grenada operation to collect, analyse, disseminate and archive lessons from training and combat.", state: "done" },
+    { date: "1994", title: "Von Hippel names “sticky information”", text: "Problem-solving gravitates to where costly-to-move information sits.", state: "done" },
+    { date: "1999", title: "The rule of three enters mainstream practice", text: "Fowler’s Refactoring popularises Don Roberts’s heuristic: extract on the third duplication.", state: "done" },
+    { date: "2005", title: "“Good frameworks are extracted, not invented”", text: "DHH on how Rails came out of Basecamp.", state: "done" },
+    { date: "c. 2016", title: "Palantir launches Foundry; FDEs move into core engineering", text: "Field experience carried back into the product at scale.", state: "done" },
+    { date: "2018", title: "Friction logs documented as a DevRel practice", text: "Google DevRel logs route scenario-based friction to product and engineering teams.", state: "done" },
+    { date: "2025", title: "OpenAI’s FDE team builds in the return path", text: "Bi-weekly Research sessions, Product readouts, a field-notes channel, Agents SDK contributions.", state: "hl" },
+  ]} />
+</Exhibit>
+
+## From my own work
+
+I have done versions of this job without the title for most of my career, and the clearest examples come from two platforms in my portfolio.
+
+<Note kind="field">
+On an enterprise RAG chat platform I led, retrieval strategies (semantic, vector and hybrid) are not branches in a router. They live in a pluggable approach registry. Each strategy is a self-contained module that implements a common abstract base class and is registered by name at startup. The router simply resolves a key, so adding a strategy means one registration call and no changes to the router or the auth layer. A module that does not implement the contract fails at startup rather than under load. That is the "configurability" test from Exhibit 8 in practice: the variation became a registered module, not a branch.
+</Note>
+
+<Note kind="field">
+On my LLMOps evaluation platform, evaluator code lives in git but evaluator configuration (prompts, weights and thresholds) lives in a database. A new client's definition of quality is therefore a configuration change, with no redeploy. This is the "eval sets" row of Exhibit 7: the content differs per client, the structure does not, so the structure became product. A similar move on a document-processing pipeline put model providers behind a pluggable interface, so Gemini and GPT-4.1 could be swapped or load-balanced without pipeline changes. Both are the same move: a variation that kept recurring became structure instead of code.
+</Note>
+
+What these examples share is that the extraction was small and specific. Neither was a platform initiative with a roadmap. Each was a single seam where client-to-client variation kept arriving, turned into a configuration surface. Most upstream engineering looks like this: unglamorous, local, and compounding.
+
+## Counterpoints
+
+The idea that upstream engineering deserves its own name and owner invites fair objections. Here are the four strongest I have heard.
+
+<Note kind="counter" label="Objection 1: product managers already do this">
+Gathering field feedback and turning it into roadmap items is literally the product manager's job. Creating an "upstream engineer" adds a layer between the field and the roadmap and recreates the game of telephone a16z warns against.
+</Note>
+
+<Note kind="response">
+Partly right. Product managers own the *what* and the *why*, and an upstream engineer who sets priorities independently of product is a problem. But PMs typically receive field learnings as requests ("client X wants Y"), not as code. The distinctive work of upstream engineering is technical: reading three deployments' worth of glue code, identifying the common shape, and building the configuration surface. That requires someone who can read the field code. Decagon's "Agent Product Managers", which a16z describes as relatively technical people who help with implementation and integration, are one answer to the same gap from the PM side. The right design is a pairing: the PM decides which patterns matter, the upstream engineer decides how to extract them.
+</Note>
+
+<Note kind="counter" label="Objection 2: abstracting from a handful of clients is premature">
+An AI company with eight customers does not have enough data to know what generalises. Every abstraction built now will be wrong, and Sandi Metz has already explained why the wrong abstraction is worse than duplication.
+</Note>
+
+<Note kind="response">
+This is the objection I take most seriously, and it is right about *timing*, not about *ownership*. The rule of three and the configurability test exist precisely to stop premature extraction. A good upstream engineer spends much of their time saying "not yet" and writing down the second sighting. But somebody still has to be counting sightings. Without an owner, the third instance is never noticed, and by the eighth client the variants have diverged too far to reconcile. The role is as much about disciplined waiting as about building.
+</Note>
+
+<Note kind="counter" label="Objection 3: great FDEs should just do it themselves">
+The best forward-deployed engineers already generalise as they go. Palantir's FDEs sometimes committed fixes to the core platform. Splitting the role takes the most valuable work away from the people with the most context.
+</Note>
+
+<Note kind="response">
+In a team of three to five FDEs, I agree, and I would not create a separate role. The problem is scale and incentive. An FDE measured on this customer's go-live will rationally deprioritise work whose payoff lands on someone else's deployment next quarter. As the team grows, the patterns that each FDE sees in isolation become visible only across deployments, and no single FDE has that view. The answer is not necessarily a separate headcount; it can be a rotation or a protected share of senior FDEs' time. What matters is that the work is somebody's explicit responsibility and is measured.
+</Note>
+
+<Note kind="counter" label="Objection 4: AI will automate implementation, so the problem goes away">
+a16z itself expects AI to automate much of the implementation work, from process mining to data pipelines and integrations. If agents write the glue, custom code per deployment stops being expensive and the return path matters less.
+</Note>
+
+<Note kind="response">
+If implementation gets cheaper, the cost of *not* extracting falls, which genuinely weakens part of my argument. But it does not remove the need. Generated glue still has to be maintained, secured and evaluated per client, and every unextracted variant is another surface for drift and incidents. More importantly, the most valuable things that flow upstream are not code at all. They are eval criteria, controls and integration decisions, the judgement about what "good" means in a domain. Cheaper code makes that judgement the scarce input, not the redundant one.
+</Note>
+
+## Implications by stakeholder
+
+**Founders and executives.** Treat the return path as part of your gross-margin plan, not as engineering hygiene. If your board deck shows margins rising from services-heavy levels, someone's job description should explain the mechanism. Ask, per quarter: which primitives did we extract from the field, and which new deployments used them? If nobody can answer, the margin story is a hope.
+
+**FDE leads.** Protect time for extraction explicitly, whether through a dedicated upstream engineer, a rotation, or a fixed share of senior FDE time. Run a short, regular pattern review across deployments with a simple artefact: a log of sightings per pattern, so that the third occurrence is noticed. Keep FDEs and upstream engineers off sales quota, as a16z recommends for implementation teams.
+
+**Product and platform leads.** Give extracted primitives a supported home and a named owner within one cycle, or the FDE team will keep its own shadow library. Adopt the Team Topologies framing: the upstream function is an enabling team between the field and your platform, and its success is reduced cognitive load on the people deploying, not features shipped.
+
+**Engineers, whether in the field or on the platform.** Upstream engineering is a career path worth naming on your CV. It combines the field credibility of an FDE with the design judgement of a platform engineer, and it is visible in a portfolio: "built the connector, eval or control that three subsequent deployments used" is a stronger claim than "shipped another deployment." The skill to practise is disciplined waiting: writing down the second sighting and building on the third.
+
+## What to do next: a 90-day plan
+
+**Days 1–30: make the loop visible.**
+1. Name an owner for the return path, even if it is a part-time responsibility.
+2. Start a pattern log: every time an FDE builds something they suspect another client will need, it gets a line with the client, the artefact type (Exhibit 7) and a short description.
+3. Baseline the custom-code share of your last three deployments, even roughly. Estimates are fine at this stage, as long as they are labelled as estimates.
+
+**Days 31–60: extract the first primitives.**
+1. Review the pattern log against the triage matrix (Exhibit 8). Pick no more than two patterns with three or more sightings and a clear configuration surface.
+2. Run the five-point checklist from Deep dive 2. Name the first consumer, the next deployment that will use each primitive, before writing code.
+3. Agree with product and platform leads who owns each primitive after extraction.
+
+**Days 61–90: close the loop and measure.**
+1. Ship the primitives into the next deployment and record time to first value and custom-code share.
+2. Hold a review: what was extracted, what was used, what was forked instead of configured.
+3. Decide the long-term design (dedicated role, rotation, or protected FDE time) based on what the first cycle showed, not on an org chart drawn in advance.
+
+## Limitations and methodology
+
+This is an argument built from public evidence and my own practice, and it has clear limits.
+
+- **Causality.** The margin data in Exhibits 2–4 shows that services-heavy companies *can* reach software margins. It does not isolate the contribution of field-to-product extraction from pricing, mix, hosting and partner effects. Palantir's figures are my own calculation from 10-K revenue and cost of revenue, on a GAAP basis that includes stock-based compensation.
+- **Sample and survivorship.** ServiceNow, Workday and Palantir are survivors. I have no comparable data on services-led companies that never made the transition, which is exactly the population that would test the thesis.
+- **AI-specific evidence is thin.** Bessemer's AI margin figures come from a small sample (20 companies studied) and attribute much of the gap to model costs, which upstream engineering does not address.
+- **The analogues are analogies.** Von Hippel's studies concern users of physical and software products between 1988 and 2004, with acknowledged response bias. The Army and aviation examples show that institutions for field learning exist and persist; they do not measure the return on them.
+- **The frameworks are mine.** Exhibits 5–10 are frameworks, and Exhibit 5's curves are illustrative, not measured. I have not run a controlled comparison of teams with and without an upstream role, and I am not aware of anyone who has published one.
+- **Field notes are from my projects**, described from the case studies in this portfolio, and flagged for my own confirmation before publication.
+
+## The point
+
+Forward-deployed engineering wins customers. Upstream engineering is what makes the next customer cheaper. A company that only has the first is a consultancy with a software valuation; a company with both is a platform. The industry is about to deploy thousands of new FDEs into customer environments. Whether that produces thousands of bespoke projects or a few dozen strong products depends almost entirely on the return path.
+
+So maybe the role is not "backward deployed" at all. It is the reason forward deployment scales. Give it a name, an owner and a metric, and the curve in Exhibit 5 stops being an illustration.

@@ -1,0 +1,94 @@
+---
+import type { Diagram, DiagramNode } from '../data/caseMeta';
+
+interface Props {
+  id: string;
+  diagram: Diagram;
+  label: string;
+}
+const { id, diagram, label } = Astro.props;
+
+const H = 50; // rect node height
+const DH = 64; // diamond height
+const byId = new Map(diagram.nodes.map((n) => [n.id, n]));
+const width = (n: DiagramNode) => n.w ?? 104;
+const halfH = (n: DiagramNode) => (n.shape === 'diamond' ? DH : H) / 2;
+
+function edgePath(a: DiagramNode, b: DiagramNode) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  if (Math.abs(dx) >= Math.abs(dy) * 0.8) {
+    const sx = a.x + (Math.sign(dx) * width(a)) / 2;
+    const ex = b.x - (Math.sign(dx) * width(b)) / 2;
+    const mx = (sx + ex) / 2;
+    return { d: `M${sx} ${a.y} C${mx} ${a.y}, ${mx} ${b.y}, ${ex} ${b.y}`, lx: mx, ly: (a.y + b.y) / 2 };
+  }
+  const sy = a.y + Math.sign(dy) * halfH(a);
+  const ey = b.y - Math.sign(dy) * halfH(b);
+  const my = (sy + ey) / 2;
+  return { d: `M${a.x} ${sy} C${a.x} ${my}, ${b.x} ${my}, ${b.x} ${ey}`, lx: (a.x + b.x) / 2, ly: my };
+}
+
+const live = new Set(diagram.live.map(([a, b]) => `${a}>${b}`));
+const edges = diagram.edges.map(([from, to, text], i) => {
+  const p = edgePath(byId.get(from)!, byId.get(to)!);
+  return { ...p, key: `${id}-e${i}`, text, isLive: live.has(`${from}>${to}`), i };
+});
+---
+<svg class="arch" viewBox={diagram.viewBox} role="img" aria-label={label}>
+  <defs>
+    <marker id={`${id}-arrow`} viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L8 4 L0 8 z" fill="#2a3732" />
+    </marker>
+  </defs>
+
+  {(diagram.zones || []).map((z) => (
+    <g class="arch__zone">
+      <rect x={z.x} y={z.y} width={z.w} height={z.h} rx="14" />
+      <text x={z.x + 14} y={z.y + 18}>{z.label}</text>
+    </g>
+  ))}
+
+  {edges.map((e) => (
+    <g>
+      <path id={e.key} d={e.d} class:list={['dg-edge', { 'dg-edge--live': e.isLive }]} marker-end={`url(#${id}-arrow)`} />
+      {e.text && (
+        <g class="arch__elabel">
+          <rect x={e.lx - e.text.length * 3.4 - 6} y={e.ly - 9} width={e.text.length * 6.8 + 12} height="18" rx="9" />
+          <text x={e.lx} y={e.ly + 3.5} text-anchor="middle">{e.text}</text>
+        </g>
+      )}
+      {e.isLive && (
+        <circle class="dg-packet" r="3" visibility="hidden">
+          <set attributeName="visibility" to="visible" begin={`${(e.i * 0.37).toFixed(2)}s`} />
+          <animateMotion dur={`${1.8 + (e.i % 3) * 0.5}s`} begin={`${(e.i * 0.37).toFixed(2)}s`} repeatCount="indefinite">
+            <mpath href={`#${e.key}`} />
+          </animateMotion>
+        </circle>
+      )}
+    </g>
+  ))}
+
+  {diagram.nodes.map((n) => {
+    const w = width(n);
+    return (
+      <g class:list={['dg-node', { 'dg-node--accent': n.accent }]} data-node={n.id}>
+        {n.shape === 'diamond' ? (
+          <polygon points={`${n.x - w / 2},${n.y} ${n.x},${n.y - DH / 2} ${n.x + w / 2},${n.y} ${n.x},${n.y + DH / 2}`} />
+        ) : (
+          <rect x={n.x - w / 2} y={n.y - H / 2} width={w} height={H} rx="10" />
+        )}
+        <text x={n.x} y={n.sub ? n.y - 2 : n.y + 4} text-anchor="middle">{n.label}</text>
+        {n.sub && <text class="dg-sub" x={n.x} y={n.y + 13} text-anchor="middle">{n.sub}</text>}
+      </g>
+    );
+  })}
+</svg>
+
+<style>
+  .arch { width: 100%; height: auto; overflow: visible; }
+  .arch__elabel rect { fill: var(--ink); stroke: var(--line-2); }
+  .arch__zone rect { fill: rgb(61 245 167 / 0.03); stroke: rgb(61 245 167 / 0.35); stroke-dasharray: 5 5; }
+  .arch__zone text { fill: var(--signal); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; }
+  .arch__elabel text { fill: var(--signal); font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; }
+</style>

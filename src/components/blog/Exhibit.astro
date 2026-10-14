@@ -1,0 +1,42 @@
+---
+/** McKinsey-style exhibit frame: number, insight-led title, unit subtitle, chart, source + optional data table. */
+interface Props {
+  n: number | string;
+  title: string;
+  sub?: string;
+  source?: string;
+  sourceUrl?: string;
+  note?: string;
+  /** Rows for the accessible "view data" table. First row = header. */
+  table?: (string | number)[][];
+}
+const { n, title, sub, source, sourceUrl, note, table } = Astro.props;
+---
+<figure class="exhibit" data-exhibit>
+  <p class="exhibit__n">Exhibit {n}</p>
+  <figcaption>
+    <p class="exhibit__title">{title}</p>
+    {sub && <p class="exhibit__sub">{sub}</p>}
+  </figcaption>
+  <div class="exhibit__body"><slot /></div>
+  {(source || note || table) && (
+    <div class="exhibit__foot">
+      {note && <p>{note}</p>}
+      {source && (
+        <p>
+          <span class="mono">Source:</span>{' '}
+          {sourceUrl ? <a href={sourceUrl} target="_blank" rel="noopener">{source}</a> : source}
+        </p>
+      )}
+      {table && (
+        <details>
+          <summary>View data table</summary>
+          <table>
+            <thead><tr>{table[0].map((h) => <th>{h}</th>)}</tr></thead>
+            <tbody>{table.slice(1).map((r) => <tr>{r.map((c) => <td>{c}</td>)}</tr>)}</tbody>
+          </table>
+        </details>
+      )}
+    </div>
+  )}
+</figure>

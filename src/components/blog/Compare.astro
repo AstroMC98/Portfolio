@@ -1,0 +1,21 @@
+---
+/** Comparison table: columns are options, rows are dimensions. hlCol highlights one option. */
+interface Props {
+  cols: string[];
+  rows: { k: string; v: string[] }[];
+  hlCol?: number;
+}
+const { cols, rows, hlCol } = Astro.props;
+---
+<div class="cmp-wrap">
+  <table class="cmp">
+    <thead>
+      <tr><th></th>{cols.map((c, i) => <th class:list={{ hl: i === hlCol }} scope="col">{c}</th>)}</tr>
+    </thead>
+    <tbody>
+      {rows.map((r) => (
+        <tr><th scope="row">{r.k}</th>{r.v.map((v, i) => <td class:list={{ hl: i === hlCol }}>{v}</td>)}</tr>
+      ))}
+    </tbody>
+  </table>
+</div>

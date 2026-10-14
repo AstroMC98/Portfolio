@@ -1,0 +1,90 @@
+---
+/**
+ * Renders exhibits from scripts/model-bakeoff output (src/data/bakeoff-results.json).
+ * Renders nothing until the harness has been run.
+ */
+import results from '../../data/bakeoff-results.json';
+import Exhibit from './Exhibit.astro';
+import Bars from './Bars.astro';
+
+interface Props {
+  start: number;
+}
+const { start } = Astro.props;
+
+type Run = (typeof results.runs)[number] & Record<string, any>;
+const runs = results.runs as Run[];
+const models = results.models as { id: string; label: string; vendor: string; tier: string }[];
+const ok = runs.filter((r) => !r.error);
+
+const median = (xs: number[]) => {
+  const s = [...xs].sort((a, b) => a - b);
+  return s.length ? (s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : NaN;
+};
+const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : NaN);
+const label = (id: string) => models.find((m) => m.id === id)?.label ?? id;
+
+const per = (fn: (rs: Run[]) => number, filter: (r: Run) => boolean) =>
+  models
+    .map((m) => ({ id: m.id, v: fn(ok.filter((r) => r.model === m.id && filter(r))) }))
+    .filter((x) => Number.isFinite(x.v));
+
+const ttft = per((rs) => median(rs.map((r) => r.ttftMs)), (r) => r.category === 'latency').sort((a, b) => a.v - b.v);
+const acc = per((rs) => mean(rs.map((r) => r.autoScore ?? 0)) * 100, (r) => r.category === 'latency').sort((a, b) => b.v - a.v);
+const judged = (cat: string) =>
+  per(
+    (rs) => mean(rs.flatMap((r) => (r.judgeScores ?? []).filter((j: any) => Number.isFinite(j.overall)).map((j: any) => j.overall))),
+    (r) => r.category === cat,
+  ).sort((a, b) => b.v - a.v);
+const persona = judged('persona');
+const technical = judged('technical');
+const costK = per((rs) => median(rs.map((r) => r.costUsd)) * 1000, (r) => r.category === 'persona').sort((a, b) => a.v - b.v);
+
+const bars = (rows: { id: string; v: number }[], fmt: (v: number) => string, best: 'first' | 'none' = 'first') =>
+  rows.map((r, i) => ({ label: label(r.id), value: r.v, display: fmt(r.v), hl: best === 'first' && i === 0 }));
+
+const sample = (taskId: string) => {
+  const flagship = models.filter((m) => m.tier === 'flagship');
+  return flagship.map((m) => ({ model: m.label, text: ok.find((r) => r.model === m.id && r.task === taskId && r.run === 1)?.output ?? '—' }));
+};
+const has = ok.length > 0;
+const when = results.generatedAt ? new Date(results.generatedAt).toISOString().slice(0, 10) : '';
+const src = `Author’s bake-off, ${when}; ${results.runsPerTask} runs per model per task; harness in scripts/model-bakeoff`;
+---
+{has && (
+  <>
+    <Exhibit n={start} title="Time to first token on short structured tasks" sub="Median milliseconds to first output token, latency tasks (lower is better)" source={src}>
+      <Bars unit=" ms" data={bars(ttft, (v) => `${Math.round(v).toLocaleString()} ms`)} />
+    </Exhibit>
+    <Exhibit n={start + 1} title="Accuracy on the auto-scored latency tasks" sub="% of fields correct (intent classification and field extraction)" source={src}>
+      <Bars unit="%" max={100} data={bars(acc, (v) => `${Math.round(v)}%`)} />
+    </Exhibit>
+    {persona.length > 0 && (
+      <Exhibit n={start + 2} title="Persona tasks: cross-vendor judge scores" sub="Mean overall score, 1–5, judged by the other two vendors’ flagship models" source={src}>
+        <Bars max={5} data={bars(persona, (v) => v.toFixed(2))} />
+      </Exhibit>
+    )}
+    {technical.length > 0 && (
+      <Exhibit n={start + 3} title="Technical tasks: cross-vendor judge scores" sub="Mean overall score, 1–5, judged by the other two vendors’ flagship models" source={src}>
+        <Bars max={5} data={bars(technical, (v) => v.toFixed(2))} />
+      </Exhibit>
+    )}
+    <Exhibit n={start + 4} title="What a thousand persona replies cost" sub="Median cost per 1,000 calls, USD, at published list prices" source={src}>
+      <Bars prefix="$" data={bars(costK, (v) => `$${v.toFixed(2)}`)} />
+    </Exhibit>
+    <Exhibit n={start + 5} title="Same prompt, three flagships: the angry-customer reply" sub="First run of the persona-refund task, unedited" source={src}>
+      <div class="bk-samples">
+        {sample('persona-refund').map((s) => (
+          <div class="bk-sample"><p class="bk-sample__m">{s.model}</p><p class="bk-sample__t">{s.text}</p></div>
+        ))}
+      </div>
+    </Exhibit>
+  </>
+)}
+
+<style>
+  .bk-samples { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 12px; }
+  .bk-sample { padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--ink); min-width: 0; }
+  .bk-sample__m { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--emph); margin-bottom: 8px; }
+  .bk-sample__t { font-size: 0.88rem; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text); }
+</style>

@@ -1,0 +1,475 @@
+---
+title: "Model Drift: The Ticking Time Bomb Inside Every “Production” AI System"
+dek: "Nine in ten models in one study got measurably worse after deployment. With hosted LLMs, the model, the serving stack and the harness around it can also change underneath you while your own code stays the same. This is a field guide to the five kinds of drift: how to detect them, set thresholds you can defend, and respond before a customer notices."
+date: 2026-11-04
+kicker: LLMOps
+motif: drift
+featured: true
+tags: [LLMOps, Production, Governance]
+thesis: "Drift is not an edge case but the default trajectory of every deployed model, and with hosted LLMs it now arrives from upstream as well as from the world, so a system without a frozen baseline, calibrated drift alarms and a rehearsed response has not earned the word “production”."
+takeaways:
+  - "Degradation is the norm: 91% of 128 model–dataset pairs degraded over time in a 2022 Scientific Reports study, sometimes gradually and sometimes all at once."
+  - "Hosted LLMs add a second clock. GPT-4’s accuracy on one task fell from 84% to 51% in three months, and two public vendor postmortems show quality dropping because of serving bugs and harness changes while the model weights stayed the same."
+  - "There are five kinds of drift (data, concept, upstream model, prompt and retrieval, and usage), and each needs its own detector. Input statistics alone will never catch concept drift."
+  - "Compare live traffic against a frozen baseline, not against yesterday. A day-over-day view hides a slow slide."
+  - "Most drift alarms are false alarms because the threshold was never calibrated. Set thresholds from a bootstrap of the baseline, require persistence, and judge every alarm by its effect on quality."
+  - "Pin every version you can: the model snapshot, the prompt, the index and the embedding model. Pinning makes drift visible and reversible, but it does not make you immune."
+sources:
+  - label: "Vela et al. — Temporal quality degradation in AI models, Scientific Reports (2022)"
+    url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC9270447/"
+  - label: "Chen, Zaharia & Zou — How Is ChatGPT’s Behavior Changing over Time? (arXiv 2307.09009; Harvard Data Science Review, 2024)"
+    url: "https://arxiv.org/abs/2307.09009"
+  - label: "Anthropic Engineering — A postmortem of three recent issues (Sep 2025)"
+    url: "https://www.anthropic.com/engineering/a-postmortem-of-three-recent-issues"
+  - label: "Anthropic Engineering — April 23 postmortem on Claude Code quality (Apr 2026)"
+    url: "https://anthropic.com/engineering/april-23-postmortem"
+  - label: "Georgetown Law Tech Institute — Tech Brief: AI Sycophancy & OpenAI (GPT-4o update and rollback, Apr 2025)"
+    url: "https://www.law.georgetown.edu/tech-institute/insights/tech-brief-ai-sycophancy-openai/"
+  - label: "Zillow Group — Q3 2021 results and plan to wind down Zillow Offers (2 Nov 2021)"
+    url: "https://investors.zillowgroup.com/news-and-events/news/news-details/2021/Zillow-Group-Reports-Third-Quarter-2021-Financial-Results--Shares-Plan-to-Wind-Down-Zillow-Offers-Operations/default.aspx"
+  - label: "Yurdakul & Naranjo — Statistical properties of the population stability index, Journal of Risk Model Validation (2020)"
+    url: "https://www.risk.net/journal-of-risk-model-validation/7725371/statistical-properties-of-the-population-stability-index"
+  - label: "Gretton et al. — A Kernel Two-Sample Test, JMLR 13 (2012)"
+    url: "https://www.jmlr.org/papers/v13/gretton12a.html"
+  - label: "Rabanser, Günnemann & Lipton — Failing Loudly: An Empirical Study of Methods for Detecting Dataset Shift (NeurIPS 2019)"
+    url: "https://arxiv.org/abs/1810.11953"
+  - label: "Evidently AI — Shift happens: we compared 5 methods to detect drift in ML embeddings"
+    url: "https://evidentlyai.com/blog/embedding-drift-detection"
+  - label: "Evidently AI — Data drift algorithm (default tests and thresholds)"
+    url: "https://docs-old.evidentlyai.com/reference/data-drift-algorithm"
+  - label: "Anthropic — Models overview (pinned snapshot IDs, retirement commitments)"
+    url: "https://platform.claude.com/docs/en/about-claude/models/overview"
+  - label: "EU AI Act — Article 72, post-market monitoring"
+    url: "https://artificialintelligenceact.eu/article/72/"
+  - label: "Council of the EU — Final green light to simplify AI rules (29 Jun 2026)"
+    url: "https://www.consilium.europa.eu/en/press/press-releases/2026/06/29/artificial-intelligence-council-gives-final-green-light-to-simplify-and-streamline-rules/"
+  - label: "McKinsey — The state of AI in 2025 (Nov 2025)"
+    url: "https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai-2025"
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Waffle from '../../components/blog/Waffle.astro';
+import Slope from '../../components/blog/Slope.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Columns from '../../components/blog/Columns.astro';
+import Lines from '../../components/blog/Lines.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Timeline from '../../components/blog/Timeline.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">On 31 August 2025, for one hour, 16% of requests to one of the most widely used language models in the world went to servers configured for a different context window. Answers got worse. The model weights hadn't changed, and neither had the code of the companies calling it. A load-balancing tweak at the provider was enough. It took the provider weeks to connect the scattered complaints to that cause. A team calling the model would only have seen it in its own data if it was measuring answer quality on its own traffic.</p>
+
+People say "it’s in production" with relief, as if launch were the finish line. In practice, launch starts a clock. A model is fitted to the world as it was. Production is the world as it is becoming, and the gap between the two grows every day. With hosted large language models there is now a second clock that has nothing to do with your data: the supplier’s. The model, the serving infrastructure and the scaffolding around it can all change while your repository stays exactly as it was.
+
+My argument in this article is simple. **Drift is not an edge case. It is the default trajectory of every deployed model.** A system has not earned the word "production" until it has three things: a frozen baseline to compare against, drift alarms whose false-alarm rate somebody has actually calibrated, and a response playbook that has been rehearsed at least once.
+
+The article covers why this matters more now, what the evidence shows (and doesn’t), and a framework of five kinds of drift. I take each kind in turn: how it arises, the statistics that detect it, and how it fails. Then come thresholds and false alarms, a response playbook built on versioning and pinning, case examples, the strongest objections, implications by role, a 30/60/90-day programme, and the limits of the evidence.
+
+## Context: why this matters now
+
+Concern about drift is as old as predictive modelling. Credit-risk teams were computing population stability indices long before anyone said "MLOps". Three things have changed, and together they move drift from a model-maintenance chore to an operational risk.
+
+**First, the model is now a service you rent.** In classic ML, a model file only changed when your team retrained it. A hosted LLM belongs to the vendor, which patches, re-serves and eventually retires it on its own schedule. Even a pinned version runs on the vendor’s hardware, compiler, load balancer and sampling code, and those change.
+
+**Second, the stack has more moving parts.** A typical retrieval-augmented generation (RAG) system has a system prompt, a retrieval index, a chunking strategy, an embedding model, a reranker, tool definitions, an orchestration harness and the LLM. Each can drift. Some aren’t versioned at all, and many are changed by your own team in deploys that look harmless.
+
+**Third, usage is open-ended.** A churn model does one thing. A general-purpose assistant gets used for whatever people think of. Six months after launch it is handling a different mix of intents from the one you evaluated, often including tasks nobody tested.
+
+Meanwhile the cost of getting it wrong has become measurable. McKinsey’s November 2025 State of AI survey found that **51% of respondents’ organisations had experienced at least one negative consequence from AI**, and inaccuracy was the most commonly reported one: nearly a third of respondents cited it. A good share of that inaccuracy did not exist on launch day. It drifted in.
+
+Regulators have noticed too. Article 72 of the EU AI Act requires providers of high-risk systems to "establish and document a post-market monitoring system" that will "actively and systematically collect, document and analyse relevant data" over the system’s lifetime, proportionate to the risk. The 2026 digital omnibus pushed Annex III high-risk obligations to 2 December 2027, but the direction is set: monitoring after deployment is becoming a legal duty.
+
+## The evidence: what the data actually shows
+
+### Classic models degrade, and often abruptly
+
+The best systematic evidence I know comes from Vela and colleagues, writing in *Scientific Reports* in 2022. They took **32 datasets** from four industries (weather, hospital operations, airline departures and finance) and trained four standard model types on each: penalised linear regression (Ridge), random forest, gradient boosting (XGBoost) and a neural network (MLP). They then simulated 20,000 deployments, measuring how each model’s error grew with its "age", meaning the time since it was last trained on then-current data.
+
+<Exhibit
+  n={1}
+  title="Nine in ten models got measurably worse as time passed after training"
+  sub="Share of model–dataset pairs showing temporal quality degradation (128 pairs: 4 model types × 32 datasets)"
+  source="Vela et al., Scientific Reports (2022)"
+  sourceUrl="https://pmc.ncbi.nlm.nih.gov/articles/PMC9270447/"
+  note="Degradation was measured as error relative to error at deployment (relative MSE), across 20,000 simulated deployments per pair. Datasets are tabular time series, not language tasks."
+>
+  <Waffle value={91} label="of model–dataset pairs showed temporal degradation" />
+</Exhibit>
+
+The headline is that the researchers "observed temporal model degradation in 91% of cases". Three secondary findings matter just as much for anyone designing a monitoring system:
+
+- **Degradation is not always gradual.** The authors write that it "can develop gradually, but can also escalate very abruptly". In some pairs, error stayed flat and then jumped, at a breakpoint they could not tie to any obvious change in the data. A monitor that only alerts on slow trends will miss the cliff.
+- **Variance grows as well as the mean.** The variability of errors "can significantly grow or fluctuate with time". A model whose median error looks acceptable can be producing far more bad predictions at the tails. Monitoring only an average hides this.
+- **Different models on the same data age differently.** On one dataset, the Ridge model stayed accurate while the neural network started degrading after about a year. How well a model ages has to be measured per deployment, not assumed from a benchmark.
+
+### Hosted LLMs change under a stable name
+
+Chen, Zaharia and Zou ran the same questions against the March 2023 and June 2023 versions of GPT-4 and GPT-3.5, which developers were calling through the same model names. They tested seven tasks, including math, sensitive questions, opinion surveys, multi-hop knowledge questions, code generation, medical licensing questions and visual reasoning. The behaviour of the "same" service changed substantially within three months.
+
+<Exhibit
+  n={2}
+  title="Same model name, same questions, three months apart: GPT-4 lost a third of its accuracy on one task"
+  sub="Accuracy on prime vs. composite number classification"
+  source="Chen, Zaharia & Zou (Harvard Data Science Review, 2024; arXiv 2307.09009)"
+  sourceUrl="https://arxiv.org/abs/2307.09009"
+  note="Figures from the published version of the study, which framed the task as prime vs. composite. The authors attribute part of the drop to GPT-4 following chain-of-thought prompts less reliably; GPT-3.5 moved in the opposite direction on this task."
+>
+  <Slope left="GPT-4, Mar 2023" right="GPT-4, Jun 2023" unit="%" max={100} min={40} items={[
+    { label: "Prime vs composite", a: 84, b: 51, hl: true },
+  ]} />
+</Exhibit>
+
+The paper does not show that GPT-4 "got worse". It shows that GPT-4 *changed*: some behaviours improved, others regressed, and GPT-3.5 often moved the other way. The common thread the authors identify is that the June GPT-4 followed user instructions less well, so prompts tuned on the March version stopped working as intended. That is the real production risk. It isn’t a universal decline but a silent change that breaks the assumptions *your* prompts, parsers and evaluators rely on.
+
+### The model can stay the same while the service drifts
+
+The most instructive recent evidence comes from vendors’ own postmortems. They show that you can drift even when the model weights have not changed at all.
+
+In September 2025 Anthropic published a postmortem of three infrastructure bugs that degraded Claude’s responses between early August and early September. One was a context-window routing error. It began on 5 August affecting 0.8% of Sonnet 4 requests, was amplified by a routine load-balancing change on 29 August, and peaked at 16% of Sonnet 4 requests in the worst hour on 31 August. Because routing was "sticky", the same users were hit repeatedly: roughly 30% of Claude Code users who made requests in the period had at least one message misrouted. A second bug corrupted token generation and occasionally inserted Thai or Chinese characters into English answers. A third, a compiler miscompilation on TPUs, caused the model to sometimes drop the most probable token.
+
+<Exhibit
+  n={3}
+  title="A routing bug that began at under 1% of requests peaked at 16% and reached roughly 30% of Claude Code users"
+  sub="Reach of the August 2025 context-window routing error (Claude Sonnet 4, first-party platform)"
+  source="Anthropic Engineering, A postmortem of three recent issues (Sep 2025)"
+  sourceUrl="https://www.anthropic.com/engineering/a-postmortem-of-three-recent-issues"
+  note="Bars use different bases: the first two are shares of Sonnet 4 requests; the third is the share of Claude Code users with at least one misrouted message during the incident. On Amazon Bedrock, misrouted traffic peaked at 0.18%."
+  table={[["Measure", "Value"], ["Share of Sonnet 4 requests affected at onset (5 Aug)", "0.8%"], ["Share of Sonnet 4 requests affected, worst hour (31 Aug)", "16%"], ["Claude Code users with at least one misrouted message", "~30%"]]}
+>
+  <Bars unit="%" max={35} data={[
+    { label: "Onset, 5 Aug", sub: "share of requests", value: 0.8, display: "0.8%" },
+    { label: "Worst hour, 31 Aug", sub: "share of requests", value: 16, display: "16%", hl: true },
+    { label: "Claude Code users hit", sub: "at least one message", value: 30, display: "~30%" },
+  ]} />
+</Exhibit>
+
+Two lines from that postmortem should worry anyone running an LLM system. The vendor’s own evaluations "did not capture the degradation users reported", partly because the model often recovers from isolated mistakes. And the reports looked random at first, because each bug produced different symptoms on different platforms. If the provider struggled to see this from the inside, a customer without monitoring had little chance.
+
+The April 2026 postmortem on Claude Code adds another layer. The API was not affected, but three *product-layer* changes degraded the coding assistant for weeks. A lowered default reasoning effort was live from 4 March to 7 April. A caching change meant to clear old reasoning once after an idle hour cleared it on every turn instead, from 26 March until it was fixed on 10 April. A system-prompt line capping response length was added on 16 April and reverted on 20 April, after an evaluation showed a 3% drop. None of these changed a model. All of them changed what users got.
+
+<Exhibit
+  n={4}
+  title="Degrading upstream changes stayed live for days to weeks before they were reversed"
+  sub="Days between a change going live and its rollback or first fix, from published dates"
+  source="Georgetown Law Tech Institute (GPT-4o); Anthropic Engineering postmortems (Sep 2025, Apr 2026)"
+  sourceUrl="https://anthropic.com/engineering/april-23-postmortem"
+  note="Author’s calculation from dates in the cited sources. GPT-4o dates (25–29 Apr 2025) are from a secondary source summarising OpenAI’s posts; the update was to GPT-4o in ChatGPT. Routing-bug figure runs from onset (5 Aug 2025) to the first fix deploy (4 Sep); full rollout of the fix completed 16–18 Sep."
+  table={[["Change", "Live", "Days"], ["GPT-4o personality update (ChatGPT)", "25–29 Apr 2025", "4"], ["Sonnet 4 context-window routing bug", "5 Aug–4 Sep 2025", "30"], ["Claude Code default reasoning effort lowered", "4 Mar–7 Apr 2026", "34"], ["Claude Code thinking-cache bug", "26 Mar–10 Apr 2026", "15"], ["Claude Code verbosity prompt", "16–20 Apr 2026", "4"]]}
+>
+  <Bars unit=" days" max={40} data={[
+    { label: "GPT-4o update", sub: "ChatGPT, Apr 2025", value: 4, display: "4 days" },
+    { label: "Routing bug", sub: "Sonnet 4, Aug 2025", value: 30, display: "30 days", hl: true },
+    { label: "Reasoning default", sub: "Claude Code, Mar 2026", value: 34, display: "34 days", hl: true },
+    { label: "Cache bug", sub: "Claude Code, Mar 2026", value: 15, display: "15 days" },
+    { label: "Verbosity prompt", sub: "Claude Code, Apr 2026", value: 4, display: "4 days" },
+  ]} />
+</Exhibit>
+
+I don’t cite these incidents to single out these vendors. Publishing detailed postmortems is to their credit. The lesson is structural. When you rely on a service, you rely on its whole serving path, and that path changes more often than its version number does.
+
+### What the evidence does not show
+
+Vela’s 91% comes from tabular regression and depends on how the authors defined degradation. Chen’s results cover two 2023 snapshots. The postmortems are self-reported, and no large independent study measures how often hosted LLM behaviour shifts in ways that matter to applications. So I am not claiming a known rate of LLM drift. I am claiming something narrower and, I think, harder to dispute: degradation over time is the base case for classic models, and the mechanisms for silent change in hosted LLM systems are real, documented and recurring.
+
+## A framework: three clocks, five drifts
+
+"Drift" is used loosely. It helps to ask which clock moved. **The world’s clock** moves when inputs, meanings or users change. **The supplier’s clock** moves when the vendor changes the model or its serving path. **Your own clock** moves when your team changes prompts, retrieval or configuration. Those three clocks produce five kinds of drift that I monitor separately, because each fails differently and each needs its own detector.
+
+<Exhibit n={5} title="Each kind of drift has a different cause, symptom and detector" sub="Author’s drift taxonomy for LLM and ML systems" note="Author’s framework.">
+  <Compare
+    cols={["Clock", "What changes", "Typical symptom", "Primary detector"]}
+    rows={[
+      { k: "Data (covariate) drift", v: ["World", "The distribution of inputs: new formats, topics, languages, segments", "Retrieval misses, odd outputs on unfamiliar inputs", "Distribution tests on features or embeddings vs. a frozen baseline"] },
+      { k: "Concept drift", v: ["World", "What the right answer is: new policy, prices, products, fraud patterns", "Answers that were right are now wrong, on inputs that look the same", "Accuracy on a refreshed, labelled eval set; delayed-label tracking"] },
+      { k: "Upstream model drift", v: ["Supplier", "Model snapshot, serving stack, harness or defaults behind an endpoint", "Format breaks, refusals, tone or length shifts overnight", "Daily canary evals on the production path; output-shape metrics"] },
+      { k: "Prompt & retrieval drift", v: ["Yours", "Prompts, chunking, index contents, embedding model, tools", "Quality moves after an innocent-looking deploy", "Eval gates in CI; config hashes in every trace"] },
+      { k: "Usage drift", v: ["World", "Who uses the system and for what", "Cost and latency creep; off-label tasks; new intents", "Intent clustering, embedding drift, cost per request"] },
+    ]}
+  />
+</Exhibit>
+
+The framework rules out two habits. The first is assuming one drift metric covers everything. An input-distribution test will never see concept drift, because concept drift means the inputs look the same while the right answers have moved. The second is assuming upstream changes are someone else’s problem. If you ship it, its behaviour is your problem, whoever caused the change.
+
+## Deep dive 1: Data drift, and the statistics that detect it
+
+**Mechanism.** Data drift, also called covariate shift, is a change in the distribution of inputs P(x) while the relationship between inputs and correct outputs P(y | x) holds. A claims model starts seeing a new hospital network. A support assistant starts receiving queries in Taglish. A document pipeline gets scanned PDFs instead of digital ones. The model may still be correct in principle, but it is now operating in regions of input space where it saw little training data, and that is where errors concentrate.
+
+**Detection.** You compare a sample of current inputs with a reference sample and ask how different they are. Four families of statistic do almost all the work in practice. Each answers a slightly different question.
+
+**Population stability index (PSI).** Bin a variable using the baseline’s distribution, typically into ten bins. For each bin, take the baseline share *e* and the current share *a*, then sum (a − e) × ln(a / e) over the bins. If a bin’s share moves from 20% to 30%, that bin contributes 0.10 × ln(1.5) ≈ 0.041. PSI is closely related to the Kullback–Leibler divergence. It is in fact the symmetric version, the sum of the divergences in both directions. The industry rule of thumb reads PSI below 0.10 as little change, 0.10 to 0.25 as moderate, and above 0.25 as "significant change, action required". Yurdakul and Naranjo point out that these cut-offs are used "without reference to statistical type I or type II error rates" and have no support in the academic literature. PSI’s expected value under no change depends on the number of bins and both sample sizes. A fixed 0.10 therefore means different things for a sample of 500 and a sample of 500,000. PSI is a useful, interpretable distance. The traffic lights are folklore.
+
+**Kolmogorov–Smirnov (KS) test.** For a numeric variable, draw the empirical cumulative distribution of the baseline and of the current window. The KS statistic is the largest vertical gap between the two curves, and the test turns that gap into a p-value. It needs no binning and is sensitive to shifts anywhere in the distribution. Its weakness is the flip side of its strength: with enough data, a statistically significant difference becomes almost guaranteed even when it has no practical consequence. Evidently, a widely used open-source monitoring library, handles this by default. It applies KS (and chi-squared for categorical columns) only when the reference has 1,000 rows or fewer. Above that it switches to distance measures, Wasserstein distance for numeric and Jensen–Shannon divergence for categorical, with a default threshold of 0.1.
+
+**Maximum mean discrepancy (MMD).** For multivariate data such as embeddings, testing each dimension separately is clumsy. MMD, formalised as a two-sample test by Gretton and colleagues in 2012, maps both samples into a rich feature space defined by a kernel (usually a Gaussian kernel) and measures the distance between the two samples’ means in that space. With a suitable kernel, MMD is zero only when the two distributions are identical, so it can catch changes in spread and shape as well as location. A permutation test turns it into a p-value: shuffle the pooled samples many times and see how often a random split is as different as the real one. The cost is computation. The standard estimator is quadratic in sample size, which is why it is usually run on samples or on alarm rather than continuously.
+
+**Domain classifier.** Train a simple model to tell "baseline" from "current". If it can’t do better than chance (an ROC AUC near 0.5), the two samples are indistinguishable for practical purposes. If it can, the drift is real, and the classifier’s most important features tell you *what* drifted. Evidently uses this as its default for text and embeddings, flagging drift above an ROC AUC of 0.55 for large samples.
+
+<Exhibit n={6} title="No single drift statistic is best; each trades sensitivity, cost and interpretability" sub="Common distribution-shift measures and where each fits" note="Author’s synthesis from the cited sources." source="Yurdakul & Naranjo (2020); Gretton et al. (2012); Rabanser et al. (2019); Evidently AI documentation" sourceUrl="https://docs-old.evidentlyai.com/reference/data-drift-algorithm">
+  <Compare
+    cols={["Asks", "Best for", "Cost", "Blind spot"]}
+    rows={[
+      { k: "PSI", v: ["How far have binned shares moved?", "Scores and key features; regulated credit-style reporting", "Very low", "Binning choices; fixed cut-offs ignore sample size"] },
+      { k: "KS test", v: ["Is the largest CDF gap bigger than chance?", "Single numeric features, small samples", "Low", "Flags trivial shifts at large n; one feature at a time"] },
+      { k: "Wasserstein / Jensen–Shannon", v: ["How much does the distribution have to move?", "Large samples where p-values become meaningless", "Low", "Threshold is a judgement call, not a probability"] },
+      { k: "MMD", v: ["Do two multivariate samples come from the same distribution?", "Embeddings; confirming an alarm", "High (quadratic)", "Slow; kernel bandwidth choice; hard-to-read scale"] },
+      { k: "Centroid cosine", v: ["Has the average embedding moved?", "Continuous, cheap topic-shift watch", "Very low", "Sees only the mean; misses spread and new clusters"] },
+      { k: "Domain classifier", v: ["Can a model tell old from new?", "High-dimensional data; explaining what drifted", "Medium", "Needs enough data; weak in low-data settings"] },
+    ]}
+  />
+</Exhibit>
+
+The most rigorous comparison I know is Rabanser, Günnemann and Lipton’s *Failing Loudly* (NeurIPS 2019). They found that the best results came from a two-sample test run on the outputs of a pre-trained classifier, used as a way to reduce dimensionality. They also found that testing many dimensions one at a time with a Bonferroni correction performed comparably to multivariate tests. Large shifts could be detected better than chance with as few as 20 samples. Shifts affecting only 10% of samples were hard to detect at all. That last result is a sobering calibration point: subtle drift on a minority of traffic is inherently hard to see, and you should size your windows accordingly.
+
+**Failure mode.** The commonest failure isn’t missing drift. It is detecting drift in everything, all the time, until the team mutes the channel. I return to this under thresholds.
+
+## Deep dive 2: Concept drift, the one input monitors can’t see
+
+**Mechanism.** Concept drift is a change in P(y | x): the same input now deserves a different answer. A refund policy changes. A product is renamed. Fraudsters adapt to last quarter’s rules. A house that would have sold for a given price in spring 2021 sells for something different in autumn. The inputs look exactly as they did, so every distribution test above stays quiet while accuracy falls.
+
+**A public example.** Zillow’s home-buying business priced homes on forecasts of their sale prices months later. In Q3 2021 it recorded an inventory write-down of approximately $304 million, expected a further $240–265 million of losses in Q4, and decided to wind down Zillow Offers, cutting about 25% of its workforce. The chief executive said "the unpredictability in forecasting home prices far exceeds what we anticipated." Many factors contributed, and a drift monitor would not have saved the business. But it is a clear case of a model’s mapping from inputs to outcomes moving faster than the organisation measured it.
+
+**Detection.** Concept drift can only be measured against ground truth or a credible proxy:
+
+- **A refreshed, labelled evaluation set.** Label a slice of recent production cases on a schedule and track accuracy against the launch-day score. This is the only direct measurement.
+- **Delayed labels.** In fraud, credit and claims, join outcomes back to predictions and track performance by prediction month, as credit teams do with vintage curves.
+- **Behavioural proxies.** Reviewer override rates, escalations, thumbs-down rates and edits to model output. None is ground truth, but a sustained shift is a reason to label a sample.
+- **Knowledge freshness for RAG.** The policy changed but the index still holds the old PDF. Track document age at retrieval and the share of answers citing superseded sources.
+
+**Failure mode.** Teams treat a clean data-drift dashboard as evidence that the model is healthy. It is evidence that the *inputs* are stable, nothing more.
+
+## Deep dive 3: Upstream model drift, the supplier’s clock
+
+**Mechanism.** The vendor changes something on its side of the API. It might ship a new snapshot behind a moving alias, change default parameters, alter the serving infrastructure, or change the harness around the model (system prompts, caching, tool scaffolding). Or it retires a version and forces a migration. The incidents in Exhibits 2–4 cover each of these.
+
+**Versioning and pinning.** The first defence is to pin. Anthropic’s documentation now states that "every Claude model ID is a pinned snapshot" and publishes a retirement commitment for each current model. For the 5.5 generation, for example, retirement is not sooner than September or October 2027. Other vendors offer dated snapshots alongside moving aliases. Pin the snapshot in production, use the alias only in a canary environment, and treat each migration as a release with its own evaluation.
+
+Pinning has limits, and they need to be said plainly. The September 2025 routing and compiler bugs affected pinned models, because they lived in the serving path, not in the weights. Product-layer defaults such as reasoning effort can change unless you set them explicitly. And every pinned snapshot has a retirement date, so pinning postpones change and schedules it. It doesn’t remove it.
+
+**Detection.** Because you can’t inspect the vendor’s infrastructure, you watch its outputs:
+
+- **A daily canary set on the production path.** Fifty to two hundred fixed prompts with known-good answers, sent through the same code, keys and region as real traffic, scored automatically. Anthropic’s own lesson from 2025 was to evaluate continuously "on true production systems". Customers should do the same.
+- **Output-shape metrics on all traffic.** Response length, refusal rate, schema validity, tool-call errors and language mismatch (the "Thai characters" symptom). They are cheap, need no labels and react within hours.
+- **Explicit parameters.** Set temperature, maximum tokens and reasoning effort yourself, so a vendor-side default change can’t reach you.
+
+**Failure mode.** Treating the vendor’s status page as your monitoring. It reports outages, not a model that has become slightly worse at following your formatting instructions.
+
+## Deep dive 4: Prompt and retrieval drift, the self-inflicted kind
+
+**Mechanism.** Your own team changes the system. Someone shortens a prompt to save tokens, re-chunks the corpus, refreshes the index, upgrades the embedding model, adds a tool, or edits few-shot examples. Each change is reasonable on its own, but the combination has never been evaluated. The April 2026 Claude Code postmortem is a vendor-side version of this: a one-line instruction limiting response length cost about 3% on an internal coding evaluation, and it was only caught after release.
+
+**A subtle trap: the embedding model.** If you monitor drift in embedding space and then upgrade the embedding model, every comparison against the old baseline is meaningless, because the two sets of vectors live in different spaces. Re-embed the baseline sample with the new model and re-freeze it as part of the upgrade. Otherwise your drift monitor will either scream or go quietly wrong.
+
+**Detection.** This is the easiest drift to catch, because you control the trigger:
+
+- **Evaluation gates in CI.** Any change to a prompt, retrieval parameter, index or model ID runs the regression suite before merge, blocking on statistically significant drops.
+- **A configuration hash in every trace.** When quality moves, split the time series by configuration and see which change moved it.
+- **Structural diffs.** Detect prompt changes made outside the release process, such as a hot-fix in a database row.
+
+**Failure mode.** Prompts and retrieval settings that live in a database or a vendor console without version history. A change you can’t diff can’t be rolled back with confidence.
+
+## Deep dive 5: Usage drift, and monitoring in embedding space
+
+**Mechanism.** The people using the system, and what they use it for, change. A pilot with a finance team expands to operations. A copilot built for policy questions starts being asked to draft emails. Seasonal patterns appear. The model may handle the new usage well or badly, but either way your evaluation set no longer represents your traffic, so your quality metrics no longer represent your quality.
+
+**Detection.** For text inputs, the practical approach is to embed every query and monitor the distribution of embeddings. Evidently compared five methods for this: Euclidean distance between mean embeddings, cosine distance between mean embeddings, a domain classifier, the share of individually drifted dimensions, and MMD. They tested them on three text datasets with two embedding models. Their findings are worth knowing before you build anything:
+
+- **Cosine distance between centroids is fast but compressed.** Drift showed up at cosine distances of around 0.001, and the method did not work after PCA. Thresholds must be calibrated per embedding model, because a "small" cosine change can be a large drift.
+- **MMD was very slow** and weaker on the hardest dataset.
+- **The domain classifier was the recommended default.** It was reasonably fast, consistent across embedding models and with or without PCA, and its ROC AUC threshold is easy to explain.
+- Their caveat: an embedding shift doesn’t always mean a quality loss, so thresholds have to be tuned to the use case.
+
+Alongside embedding drift, cluster queries into intents and track the intent mix weekly. Track cost and latency per request by intent too, because usage drift usually shows up in the bill before it shows up in a complaint.
+
+<Note kind="field">
+On my LLMOps Evaluation Platform, the drift detector stores one vector at launch: the unit-normalised mean of the baseline embeddings. It then compares a rolling window of the most recent 500 production embeddings against that frozen centroid, using cosine similarity with a default alert threshold of 0.90. The check is O(d) per window, so it can run on every batch rather than nightly. When it fires, a slower MMD test runs on the flagged window as a second opinion. The platform also watches for structural drift, meaning changes to prompt templates, separately from this semantic drift in answer embeddings. The design choice that mattered most was the frozen baseline. Comparing each window with the previous one would never have caught a slow slide. The Evidently results above suggest a fixed 0.90 similarity threshold may be too coarse for some embedding models. A threshold derived from a bootstrap of the baseline itself is the better default, and it is what I recommend below.
+</Note>
+
+<Exhibit
+  n={7}
+  title="Slow drift is invisible in a period-over-period view and obvious against a frozen baseline"
+  sub="Illustrative: centroid similarity of live traffic, compared two ways (1.0 = identical)"
+  note="Illustrative — not measured data. The same simulated traffic is compared against the launch baseline (falling line) and against the previous week (flat line). Each week differs only slightly from the last, so the week-over-week view never alarms."
+>
+  <Lines
+    yMin={0.6}
+    yMax={1}
+    band={[0.6, 0.8, "Alert zone"]}
+    series={[
+      { name: "vs. frozen launch baseline", points: [
+        { x: "W1", y: 0.98 }, { x: "W2", y: 0.97 }, { x: "W3", y: 0.95 }, { x: "W4", y: 0.93 }, { x: "W5", y: 0.91 }, { x: "W6", y: 0.89 },
+        { x: "W7", y: 0.87 }, { x: "W8", y: 0.85 }, { x: "W9", y: 0.82 }, { x: "W10", y: 0.8 }, { x: "W11", y: 0.77 }, { x: "W12", y: 0.75 },
+      ] },
+      { name: "vs. previous week", points: [
+        { x: "W1", y: 0.99 }, { x: "W2", y: 0.99 }, { x: "W3", y: 0.98 }, { x: "W4", y: 0.98 }, { x: "W5", y: 0.98 }, { x: "W6", y: 0.98 },
+        { x: "W7", y: 0.98 }, { x: "W8", y: 0.98 }, { x: "W9", y: 0.97 }, { x: "W10", y: 0.98 }, { x: "W11", y: 0.97 }, { x: "W12", y: 0.98 },
+      ] },
+    ]}
+  />
+</Exhibit>
+
+A centroid check has a structural blind spot. It sees only the *mean* of the distribution. If a new cluster of queries appears while an old one shrinks, the average can stay put. If queries become more varied without changing on average, the centroid doesn’t move at all. In kernel terms, comparing means is what MMD reduces to when you use a plain linear kernel. The richer kernel is what lets MMD see spread and shape. That is why the cheap check needs a heavier second opinion, and why I would add an intent-mix monitor alongside it.
+
+## Thresholds and the false-alarm problem
+
+Most drift-monitoring programmes don’t fail for lack of statistics. They fail because the alarms fire too often, nobody can tell which ones matter, and within a quarter the alerts are going to a channel nobody reads.
+
+The arithmetic is unforgiving. Test 100 features independently at the conventional 5% significance level, and with no drift at all you should expect five false alarms per check. The probability of at least one is above 99%. Run that check hourly and you have built a machine that cries wolf all day.
+
+<Exhibit
+  n={8}
+  title="Test enough features at 5% significance and a false alarm becomes a near-certainty"
+  sub="Probability of at least one false drift alarm per check when nothing has drifted, by number of independent tests at α = 0.05"
+  note="Arithmetic illustration: 1 − 0.95ⁿ, assuming independent tests. Real features are correlated, which lowers the rate somewhat, but the direction holds. A 768-dimension embedding tested per dimension is effectively the right-hand column."
+  table={[["Independent tests per check", "P(at least one false alarm)"], ["1", "5.0%"], ["5", "22.6%"], ["10", "40.1%"], ["20", "64.2%"], ["50", "92.3%"], ["100", "99.4%"]]}
+>
+  <Columns unit="%" max={100} data={[
+    { label: "1 test", value: 5, display: "5%" },
+    { label: "5", value: 22.6, display: "23%" },
+    { label: "10", value: 40.1, display: "40%" },
+    { label: "20", value: 64.2, display: "64%" },
+    { label: "50", value: 92.3, display: "92%" },
+    { label: "100", value: 99.4, display: "99%", hl: true },
+  ]} />
+</Exhibit>
+
+Five practices get alarm rates down to something a team will actually respond to.
+
+1. **Calibrate thresholds from the baseline itself.** Draw many random windows of the production window size from the baseline period, compute your statistic for each, and set the alert threshold at, say, the 99th percentile of that distribution. You now know the false-alarm rate per check by construction (about 1%), for your data, your embedding model and your window size. This replaces folklore cut-offs with a number you can defend.
+2. **Correct for multiple tests.** Use a Bonferroni or false-discovery-rate correction across features, or reduce dimensionality first. *Failing Loudly* found per-dimension tests with Bonferroni correction competitive with multivariate tests.
+3. **Require persistence.** Alert when the statistic stays beyond the threshold for several consecutive windows, not on a single spike. This trades a little detection delay for a large cut in noise. Because Vela found that some degradation is abrupt, keep a second, higher "cliff" threshold that alerts immediately.
+4. **Tier the checks.** Run the cheap statistic continuously, the expensive one on alarm, and a human review only when both agree.
+5. **Judge drift by its effect on quality.** Distribution shift is a reason to look, not a verdict. The decision about what to do depends on whether quality moved.
+
+<Exhibit
+  n={9}
+  title="Drift is a reason to look, not a verdict: the response depends on measured quality impact"
+  sub="Author’s framework for triaging drift alarms"
+  note="Author’s framework."
+>
+  <Matrix
+    x="Size of distribution shift"
+    y="Measured quality impact"
+    quads={[
+      { title: "Concept drift: re-label", text: "Inputs look stable but quality fell. Refresh labels, sources and policies; input monitors will not catch this." },
+      { title: "Incident: act now", text: "Large shift and quality loss. Roll back, re-index, re-prompt or retrain; owner paged.", hl: true },
+      { title: "Noise: log it", text: "Small shift, no quality change. Record it and tune the threshold if it recurs." },
+      { title: "Benign shift: re-baseline", text: "Real shift, quality holds. Review, extend the eval set to the new inputs, then refreeze the baseline." },
+    ]}
+  />
+</Exhibit>
+
+The top-left quadrant is the one most programmes have no instrument for. It is also where the largest public failures sit.
+
+## The response playbook: versioning, pinning and rollback
+
+Detection only pays off if someone acts on it. I treat drift as an incident class, with an owner, a severity scale and a playbook, the same way site-reliability teams treat latency or error-rate breaches.
+
+<Exhibit n={10} title="Treat drift as an incident class with an owner, a playbook and a memory" sub="Recommended drift response loop" note="Author’s framework.">
+  <Flow steps={[
+    { title: "Baseline", text: "At launch, freeze reference samples of inputs, outputs, embeddings and eval scores, plus a version manifest." },
+    { title: "Detect", text: "Cheap checks continuously; heavier tests on alarm; canary evals daily on the production path." },
+    { title: "Triage", text: "Which clock moved? Check the version manifest and config hashes before touching the model.", hl: true },
+    { title: "Respond", text: "Roll back a version, re-index, re-prompt, re-tune, re-scope, or accept and re-baseline." },
+    { title: "Remember", text: "Add the failing cases to the eval set and write a short postmortem so the next detection is faster." },
+  ]} />
+</Exhibit>
+
+Triage is the step that saves the most time, and it rests on one artefact: a **version manifest** recorded with every request. At a minimum, it should capture:
+
+- The model snapshot ID and every explicitly set parameter (temperature, effort, maximum tokens).
+- The prompt template version, as a hash rather than a name.
+- The retrieval index version, the embedding model and the chunking configuration.
+- The reranker and tool definitions.
+- The application release.
+
+With that manifest, the first question in any drift incident ("did *we* change anything?") takes minutes to answer instead of days.
+
+The response follows from the diagnosis:
+
+- **Upstream model drift.** Roll back to the last pinned snapshot if it is still available. If not, adapt prompts and parsers using the canary failures, and send the vendor a reproducible case rather than "it feels worse".
+- **Prompt or retrieval drift.** Revert through the pipeline that shipped the change, and confirm the fix in traces.
+- **Data or usage drift with a quality impact.** Extend the eval set to the new inputs first, then add documents, adjust retrieval, tune prompts or retrain.
+- **Concept drift.** Update the ground truth (policies, documents, labels), then retrain or re-index.
+- **Benign drift.** Review it, extend the eval set, and refreeze the baseline deliberately, with a record of why. Re-baselining without a record is how slow degradation gets laundered into "normal".
+
+## Case examples
+
+**Zillow Offers, 2021 (concept drift).** When outcomes arrive months after a prediction, monitoring has to reach the people who set exposure limits, not just the modelling team.
+
+**GPT-4o in ChatGPT, April 2025 (upstream change).** According to a Georgetown Law Tech Institute summary of OpenAI’s posts, an update released on 25 April made the model "overly flattering or agreeable" and was rolled back four days later. OpenAI said it had focused too much on short-term feedback. A vendor’s optimisation target can shift behaviour in ways no customer asked for. Only customers tracking tone, agreement and refusal rates would have seen it in their own traffic before the news did.
+
+**Claude, August–September 2025 (pinned model, drifting service).** Anthropic’s remediations (more sensitive evaluations, continuous quality checks on production systems, character-output tests in deployment) are a monitoring programme any customer can mirror on its own side of the API.
+
+<Note kind="field">
+On a privacy-first, fully offline RAG system I built (local Gemma 2 through Ollama, ChromaDB, DVC for dataset versions, MLflow for retrieval metrics), Evidently AI monitored embedding drift and shifts in the query distribution. Because nothing could leave the premises, there was no vendor clock: the model only changed when we changed it. That makes the remaining clocks easier to read: an alarm can only come from the world (new document types and new questions) or from the team (re-chunking, re-indexing). Versioning datasets with DVC means a retrieval regression can be traced to the corpus version that introduced it. Air-gapped systems still drift. They just drift from fewer directions.
+</Note>
+
+## Counterpoints
+
+<Note kind="counter" label="Objection 1: “Just retrain on a schedule.”">
+Monitoring is complicated and noisy. A monthly retrain on fresh data handles drift by construction. No alarms, no triage, no false positives.
+</Note>
+
+<Note kind="response">
+For some classic models this is right. A demand forecast with plentiful, fast-arriving labels may be best served by frequent scheduled retraining, and I would not build an elaborate alarm system around it. But a schedule has three gaps. First, Vela found degradation can be abrupt, and a schedule is blind between runs. Second, retraining doesn’t fix concept drift if the labels themselves lag. Third, you can’t retrain a vendor’s LLM at all, and most LLM systems have no "retrain" button. They have prompts, indices and pinned versions. Even the scheduled-retrain strategy needs monitoring to tell you whether the schedule is frequent enough. Without it, the schedule is a guess.
+</Note>
+
+<Note kind="counter" label="Objection 2: “Hosted model vendors guarantee stability.”">
+Vendors now publish pinned snapshots and retirement commitments. If you pin the version, the model can’t change, so upstream drift is solved by configuration.
+</Note>
+
+<Note kind="response">
+Pinning is necessary, and vendors deserve credit for making it the default. It is not sufficient. The 2025 infrastructure bugs affected pinned models because they lived in the serving path. Product-layer defaults and harnesses can change unless you set every parameter explicitly. Every snapshot has a retirement date, so migrations are scheduled, not avoided. Pinning turns upstream drift from silent and permanent into visible and reversible. It does not make it impossible. Treat the vendor’s guarantee as one control and your canary set as the check on it.
+</Note>
+
+<Note kind="counter" label="Objection 3: “The monitoring costs more than the risk.”">
+For an internal tool used by thirty people, a drift-detection stack with bootstrapped thresholds, canary suites and on-call rotations is over-engineering. The cost of an occasional bad answer is lower than the cost of the monitoring.
+</Note>
+
+<Note kind="response">
+For genuinely low-stakes systems, this is fair, and the EU AI Act’s own wording asks for monitoring "proportionate" to risk. But the minimum viable version is cheap: a frozen baseline sample, a daily canary of fifty prompts, output-shape metrics that are already in your logs, and a version manifest. That is days of work, not a platform. The real cost comparison isn’t monitoring against occasional bad answers. It is monitoring against finding out from a customer, a regulator or a postmortem that quality fell weeks ago. Scale the programme to the stakes, but don’t scale it to zero.
+</Note>
+## Implications by stakeholder
+
+<Exhibit n={11} title="Drift is everyone’s problem, but each role owns a different part of it" sub="What each stakeholder should do differently" note="Author’s framework.">
+  <Compare
+    cols={["Executives", "Engineering leads", "Practitioners", "Risk & compliance"]}
+    rows={[
+      { k: "Mindset", v: ["Launch starts a cost line, not ends one", "Drift is an incident class with an owner", "Every alarm should leave the eval set stronger", "Monitoring evidence is part of the control set"] },
+      { k: "Ask for", v: ["A named owner and a quality trend per AI system", "A version manifest in every trace", "A bootstrapped false-alarm rate for each monitor", "Post-market monitoring plans for high-risk uses"] },
+      { k: "Fund", v: ["Labelling capacity for refreshed eval sets", "Canary suites on the production path", "Time to triage and write postmortems", "Periodic independent review of thresholds"] },
+      { k: "Red flag", v: ["“It’s live, so it’s done”", "Prompts edited in a console with no history", "A drift channel nobody reads", "Monitoring that measures inputs only"] },
+    ]}
+  />
+</Exhibit>
+
+If executives ask only one question of each AI system in production, it should be: *show me quality over time against the launch baseline, and tell me who owns it.* For risk and compliance teams, the key point is that input monitoring is not performance monitoring. A plan that can’t detect concept drift doesn’t meet the spirit of a post-market monitoring duty.
+
+## What to do next: a 30/60/90-day drift programme
+
+<Exhibit n={12} title="A drift programme can be stood up in a quarter, starting with what is cheapest" sub="Recommended sequence for a team running one or more LLM or ML systems in production" note="Author’s framework.">
+  <Timeline items={[
+    { date: "DAYS 1–30", title: "Make change visible", text: "Pin model snapshots and set every parameter explicitly. Add a version manifest (model, prompt hash, index, embedding model, release) to every trace. Freeze a baseline sample of inputs, outputs and embeddings. Turn on output-shape metrics: length, refusal rate, schema validity, language mismatch.", state: "done" },
+    { date: "DAYS 31–60", title: "Detect with calibrated alarms", text: "Run a 50–200 prompt canary set daily on the production path. Add embedding drift (domain classifier or centroid plus MMD) and PSI or Wasserstein on key features. Set every threshold from a bootstrap of the baseline; add persistence rules and a separate cliff threshold.", state: "hl" },
+    { date: "DAYS 61–90", title: "Close the loop", text: "Start a monthly labelled sample of production traffic to track concept drift. Write the drift playbook with owners and severities, and rehearse it once with a simulated vendor change. Gate every prompt, index and model change on the eval suite in CI. Review alarm precision and retune." },
+  ]} />
+</Exhibit>
+
+Two things will tell you the programme works. Some alarms will lead to real fixes. And the false-alarm rate will be low enough that people read the alerts. If after 90 days you have neither, the thresholds are wrong, not the idea.
+
+## Limitations and methodology
+
+The evidence has real gaps.
+
+- **Generalising from classic ML.** Vela et al.’s evidence comes from tabular regression on 32 datasets. It shows degradation is common for classic models, not how often LLM systems degrade. I have not found a large independent study that measures that.
+- **Snapshot evidence on LLMs.** Chen, Zaharia and Zou show that behaviour *can* change substantially under a stable name, not how often it does today. Vendors have since moved to pinned snapshots, which removes one mechanism.
+- **Self-reported incidents.** The Anthropic postmortems are the vendor’s own accounts. The GPT-4o dates come from a secondary summary, because OpenAI’s original post could not be retrieved. Exhibit 4’s figures are my calculations from published dates.
+- **Detector benchmarks.** Rabanser et al. and Evidently used synthetic shifts on public datasets. Their rankings may not transfer to your data.
+- **Exhibits and field notes.** Exhibit 7 is illustrative and Exhibit 8 assumes independent tests. My field notes come from my own project records and have not been independently audited.
+
+## Closing
+
+Every deployed model is moving away from the world it was built for, and with hosted LLMs, also on a path set by a supplier whose changes never appear in your repository. That is no reason not to deploy. It is a reason to stop calling deployment the finish line.
+
+A production system is one where you would notice: a baseline frozen on launch day, alarms people trust, everything pinned that can be pinned, and every drift incident leaving the evaluation set stronger than it found it. Without that, what you have is a demo with a countdown.

@@ -1,0 +1,49 @@
+---
+import PostCover from './blog/PostCover.astro';
+import { getPosts, readingMinutes, fmtDate } from '../lib/posts';
+
+const posts = (await getPosts()).slice(0, 3);
+---
+{posts.length > 0 && (
+  <section class="section writing" id="writing" aria-labelledby="writing-title">
+    <span class="coord">§ · field notes</span>
+    <div class="wrap">
+      <header class="writing__head" data-reveal>
+        <div>
+          <p class="eyebrow">Writing</p>
+          <h2 id="writing-title" class="writing__title">Field notes from <em>production AI.</em></h2>
+        </div>
+        <a class="btn" href="/blog/">All writing <span class="arrow" aria-hidden="true">→</span></a>
+      </header>
+      <ul class="writing__grid">
+        {posts.map((p) => (
+          <li data-reveal>
+            <a class="wcard" href={`/blog/${p.id}/`}>
+              <PostCover motif={p.data.motif} slug={p.id} compact />
+              <p class="wcard__meta mono">
+                {p.data.kicker && <span class="k">{p.data.kicker}</span>}
+                <span>{fmtDate(p.data.date)}</span><span>{readingMinutes(p)} min</span>
+              </p>
+              <h3 class="wcard__title">{p.data.title}</h3>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+)}
+
+<style>
+  .writing__head { display: flex; justify-content: space-between; align-items: end; gap: 20px; flex-wrap: wrap; margin-bottom: 36px; }
+  .writing__title { margin-top: 18px; font-family: var(--font-display); font-stretch: 72%; font-weight: 800; font-size: var(--fs-2xl); line-height: 1; }
+  .writing__title em { font-style: normal; color: var(--signal); }
+  .writing__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .wcard { display: grid; gap: 12px; }
+  .wcard :global(.cover) { transition: border-color 0.3s, transform 0.5s var(--ease-out); }
+  .wcard:hover :global(.cover) { border-color: rgb(61 245 167 / 0.5); transform: translateY(-3px); }
+  .wcard__meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .wcard__meta .k { color: var(--signal); }
+  .wcard__title { font-family: var(--font-display); font-stretch: 80%; font-weight: 750; font-size: 1.35rem; line-height: 1.12; transition: color 0.2s; }
+  .wcard:hover .wcard__title { color: var(--signal); }
+  @media (max-width: 960px) { .writing__grid { grid-template-columns: 1fr; } }
+</style>

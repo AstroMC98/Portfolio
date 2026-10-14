@@ -1,0 +1,16 @@
+---
+/** Row of hero numbers — for single headline figures, a number beats a chart. */
+interface Props {
+  items: { value: string; label: string; source?: string }[];
+}
+const { items } = Astro.props;
+---
+<div class="stats">
+  {items.map((s) => (
+    <div class="stat">
+      <span class="stat__num">{s.value}</span>
+      <span class="stat__label">{s.label}</span>
+      {s.source && <span class="stat__src">{s.source}</span>}
+    </div>
+  ))}
+</div>

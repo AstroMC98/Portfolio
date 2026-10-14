@@ -1,0 +1,32 @@
+---
+/** Vertical columns (categories or periods) with direct labels; highlight selected columns. */
+interface Col {
+  label: string;
+  value: number;
+  display?: string;
+  hl?: boolean;
+}
+interface Props {
+  data: Col[];
+  unit?: string;
+  prefix?: string;
+  max?: number;
+}
+const { data, unit = '', prefix = '', max } = Astro.props;
+const top = max ?? Math.max(...data.map((d) => d.value));
+---
+<div>
+  <div class="cols">
+    {data.map((d) => {
+      const text = d.display ?? `${prefix}${d.value}${unit}`;
+      const h = Math.max(1, (d.value / top) * 86);
+      return (
+        <div class:list={['col', { 'col--hl': d.hl }]} data-tip={`${d.label}: ${text}`}>
+          <span class="col__fill" style={`height:${h}%`}></span>
+          <span class="col__val" style={`bottom:${h}%`}>{text}</span>
+        </div>
+      );
+    })}
+  </div>
+  <div class="cols-x">{data.map((d) => <span>{d.label}</span>)}</div>
+</div>

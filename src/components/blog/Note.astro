@@ -1,0 +1,20 @@
+---
+/**
+ * Callout. kind="field" = first-person note from the author's own work.
+ * Set review to flag a passage whose specifics the author must confirm before publishing.
+ */
+interface Props {
+  kind?: 'field' | 'insight' | 'warn' | 'counter' | 'response';
+  label?: string;
+  review?: boolean;
+}
+const { kind = 'insight', label, review = false } = Astro.props;
+const defaults = { field: 'From the field', insight: 'The point', warn: 'Watch out', counter: 'The counterargument', response: 'Our response' };
+---
+<aside class:list={['callout', `callout--${kind}`]}>
+  <p class="callout__k">
+    {label ?? defaults[kind]}
+    {review && <span class="review-flag" title="Author to confirm the specifics of this passage">TO CONFIRM</span>}
+  </p>
+  <slot />
+</aside>
