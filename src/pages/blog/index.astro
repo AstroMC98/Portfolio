@@ -13,7 +13,7 @@ const tags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
 /** Posts that also have an ELI5 / plain-English version. */
 const eli5 = new Set((await getCollection('simple')).map((e) => e.id));
 ---
-<Base title="Writing — Marc Castro" description="Field notes on forward-deployed AI engineering: production LLM systems, governance, evaluation, local models and careers in AI.">
+<Base title="AI Engineering Blog — Marc Castro" description="Field notes on forward-deployed AI engineering: production LLM systems, governance, evaluation, local models and careers in AI.">
   <Nav />
   <main id="main" class="blog">
     <header class="blog-head wrap">

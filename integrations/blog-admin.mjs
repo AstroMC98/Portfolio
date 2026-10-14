@@ -16,7 +16,7 @@
  *  - "Delete" moves a post (and its ELI5 version) to src/content/.trash (git-ignored) instead of erasing it.
  */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { promises as fs } from 'node:fs';
+import { existsSync, promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import YAML from 'yaml';
@@ -210,7 +210,15 @@ function scanPost(slug, folder, text, acks, { version = 'full', title } = {}) {
   }
 
   if (simple) return items; // ELI5 files have no thesis/sources to be missing.
-  const missing = [!fm.thesis && 'thesis', !fm.takeaways?.length && 'key takeaways', !fm.sources?.length && 'sources'].filter(Boolean);
+  const missing = [
+    !fm.thesis && 'thesis',
+    !fm.takeaways?.length && 'key takeaways',
+    !fm.sources?.length && 'sources',
+    // Search results cut titles at ~60 characters (" | Marc Castro" is added when it fits).
+    !fm.seoTitle && String(fm.title ?? '').length + 14 > 60 && 'search title',
+    // Published posts need their own share card (public/images/og/<slug>.png).
+    folder === 'blog' && !existsSync(path.join(ROOT, 'public', 'images', 'og', `${slug}.png`)) && 'share image',
+  ].filter(Boolean);
   if (missing.length) items.push({ ...base, kind: 'details', id: id('details'), section: 'Post details', line: 1, missing });
   return items;
 }
@@ -342,7 +350,8 @@ function validate(fm) {
       });
   }
   // Drop empty optional fields so the files stay tidy.
-  for (const k of ['kicker', 'thesis', 'review', 'updated']) if (clean[k] === '' || clean[k] == null) delete clean[k];
+  if (clean.seoTitle != null && (typeof clean.seoTitle !== 'string' || clean.seoTitle.trim().length > 70)) errors.push('Search title must be text, 70 characters or fewer (aim for 46 or fewer).');
+  for (const k of ['kicker', 'thesis', 'review', 'updated', 'seoTitle']) if (clean[k] === '' || clean[k] == null) delete clean[k];
   for (const k of ['featured', 'draft']) if (!clean[k]) delete clean[k];
   for (const k of ['takeaways', 'sources', 'tags']) if (Array.isArray(clean[k]) && clean[k].length === 0) delete clean[k];
   // Keep date as a plain YYYY-MM-DD scalar (not a quoted string or timestamp).
@@ -393,6 +402,16 @@ async function handleApi(req, res, url) {
     sessions.delete(tokenFrom(req));
     res.setHeader('Set-Cookie', `${COOKIE}=; HttpOnly; SameSite=Strict; Path=/admin; Max-Age=0`);
     return json(res, 200, { ok: true });
+  }
+
+  // Render the post's social share card to public/images/og/<slug>.png (needs Chrome or Playwright's Chromium).
+  const og = route.match(/^\/og\/([^/]+)$/);
+  if (og && method === 'POST') {
+    const slug = decodeURIComponent(og[1]);
+    if (!SLUG.test(slug) || !(await findPost(slug))) return json(res, 404, { error: 'Post not found.' });
+    const { generateOgImages } = await import('../scripts/og-images.mjs');
+    await generateOgImages({ baseUrl: `http://${req.headers.host}`, slugs: [slug] });
+    return json(res, 200, { ok: true, image: `/images/og/${slug}.png` });
   }
 
   if (route === '/meta' && method === 'GET') return json(res, 200, { motifs: MOTIFS, root: ROOT.split(path.sep).join('/') });

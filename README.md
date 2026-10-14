@@ -44,7 +44,17 @@ Posts are MDX files in `src/content/blog/` (schema in `src/content.config.ts`). 
 - **Local drafts:** `src/content/drafts/` is git-ignored. Posts there show up in `npm run dev` but are never committed or published.
 - **Previewing unpublished posts:** `npm run dev` shows everything, or build with `SHOW_SCHEDULED=true npm run build`.
 - **Review flags:** first-person passages marked `<Note kind="field" review>` and a post-level `review:` field render "TO CONFIRM" badges and block publishing. Resolve them before publishing.
-- **Feed:** `/blog/rss.xml`.
+- **Feed:** `/blog/rss.xml` (linked from every page's `<head>`).
+- **Search & sharing:**
+  - Each post has a short `seoTitle` of 46 characters or fewer, rendered as "<seoTitle> | Marc Castro" within 60 characters. The admin shows a live length check.
+  - Posts carry `og:type=article`, article times and tags, and BlogPosting + BreadcrumbList JSON-LD linked to the site's Person (`/#person`).
+  - The sitemap gets `lastmod` from each post's `updated` or `date` field.
+  - `public/robots.txt` points crawlers at the sitemap.
+- **Share images:**
+  - Every post needs `public/images/og/<slug>.png` (1200×630), rendered from the dev-only card page `/og-card/<slug>/`. Without it, the post falls back to the site card `/og.png`.
+  - With the dev server running, `npm run og` creates the missing images (`--all` regenerates everything; set `BASE_URL` if the server isn't on port 4321).
+  - The admin flags missing images and has a "Generate share image" button.
+  - Commit the PNG with the post.
 
 ### Blog admin (local only)
 

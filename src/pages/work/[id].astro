@@ -72,7 +72,7 @@ const chapters = [
 ];
 ---
 <Base
-  title={`${p.title} — Case file ${n} · Marc Castro`}
+  title={p.title.length + 14 <= 60 ? `${p.title} | Marc Castro` : p.title}
   description={`${p.description.slice(0, 150)}…`}
 >
   <Nav />

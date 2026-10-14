@@ -247,6 +247,7 @@
         <div class="details" id="tab-details" hidden>
           <div class="grid">
             <label class="span2">Title <input name="title" required /></label>
+            <label class="span2">Search title <input name="seoTitle" maxlength="70" placeholder="Short title for Google and the browser tab" /><span class="hint" id="seoHint">Shown in search results. Aim for 46 characters or fewer so “ | Marc Castro” fits within 60.</span></label>
             <label>Publish date <input name="date" type="date" required /><span class="hint">Live from this date (daily rebuild).</span></label>
             <label>Updated <input name="updated" type="date" /><span class="hint">Optional. Shown as “Updated …” under the byline.</span></label>
             <label>Kicker <input name="kicker" placeholder="e.g. LLMOps" /></label>
@@ -261,6 +262,12 @@
           <label>Thesis <textarea name="thesis" rows="2"></textarea></label>
           <label>Key takeaways <textarea name="takeaways" rows="5"></textarea><span class="hint">One per line.</span></label>
           <label>Sources <textarea name="sources" rows="8" class="code"></textarea><span class="hint">One per line: Label | https://url</span></label>
+          <div class="share">
+            <p class="hint" style="text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono);font-size:.78rem">Share image</p>
+            <img id="shareImg" alt="Social share card preview" hidden />
+            <p class="hint" id="shareNone">No share card yet. Without one, links to this post show the generic site card.</p>
+            <button class="btn btn--sm" type="button" id="shareBtn">Generate share image</button>
+          </div>
           <label>Review note <textarea name="review" rows="2"></textarea><span class="hint">If filled, the post shows an “Author review” box and will not publish.</span></label>
         </div>
         <p class="err" id="formErr" role="alert" style="padding:0 24px 24px"></p>
@@ -339,6 +346,24 @@ function renderMotifOptions(slug) {
     sel.append(h('option', { value: m, disabled: !!owner, textContent: owner ? `${m} — used by “${owner.title.slice(0, 40)}”` : m === 'generative' ? 'generative (unique per post)' : m }));
   });
   if (keep) sel.value = keep;
+}
+
+/** Live length check for the search title. */
+function seoHint() {
+  const f = $('#editor');
+  const t = f.seoTitle.value.trim();
+  const n = t ? t.length + 14 : f.title.value.trim().length + 14;
+  $('#seoHint').textContent = t
+    ? `${t.length} characters → “${t} | Marc Castro” is ${n}/60${n > 60 ? ' — too long, the suffix will be dropped' : ''}.`
+    : `Empty: search results use the full title (${n} characters with “ — Marc Castro”)${n > 60 ? ' — too long, add a search title' : ''}.`;
+}
+
+/** Share-card preview + generate button on the Details tab. */
+function showShare(slug) {
+  const img = $('#shareImg');
+  img.onload = () => { img.hidden = false; $('#shareNone').hidden = true; $('#shareBtn').textContent = 'Regenerate share image'; };
+  img.onerror = () => { img.hidden = true; $('#shareNone').hidden = false; $('#shareBtn').textContent = 'Generate share image'; };
+  img.src = `/images/og/${slug}.png?t=${Date.now()}`;
 }
 
 /* ---------- API ---------- */
@@ -467,6 +492,13 @@ function card(n) {
   const actions = h('div', { className: 'card__actions' });
 
   if (n.kind === 'details') {
+    if (n.missing.includes('share image')) {
+      actions.append(h('button', { type: 'button', className: 'btn btn--sm btn--ok', textContent: 'Generate share image', onclick: async (e) => {
+        e.target.disabled = true; e.target.textContent = 'Generating…';
+        try { await api('/og/' + encodeURIComponent(n.slug), { method: 'POST' }); toast('Share image created.'); await refresh(); }
+        catch (err) { toast(err.message, 'bad'); e.target.disabled = false; e.target.textContent = 'Generate share image'; }
+      } }));
+    }
     actions.append(h('button', { type: 'button', className: 'btn btn--sm btn--primary', textContent: 'Fill in details', onclick: () => openPost(n.slug, { tab: 'details' }) }));
     c.append(actions);
     return c;
@@ -685,6 +717,9 @@ async function openPost(slug, { tab = 'content', find = null, section = null } =
     f.date.value = fm.date || '';
     f.updated.value = fm.updated || '';
     f.kicker.value = fm.kicker || '';
+    f.seoTitle.value = fm.seoTitle || '';
+    seoHint();
+    showShare(p.slug);
     renderMotifOptions(p.slug);
     f.motif.value = fm.motif || 'paths';
     f.tags.value = (fm.tags || []).join(', ');
@@ -696,7 +731,7 @@ async function openPost(slug, { tab = 'content', find = null, section = null } =
     f.sources.value = (fm.sources || []).map((s) => `${s.label} | ${s.url}`).join('\n');
     f.review.value = fm.review || '';
     // Keep any frontmatter fields the form doesn't expose.
-    const known = ['title', 'date', 'updated', 'kicker', 'motif', 'tags', 'featured', 'draft', 'dek', 'thesis', 'takeaways', 'sources', 'review'];
+    const known = ['title', 'seoTitle', 'date', 'updated', 'kicker', 'motif', 'tags', 'featured', 'draft', 'dek', 'thesis', 'takeaways', 'sources', 'review'];
     f.dataset.extra = JSON.stringify(Object.fromEntries(Object.entries(fm).filter(([key]) => !known.includes(key))));
     // ELI5 version: its own dek/takeaways fields and sections (empty until the file exists).
     const sfm = s.exists ? s.frontmatter : {};
@@ -747,6 +782,7 @@ function collect() {
       date: f.date.value,
       updated: f.updated.value,
       kicker: f.kicker.value.trim(),
+      seoTitle: f.seoTitle.value.trim(),
       motif: f.motif.value,
       tags: f.tags.value.split(',').map((t) => t.trim()).filter(Boolean),
       featured: f.featured.checked,
@@ -813,6 +849,21 @@ $('#logoutBtn').addEventListener('click', async () => {
   setDirty(false); current = null; showLogin();
 });
 $('#needsNav').addEventListener('click', showNeeds);
+$('#editor').seoTitle.addEventListener('input', seoHint);
+$('#editor').title.addEventListener('input', seoHint);
+$('#shareBtn').addEventListener('click', async (e) => {
+  if (!current) return;
+  if (dirty) { toast('Save first — the card uses the saved title and cover.', 'bad'); return; }
+  e.target.disabled = true;
+  e.target.textContent = 'Generating…';
+  try {
+    await api('/og/' + encodeURIComponent(current.slug), { method: 'POST' });
+    showShare(current.slug);
+    await refresh();
+    toast('Share image created. Commit public/images/og/ with the post.');
+  } catch (err) { toast(err.message, 'bad'); showShare(current.slug); }
+  finally { e.target.disabled = false; }
+});
 $('#search').addEventListener('input', renderList);
 document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
 $('#prevSec').addEventListener('click', () => selectSection(sec - 1));

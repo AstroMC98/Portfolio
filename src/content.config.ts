@@ -11,6 +11,8 @@ const blog = defineCollection({
   }),
   schema: z.object({
     title: z.string(),
+    /** Short title for search results and the browser tab (≤ 60 characters); the page keeps `title`. */
+    seoTitle: z.string().max(70).optional(),
     dek: z.string(),
     date: z.coerce.date(),
     /** Last substantive revision; shown as "Updated …" next to the publish date. */

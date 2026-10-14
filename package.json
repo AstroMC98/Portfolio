@@ -7,7 +7,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "admin": "astro dev --open /admin"
+    "admin": "astro dev --open /admin",
+    "og": "node scripts/og-images.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^8.0.3",
@@ -22,6 +23,7 @@
     "@anthropic-ai/sdk": "^0.133.0",
     "@google/genai": "^2.29.1",
     "openai": "^7.32.0",
+    "playwright": "^1.64.0",
     "yaml": "^2.9.1"
   }
 }

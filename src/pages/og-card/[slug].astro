@@ -1,0 +1,48 @@
+---
+/**
+ * Social share card for one post (1200×630), screenshotted to public/images/og/<slug>.png by
+ * `npm run og` (scripts/og-images.mjs). Dev-only: the production build gets no paths here.
+ */
+import Base from '../../layouts/Base.astro';
+import Logo from '../../components/Logo.astro';
+import PostCover from '../../components/blog/PostCover.astro';
+import { getPosts, type Post } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  if (!import.meta.env.DEV) return [];
+  const posts = await getPosts({ includeUnpublished: true });
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props as { post: Post };
+const d = post.data;
+const len = d.title.length;
+const size = len <= 50 ? 78 : len <= 75 ? 66 : len <= 100 ? 56 : 48;
+---
+<Base title={`${d.title} — share card`} noindex>
+  <div class="card">
+    <div class="card__art"><PostCover motif={d.motif} slug={post.id} /></div>
+    <div class="card__shade"></div>
+    <div class="card__copy">
+      <p class="card__eyebrow">{d.kicker ?? 'Writing'} · Marc Castro</p>
+      <h1 style={`font-size:${size}px`}>{d.title}</h1>
+    </div>
+    <div class="card__foot">
+      <Logo size={40} />
+      <span>portfolio.marccastro.solutions/blog</span>
+    </div>
+  </div>
+</Base>
+
+<style>
+  :global(body) { margin: 0; overflow: hidden; background: #0a0d0c; }
+  :global(body::after), :global(.skip-link) { display: none; }
+  .card { position: relative; width: 1200px; height: 630px; overflow: hidden; background: #0a0d0c; }
+  .card__art { position: absolute; top: 0; right: 0; bottom: 0; width: 820px; }
+  .card__art :global(.cover) { width: 100%; height: 100%; aspect-ratio: auto; border: 0; border-radius: 0; }
+  .card__shade { position: absolute; inset: 0; background: linear-gradient(90deg, #0a0d0c 38%, rgb(10 13 12 / 0.82) 56%, rgb(10 13 12 / 0.15) 100%); }
+  .card__copy { position: absolute; left: 64px; top: 70px; width: 700px; }
+  .card__eyebrow { font-family: var(--font-mono); font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--signal); }
+  h1 { margin-top: 22px; font-family: var(--font-display); font-stretch: 72%; font-weight: 800; line-height: 0.98; letter-spacing: -0.01em; color: #ecefea; }
+  .card__foot { position: absolute; left: 64px; bottom: 48px; display: flex; align-items: center; gap: 16px; font-family: var(--font-mono); font-size: 20px; letter-spacing: 0.04em; color: #8b958f; }
+</style>
