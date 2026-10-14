@@ -62,3 +62,5 @@ _legacy/
 # Blog: local-only drafts and admin trash
 src/content/drafts/
 src/content/.trash/
+# Blog admin local state (checked passages)
+admin/.state.json

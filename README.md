@@ -48,7 +48,20 @@ Posts are MDX files in `src/content/blog/` (schema in `src/content.config.ts`). 
 
 ### Blog admin (local only)
 
-`npm run admin` starts the dev server and opens `http://localhost:4321/admin`: a password-protected editor for every post (frontmatter fields plus the MDX body), with status chips, review-flag listing, preview links, "new post" (created as a local draft), move between `blog/` and `drafts/`, and trash (`src/content/.trash/`, git-ignored).
+`npm run admin` starts the dev server and opens `http://localhost:4321/admin`, a password-protected editor for the blog.
+
+- **Needs you** (the landing view) lists every passage that needs the author, across all posts and `src/data/*.ts`, and each one can be fixed in place without opening the file:
+  - review flags, which block publishing;
+  - `TODO` markers and template placeholders;
+  - first-person "your experience" notes (`<Note kind="field">`), each with a **Looks right** check-off;
+  - `TODO(confirm)` site facts;
+  - missing thesis, takeaways or sources.
+
+  Checked-off passages are stored in the git-ignored `admin/.state.json` and come back if their text changes.
+- **Post editor**:
+  - *Content* shows the body one `##` section at a time, with an outline giving word count, exhibit count and needs badges per section.
+  - *Details & sources* holds the frontmatter, including an optional `updated` date shown as "Updated …" under the byline.
+- Preview links, "new post" (created as a local draft), move between `blog/` and `drafts/`, and trash (`src/content/.trash/`, git-ignored).
 
 - Set the password in `.env` (git-ignored): copy `.env.example` and set `ADMIN_PASSWORD`. Without it the admin refuses all logins.
 - It exists **only in `astro dev`** (`integrations/blog-admin.mjs`, Vite middleware) and answers only loopback requests. The static build and GitHub Pages never contain it — publishing still happens by committing and pushing.

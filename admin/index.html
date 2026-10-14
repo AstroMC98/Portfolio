@@ -11,7 +11,7 @@
     color-scheme: dark;
     --ink: #0a0d0c; --ink-2: #111715; --ink-3: #172019; --line: #1e2824; --line-2: #2a3732;
     --text: #ecefea; --text-2: #c4cbc6; --muted: #8b958f;
-    --signal: #3df5a7; --amber: #ffb547; --danger: #ff7a7a; --blue: #7fb2f0;
+    --signal: #3df5a7; --amber: #ffb547; --danger: #ff7a7a; --blue: #7fb2f0; --violet: #b3a9ff;
     --sans: 'Archivo Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
     --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
   }
@@ -19,6 +19,7 @@
   body { min-height: 100vh; background: var(--ink); color: var(--text); font: 15px/1.5 var(--sans); }
   button, input, textarea, select { font: inherit; color: inherit; }
   button { cursor: pointer; }
+  a { color: inherit; }
   :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
   .mono { font-family: var(--mono); }
   [hidden] { display: none !important; }
@@ -33,61 +34,120 @@
   label { display: grid; gap: 6px; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-family: var(--mono); }
   input, textarea, select { width: 100%; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--ink); font-size: 0.95rem; text-transform: none; letter-spacing: 0; font-family: var(--sans); color: var(--text); }
   textarea { resize: vertical; min-height: 70px; }
+  textarea.code { font-family: var(--mono); font-size: 13px; line-height: 1.6; tab-size: 2; }
   input[type=checkbox] { width: auto; }
   .check { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; font-family: var(--sans); font-size: 0.9rem; color: var(--text-2); }
-  .hint { font-family: var(--sans); text-transform: none; letter-spacing: 0; font-size: 0.78rem; color: var(--muted); }
+  .hint { font-family: var(--sans); text-transform: none; letter-spacing: 0; font-size: 0.8rem; color: var(--muted); }
 
-  .btn { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-2); background: transparent; font-weight: 600; font-size: 0.88rem; white-space: nowrap; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-2); background: transparent; font-weight: 600; font-size: 0.86rem; white-space: nowrap; text-decoration: none; }
   .btn:hover { border-color: var(--text-2); }
   .btn--primary { background: var(--signal); color: var(--ink); border-color: var(--signal); }
+  .btn--ok { color: var(--signal); border-color: rgb(61 245 167 / 0.45); }
   .btn--danger { color: var(--danger); border-color: rgb(255 122 122 / 0.4); }
+  .btn--sm { min-height: 30px; padding: 0 11px; font-size: 0.8rem; }
   .btn:disabled { opacity: 0.45; cursor: not-allowed; }
   .err { color: var(--danger); font-size: 0.88rem; }
 
-  /* App layout */
-  .app { display: grid; grid-template-columns: 320px minmax(0, 1fr); min-height: 100vh; }
-  .side { border-right: 1px solid var(--line); display: flex; flex-direction: column; max-height: 100vh; position: sticky; top: 0; }
-  .side__head { padding: 18px; border-bottom: 1px solid var(--line); display: grid; gap: 12px; }
-  .side__title { display: flex; justify-content: space-between; align-items: center; }
-  .side__title b { font-size: 1.05rem; }
-  .list { overflow-y: auto; padding: 8px; display: grid; gap: 4px; align-content: start; }
-  .item { text-align: left; width: 100%; padding: 12px; border-radius: 12px; border: 1px solid transparent; background: transparent; display: grid; gap: 6px; }
-  .item:hover { background: var(--ink-2); }
-  .item.is-on { background: var(--ink-2); border-color: var(--line-2); }
-  .item__t { font-weight: 650; font-size: 0.92rem; line-height: 1.3; }
-  .item__m { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
-  .chip { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-2); font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.04em; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-2); font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.04em; white-space: nowrap; }
   .s-live { color: var(--signal); border-color: rgb(61 245 167 / 0.4); }
   .s-scheduled { color: var(--blue); border-color: rgb(127 178 240 / 0.4); }
   .s-draft, .s-local-draft { color: var(--muted); }
   .s-needs-review { color: var(--amber); border-color: rgb(255 181 71 / 0.4); }
+  .k-review, .k-todo, .k-placeholder { color: var(--amber); border-color: rgb(255 181 71 / 0.45); }
+  .k-voice { color: var(--violet); border-color: rgb(179 169 255 / 0.45); }
+  .k-site { color: var(--blue); border-color: rgb(127 178 240 / 0.45); }
+  .k-details { color: var(--text-2); }
+  .count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--amber); color: var(--ink); font: 700 0.72rem/1 var(--mono); flex: none; }
+  .count.zero { background: var(--line-2); color: var(--muted); }
+
+  /* App layout */
+  .app { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: 100vh; }
+  .side { border-right: 1px solid var(--line); display: flex; flex-direction: column; height: 100vh; position: sticky; top: 0; }
+  .side__head { padding: 16px; border-bottom: 1px solid var(--line); display: grid; gap: 12px; }
+  .side__title { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .side__title b { font-size: 1.05rem; white-space: nowrap; }
+  .needs-nav { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgb(255 181 71 / 0.35); background: rgb(255 181 71 / 0.06); font-weight: 700; text-align: left; }
+  .needs-nav.is-on { border-color: var(--amber); background: rgb(255 181 71 / 0.12); }
+  .list { overflow-y: auto; padding: 8px; display: grid; gap: 4px; align-content: start; flex: 1; }
+  .item { text-align: left; width: 100%; padding: 11px 12px; border-radius: 12px; border: 1px solid transparent; background: transparent; display: grid; gap: 6px; }
+  .item:hover { background: var(--ink-2); }
+  .item.is-on { background: var(--ink-2); border-color: var(--line-2); }
+  .item__t { font-weight: 650; font-size: 0.9rem; line-height: 1.3; display: flex; gap: 8px; justify-content: space-between; align-items: start; }
+  .item__m { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
 
   .main { min-width: 0; display: flex; flex-direction: column; }
-  .bar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--line); background: rgb(10 13 12 / 0.94); backdrop-filter: blur(10px); }
-  .bar__l { display: flex; gap: 10px; align-items: center; min-width: 0; }
+  .bar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 24px; border-bottom: 1px solid var(--line); background: rgb(10 13 12 / 0.95); backdrop-filter: blur(10px); }
+  .bar { flex-wrap: nowrap; }
+  .bar__l { display: flex; gap: 10px; align-items: center; min-width: 0; flex: 1; }
+  .bar__r { flex: none; }
   .bar__l b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bar__r { display: flex; flex-wrap: wrap; gap: 8px; }
-  .dirty { color: var(--amber); font-family: var(--mono); font-size: 0.75rem; }
-  .editor { padding: 24px; display: grid; gap: 22px; max-width: 1200px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 14px; }
+  .dirty { color: var(--amber); font-family: var(--mono); font-size: 0.75rem; white-space: nowrap; }
+
+  /* Needs-you view */
+  .needs { padding: 24px; display: grid; gap: 20px; max-width: 1100px; }
+  .needs__head h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.01em; }
+  .needs__head p { color: var(--muted); margin-top: 4px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; }
+  .filter { display: inline-flex; gap: 8px; align-items: center; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-2); background: transparent; font-size: 0.84rem; }
+  .filter.is-on { border-color: var(--text); background: var(--ink-2); }
+  .filter small { font-family: var(--mono); color: var(--muted); }
+  .groups { display: grid; gap: 28px; }
+  .group { display: grid; gap: 10px; }
+  .group__h { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+  .group__h b { font-size: 1rem; }
+  .card { border: 1px solid var(--line-2); border-radius: 14px; background: var(--ink-2); padding: 14px 16px; display: grid; gap: 10px; }
+  .card__top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-family: var(--mono); font-size: 0.74rem; color: var(--muted); }
+  .card__why { font-size: 0.88rem; color: var(--text-2); }
+  .card__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .card__actions .spacer { flex: 1; }
+  .card textarea { min-height: 0; max-height: 420px; }
+  .done { text-align: center; padding: 48px 16px; color: var(--muted); border: 1px dashed var(--line-2); border-radius: 14px; }
+  .done b { display: block; color: var(--signal); font-size: 1.1rem; margin-bottom: 4px; }
+
+  /* Editor view */
+  .tabs { display: flex; gap: 4px; padding: 0 24px; border-bottom: 1px solid var(--line); }
+  .tab { padding: 12px 14px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); font-weight: 650; }
+  .tab.is-on { color: var(--text); border-bottom-color: var(--signal); }
+  .content { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 20px; padding: 20px 24px; align-items: start; }
+  .outline { position: sticky; top: 76px; display: grid; gap: 2px; max-height: calc(100vh - 100px); overflow-y: auto; padding-right: 4px; }
+  .outline__h { font: 600 0.7rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 4px 10px 8px; }
+  .sec { text-align: left; width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid transparent; background: transparent; display: grid; gap: 3px; }
+  .sec:hover { background: var(--ink-2); }
+  .sec.is-on { background: var(--ink-2); border-color: var(--line-2); }
+  .sec__t { font-size: 0.84rem; font-weight: 600; line-height: 1.3; display: flex; gap: 6px; justify-content: space-between; align-items: start; }
+  .sec__m { font: 0.68rem/1 var(--mono); color: var(--muted); }
+  .sec--all { border-top: 1px solid var(--line); border-radius: 0 0 10px 10px; margin-top: 6px; padding-top: 10px; }
+  .pane { display: grid; gap: 12px; min-width: 0; }
+  .pane__h { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; justify-content: space-between; }
+  .pane__h h2 { font-size: 1.15rem; font-weight: 750; }
+  .pane__nav { display: flex; gap: 6px; }
+  .here { display: grid; gap: 6px; }
+  .here button { text-align: left; display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--ink-2); font-size: 0.84rem; color: var(--text-2); min-width: 0; }
+  .here button span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  #sectionText { min-height: 62vh; white-space: pre-wrap; }
+  .details { padding: 20px 24px; display: grid; gap: 18px; max-width: 1100px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 14px; }
   .span2 { grid-column: span 2; }
-  .body textarea { min-height: 60vh; font-family: var(--mono); font-size: 13px; line-height: 1.6; tab-size: 2; white-space: pre; }
-  details { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; background: var(--ink-2); }
-  summary { cursor: pointer; font-weight: 650; }
-  .flags { display: grid; gap: 8px; margin-top: 10px; }
-  .flag { padding: 10px 12px; border-left: 3px solid var(--amber); background: var(--ink); border-radius: 0 8px 8px 0; font-size: 0.85rem; color: var(--text-2); }
-  .flag b { color: var(--amber); font-family: var(--mono); font-size: 0.72rem; }
-  .empty { display: grid; place-items: center; min-height: 60vh; color: var(--muted); padding: 24px; text-align: center; }
-  .toast { position: fixed; right: 16px; bottom: 16px; z-index: 50; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line-2); background: #050706; font-size: 0.9rem; box-shadow: 0 10px 30px rgb(0 0 0 / 0.5); }
+
+  .toast { position: fixed; right: 16px; bottom: 16px; z-index: 50; max-width: min(420px, calc(100vw - 32px)); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line-2); background: #050706; font-size: 0.9rem; box-shadow: 0 10px 30px rgb(0 0 0 / 0.5); }
   .toast.ok { border-color: rgb(61 245 167 / 0.5); }
   .toast.bad { border-color: rgb(255 122 122 / 0.6); color: var(--danger); }
   dialog { border: 1px solid var(--line-2); border-radius: 16px; background: var(--ink-2); color: var(--text); padding: 22px; width: min(420px, 92vw); }
   dialog::backdrop { background: rgb(0 0 0 / 0.6); }
   dialog form { display: grid; gap: 12px; }
+
+  @media (max-width: 1100px) {
+    .content { grid-template-columns: 1fr; }
+    .outline { position: static; max-height: 220px; border: 1px solid var(--line); border-radius: 12px; padding: 6px; }
+  }
   @media (max-width: 860px) {
     .app { grid-template-columns: 1fr; }
-    .side { position: static; max-height: 40vh; border-right: 0; border-bottom: 1px solid var(--line); }
+    .bar { flex-wrap: wrap; }
+    .side { position: static; height: auto; max-height: 50vh; border-right: 0; border-bottom: 1px solid var(--line); }
     .span2 { grid-column: auto; }
+    .bar, .needs, .content, .details { padding-left: 16px; padding-right: 16px; }
+    .tabs { padding: 0 16px; }
   }
 </style>
 </head>
@@ -95,7 +155,7 @@
   <section class="login" id="login" hidden>
     <form id="loginForm">
       <h1>Blog admin</h1>
-      <p>Local only. Edits write straight to the MDX files in this repo.</p>
+      <p>Local only. Edits write straight to the files in this repo.</p>
       <label>Password <input type="password" id="pw" autocomplete="current-password" required autofocus /></label>
       <p class="err" id="loginErr" role="alert"></p>
       <button class="btn btn--primary" type="submit">Sign in</button>
@@ -105,39 +165,68 @@
   <div class="app" id="app" hidden>
     <aside class="side">
       <div class="side__head">
-        <div class="side__title"><b>Posts</b>
+        <div class="side__title"><b>Blog admin</b>
           <span style="display:flex; gap:6px">
-            <button class="btn" id="newBtn" type="button">+ New</button>
-            <button class="btn" id="logoutBtn" type="button">Sign out</button>
+            <button class="btn btn--sm" id="newBtn" type="button">+ New post</button>
+            <button class="btn btn--sm" id="logoutBtn" type="button">Sign out</button>
           </span>
         </div>
-        <input type="search" id="search" placeholder="Search titles…" aria-label="Search posts" />
+        <button class="needs-nav" id="needsNav" type="button"><span>Needs you</span><span class="count" id="needsCount">0</span></button>
+        <input type="search" id="search" placeholder="Search posts…" aria-label="Search posts" />
       </div>
       <nav class="list" id="list" aria-label="Posts"></nav>
     </aside>
 
     <main class="main">
-      <div class="empty" id="empty">Select a post to edit, or create a new one.</div>
-      <form id="form" hidden novalidate>
+      <!-- Needs-you view: every passage that needs the author, across all posts and site data. -->
+      <section id="needsView" hidden>
+        <div class="needs">
+          <div class="needs__head">
+            <h1>Where you're needed</h1>
+            <p id="needsSummary"></p>
+          </div>
+          <div class="filters" id="filters" role="group" aria-label="Filter"></div>
+          <div class="groups" id="needsList"></div>
+        </div>
+      </section>
+
+      <!-- Post editor -->
+      <form id="editor" hidden novalidate>
         <div class="bar">
           <div class="bar__l"><span class="chip" id="statusChip"></span><b id="formTitle"></b><span class="dirty" id="dirty" hidden>● unsaved</span></div>
           <div class="bar__r">
-            <a class="btn" id="previewBtn" target="_blank" rel="noopener">Preview ↗</a>
-            <button class="btn" type="button" id="moveBtn"></button>
-            <button class="btn btn--danger" type="button" id="trashBtn">Move to trash</button>
+            <a class="btn btn--sm" id="previewBtn" target="_blank" rel="noopener">Preview ↗</a>
+            <button class="btn btn--sm" type="button" id="moveBtn"></button>
+            <button class="btn btn--sm btn--danger" type="button" id="trashBtn">Trash</button>
             <button class="btn btn--primary" type="submit" id="saveBtn">Save <span class="mono" style="opacity:.6">Ctrl+S</span></button>
           </div>
         </div>
-        <div class="editor">
-          <details id="flagBox" hidden open>
-            <summary id="flagSummary"></summary>
-            <p class="hint" style="margin-top:6px">Posts with review flags never publish. Confirm each passage, then remove <span class="mono">review</span> from the Note (or clear the Review field).</p>
-            <div class="flags" id="flags"></div>
-          </details>
+        <div class="tabs" role="tablist">
+          <button class="tab is-on" type="button" role="tab" data-tab="content" aria-selected="true">Content</button>
+          <button class="tab" type="button" role="tab" data-tab="details" aria-selected="false">Details &amp; sources</button>
+        </div>
 
+        <div class="content" id="tab-content">
+          <nav class="outline" id="outline" aria-label="Sections"></nav>
+          <div class="pane">
+            <div class="pane__h">
+              <h2 id="secTitle"></h2>
+              <div class="pane__nav">
+                <button class="btn btn--sm" type="button" id="prevSec">← Prev</button>
+                <button class="btn btn--sm" type="button" id="nextSec">Next →</button>
+              </div>
+            </div>
+            <div class="here" id="here"></div>
+            <textarea id="sectionText" class="code" spellcheck="true" aria-labelledby="secTitle"></textarea>
+            <p class="hint">You're editing one section. A line starting with <span class="mono">## </span> starts a new section; the outline refreshes when you switch sections or save. Components: Exhibit, Bars, Columns, Lines, Slope, Waffle, Stats, Matrix, Flow, Compare, Timeline, Note.</p>
+          </div>
+        </div>
+
+        <div class="details" id="tab-details" hidden>
           <div class="grid">
             <label class="span2">Title <input name="title" required /></label>
-            <label>Date <input name="date" type="date" required /><span class="hint">Publishes on this date (daily rebuild).</span></label>
+            <label>Publish date <input name="date" type="date" required /><span class="hint">Live from this date (daily rebuild).</span></label>
+            <label>Updated <input name="updated" type="date" /><span class="hint">Optional. Shown as “Updated …” under the byline.</span></label>
             <label>Kicker <input name="kicker" placeholder="e.g. LLMOps" /></label>
             <label>Cover motif <select name="motif" id="motif"></select></label>
             <label>Tags <input name="tags" placeholder="comma, separated" /></label>
@@ -149,11 +238,10 @@
           <label>Dek — one-sentence summary <textarea name="dek" rows="2" required></textarea></label>
           <label>Thesis <textarea name="thesis" rows="2"></textarea></label>
           <label>Key takeaways <textarea name="takeaways" rows="5"></textarea><span class="hint">One per line.</span></label>
-          <label>Sources <textarea name="sources" rows="6" class="mono"></textarea><span class="hint">One per line: Label | https://url</span></label>
+          <label>Sources <textarea name="sources" rows="8" class="code"></textarea><span class="hint">One per line: Label | https://url</span></label>
           <label>Review note <textarea name="review" rows="2"></textarea><span class="hint">If filled, the post shows an “Author review” box and will not publish.</span></label>
-          <label class="body">Body (MDX) <textarea name="body" spellcheck="false"></textarea><span class="hint">Components: Exhibit, Bars, Columns, Lines, Slope, Waffle, Stats, Matrix, Flow, Compare, Timeline, Note — import them at the top of the body.</span></label>
-          <p class="err" id="formErr" role="alert"></p>
         </div>
+        <p class="err" id="formErr" role="alert" style="padding:0 24px 24px"></p>
       </form>
     </main>
   </div>
@@ -172,12 +260,34 @@
   </dialog>
 
 <script>
-const $ = (s) => document.querySelector(s);
+const $ = (s, el = document) => el.querySelector(s);
+const h = (tag, props = {}, ...kids) => {
+  const el = Object.assign(document.createElement(tag), props);
+  for (const k of kids.flat()) if (k != null && k !== false) el.append(k);
+  return el;
+};
 const STATUS = { live: 'Live', scheduled: 'Scheduled', draft: 'Draft', 'needs-review': 'Needs review', 'local-draft': 'Local draft' };
+const KIND = {
+  review: { label: 'Review flag', why: 'Blocks publishing. Confirm or edit the passage, then clear the flag.', group: 'blocking' },
+  todo: { label: 'TODO', why: 'A marker left in the text. Replace it with the real content.', group: 'blocking' },
+  placeholder: { label: 'Placeholder', why: 'Template text that still needs writing.', group: 'blocking' },
+  voice: { label: 'Your experience', why: 'A first-person claim about your own work. Check it is accurate and sounds like you.', group: 'voice' },
+  site: { label: 'Site fact', why: 'Only you can supply this. Edit it, and delete the TODO(confirm) marker once it is right.', group: 'site' },
+  details: { label: 'Missing details', why: 'Recruiters skim these first.', group: 'details' },
+};
+const FILTERS = [['all', 'All'], ['blocking', 'Blocks publishing'], ['voice', 'Your experience'], ['site', 'Site facts'], ['details', 'Missing details']];
+
 let posts = [];
-let current = null; // { slug, folder }
+let needs = [];
+let meta = { motifs: [], root: '' };
+let filter = 'all';
+let view = 'needs';
+let current = null; // { slug, folder, status }
+let chunks = []; // the post body split at `## ` headings; chunks.join('') is the whole body
+let sec = 0; // selected section index, or -1 for "whole file"
 let dirty = false;
 
+/* ---------- API ---------- */
 async function api(path, opts = {}) {
   const res = await fetch('/admin/api' + path, {
     ...opts,
@@ -190,131 +300,349 @@ async function api(path, opts = {}) {
   if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
   return data;
 }
-
 function toast(msg, kind = 'ok') {
-  const t = document.createElement('div');
-  t.className = `toast ${kind}`;
-  t.textContent = msg;
+  const t = h('div', { className: `toast ${kind}`, textContent: msg });
   document.body.append(t);
-  setTimeout(() => t.remove(), 3200);
+  setTimeout(() => t.remove(), 3400);
 }
+const vscodeLink = (file, line) => `vscode://file/${meta.root}/${file}:${line || 1}`;
 
+/* ---------- Shell ---------- */
 function showLogin() { $('#app').hidden = true; $('#login').hidden = false; $('#pw').focus(); }
 async function showApp() {
   $('#login').hidden = true; $('#app').hidden = false;
-  const meta = await api('/meta');
-  $('#motif').innerHTML = meta.motifs.map((m) => `<option value="${m}">${m}</option>`).join('');
-  await refreshList();
+  meta = await api('/meta');
+  $('#motif').innerHTML = '';
+  meta.motifs.forEach((m) => $('#motif').append(h('option', { value: m, textContent: m })));
+  await refresh();
+  showNeeds();
 }
-
-async function refreshList() {
-  posts = (await api('/posts')).posts;
+async function refresh() {
+  [posts, needs] = await Promise.all([api('/posts').then((r) => r.posts), api('/needs').then((r) => r.items)]);
+  $('#needsCount').textContent = needs.length;
+  $('#needsCount').classList.toggle('zero', needs.length === 0);
   renderList();
+  if (view === 'needs') renderNeeds();
 }
-
 function renderList() {
   const q = $('#search').value.trim().toLowerCase();
   const list = $('#list');
   list.innerHTML = '';
   posts.filter((p) => !q || p.title.toLowerCase().includes(q)).forEach((p) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'item' + (current && current.slug === p.slug ? ' is-on' : '');
-    const t = document.createElement('span'); t.className = 'item__t'; t.textContent = p.title;
-    const m = document.createElement('span'); m.className = 'item__m';
-    m.innerHTML = `<span class="chip s-${p.status}"></span><span></span><span></span>`;
-    m.children[0].textContent = STATUS[p.status] + (p.reviewFlags ? ` · ${p.reviewFlags} flag${p.reviewFlags > 1 ? 's' : ''}` : '');
-    m.children[1].textContent = p.date;
-    m.children[2].textContent = `${Math.round(p.words / 100) / 10}k words`;
-    b.append(t, m);
+    const b = h('button', { type: 'button', className: 'item' + (view === 'editor' && current?.slug === p.slug ? ' is-on' : '') },
+      h('span', { className: 'item__t' }, h('span', { textContent: p.title }), p.needs ? h('span', { className: 'count', textContent: p.needs, title: `${p.needs} item(s) need you` }) : null),
+      h('span', { className: 'item__m' }, h('span', { className: `chip s-${p.status}`, textContent: STATUS[p.status] }), h('span', { textContent: p.date }), h('span', { textContent: `${Math.round(p.words / 100) / 10}k words` })));
     b.addEventListener('click', () => openPost(p.slug));
     list.append(b);
   });
 }
-
-function setDirty(v) { dirty = v; $('#dirty').hidden = !v; }
-
-async function openPost(slug) {
-  if (dirty && !confirm('Discard unsaved changes?')) return;
-  const p = await api('/posts/' + encodeURIComponent(slug));
-  current = { slug: p.slug, folder: p.folder };
-  const f = $('#form');
-  const fm = p.frontmatter;
-  f.title.value = fm.title || '';
-  f.date.value = fm.date || '';
-  f.kicker.value = fm.kicker || '';
-  f.motif.value = fm.motif || 'paths';
-  f.tags.value = (fm.tags || []).join(', ');
-  f.featured.checked = !!fm.featured;
-  f.draft.checked = !!fm.draft;
-  f.dek.value = fm.dek || '';
-  f.thesis.value = fm.thesis || '';
-  f.takeaways.value = (fm.takeaways || []).join('\n');
-  f.sources.value = (fm.sources || []).map((s) => `${s.label} | ${s.url}`).join('\n');
-  f.review.value = fm.review || '';
-  f.body.value = p.body;
-  // Keep any frontmatter fields the form doesn't expose.
-  f.dataset.extra = JSON.stringify(Object.fromEntries(Object.entries(fm).filter(([k]) => !['title','date','kicker','motif','tags','featured','draft','dek','thesis','takeaways','sources','review'].includes(k))));
-  $('#empty').hidden = true; f.hidden = false;
-  $('#formErr').textContent = '';
-  updateChrome(p.status, p.folder);
-  renderFlags();
-  setDirty(false);
+function setView(v) {
+  view = v;
+  $('#needsView').hidden = v !== 'needs';
+  $('#editor').hidden = v !== 'editor';
+  $('#needsNav').classList.toggle('is-on', v === 'needs');
   renderList();
 }
-
-function updateChrome(status, folder) {
-  const chip = $('#statusChip');
-  chip.className = `chip s-${status}`;
-  chip.textContent = STATUS[status];
-  $('#formTitle').textContent = $('#form').title.value || current.slug;
-  $('#previewBtn').href = `/blog/${current.slug}/`;
-  $('#moveBtn').textContent = folder === 'drafts' ? 'Move to blog (commit-ready)' : 'Move to local drafts';
+function confirmDiscard() { return !dirty || confirm('Discard unsaved changes?'); }
+function showNeeds() {
+  if (!confirmDiscard()) return;
+  setDirty(false); current = null;
+  setView('needs');
+  renderNeeds();
 }
 
-function renderFlags() {
-  const f = $('#form');
-  const items = [];
-  if (f.review.value.trim()) items.push({ where: 'Review field', text: f.review.value.trim() });
-  const re = /<Note[^>]*\sreview[\s>][\s\S]*?<\/Note>/g;
-  let m;
-  while ((m = re.exec(f.body.value))) {
-    const line = f.body.value.slice(0, m.index).split('\n').length;
-    items.push({ where: `Body line ${line}`, text: m[0].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 320) });
+/* ---------- Needs-you view ---------- */
+function renderNeeds() {
+  const counts = { all: needs.length };
+  needs.forEach((n) => { const g = KIND[n.kind].group; counts[g] = (counts[g] || 0) + 1; });
+  const fileCount = new Set(needs.map((n) => n.file)).size;
+  $('#needsSummary').textContent = needs.length
+    ? `${needs.length} item${needs.length === 1 ? '' : 's'} across ${fileCount} file${fileCount === 1 ? '' : 's'}. Fix each one right here — no need to open the whole post.`
+    : 'Nothing needs you right now.';
+  const fl = $('#filters');
+  fl.innerHTML = '';
+  FILTERS.forEach(([key, label]) => {
+    const b = h('button', { type: 'button', className: 'filter' + (filter === key ? ' is-on' : '') }, label, h('small', { textContent: counts[key] || 0 }));
+    b.setAttribute('aria-pressed', String(filter === key));
+    b.addEventListener('click', () => { filter = key; renderNeeds(); });
+    fl.append(b);
+  });
+
+  const shown = needs.filter((n) => filter === 'all' || KIND[n.kind].group === filter)
+    .sort((a, b) => PRIORITY[a.kind] - PRIORITY[b.kind]);
+  const box = $('#needsList');
+  box.innerHTML = '';
+  if (!shown.length) {
+    box.append(h('div', { className: 'done' }, h('b', { textContent: 'All clear' }), filter === 'all' ? 'Every post and site fact is in good shape.' : 'Nothing in this category.'));
+    return;
   }
-  $('#flagBox').hidden = items.length === 0;
-  $('#flagSummary').textContent = `${items.length} passage${items.length === 1 ? '' : 's'} flagged for review`;
-  const box = $('#flags'); box.innerHTML = '';
-  items.forEach((it) => {
-    const d = document.createElement('div'); d.className = 'flag';
-    const b = document.createElement('b'); b.textContent = it.where;
-    const p = document.createElement('p'); p.textContent = it.text;
-    d.append(b, p); box.append(d);
+  const groups = new Map();
+  shown.forEach((n) => { if (!groups.has(n.file)) groups.set(n.file, []); groups.get(n.file).push(n); });
+  for (const [file, items] of groups) {
+    const first = items[0];
+    const post = posts.find((p) => p.slug === first.slug);
+    const head = h('div', { className: 'group__h' },
+      h('span', { style: 'display:flex;gap:10px;align-items:center;flex-wrap:wrap' },
+        h('b', { textContent: first.kind === 'site' ? `Site data · ${first.title}` : first.title }),
+        post ? h('span', { className: `chip s-${post.status}`, textContent: STATUS[post.status] }) : null),
+      first.slug
+        ? h('button', { type: 'button', className: 'btn btn--sm', textContent: 'Open post →', onclick: () => openPost(first.slug) })
+        : h('a', { className: 'btn btn--sm', href: vscodeLink(file, first.line), textContent: 'Open file in VS Code ↗' }));
+    box.append(h('div', { className: 'group' }, head, items.map(card)));
+  }
+  box.querySelectorAll('textarea').forEach(autosize);
+}
+
+/** Grow a textarea to fit its content (capped by CSS max-height). */
+function autosize(ta) { ta.style.height = 'auto'; ta.style.height = `${ta.scrollHeight + 2}px`; }
+/** Most urgent first: things that block publishing, then site facts, details, then voice checks. */
+const PRIORITY = { review: 0, todo: 0, placeholder: 0, site: 1, details: 2, voice: 3 };
+
+function card(n) {
+  const k = KIND[n.kind];
+  const top = h('div', { className: 'card__top' },
+    h('span', { className: `chip k-${n.kind}`, textContent: k.label }),
+    h('span', { textContent: n.kind === 'site' ? `${n.file} · line ${n.line}` : `§ ${n.section}${n.line > 1 ? ` · line ${n.line}` : ''}` }));
+  const why = h('p', { className: 'card__why', textContent: n.kind === 'details' ? `Missing: ${n.missing.join(', ')}. ${k.why}` : k.why });
+  const c = h('div', { className: 'card' }, top, why);
+  const actions = h('div', { className: 'card__actions' });
+
+  if (n.kind === 'details') {
+    actions.append(h('button', { type: 'button', className: 'btn btn--sm btn--primary', textContent: 'Fill in details', onclick: () => openPost(n.slug, { tab: 'details' }) }));
+    c.append(actions);
+    return c;
+  }
+
+  const original = n.original.replace(/\r\n/g, '\n');
+  const ta = h('textarea', { className: 'code', value: original, rows: 2, spellcheck: true });
+  ta.setAttribute('aria-label', `${k.label} text`);
+  const save = h('button', { type: 'button', className: 'btn btn--sm btn--primary', textContent: 'Save edit', disabled: true });
+  ta.addEventListener('input', () => { save.disabled = ta.value === original; autosize(ta); });
+
+  const target = n.slug ? { type: 'post', slug: n.slug } : { type: 'data', name: n.file.split('/').pop() };
+  const patch = async (replacement, msg, ack = false) => {
+    try {
+      await api('/patch', { method: 'POST', body: { target, start: n.start, original: n.original, replacement, ack } });
+      toast(msg);
+      await refresh();
+    } catch (e) { toast(e.message, 'bad'); }
+  };
+
+  if (n.kind === 'review' && n.field === 'review') {
+    // A post-level review note lives in the frontmatter: clear it through the normal save path.
+    ta.readOnly = true;
+    actions.append(h('button', { type: 'button', className: 'btn btn--sm btn--ok', textContent: 'Confirmed — clear flag', onclick: async () => {
+      try {
+        const p = await api('/posts/' + encodeURIComponent(n.slug));
+        await api('/posts/' + encodeURIComponent(n.slug), { method: 'PUT', body: { frontmatter: { ...p.frontmatter, review: '' }, body: p.body } });
+        toast('Review flag cleared.');
+        await refresh();
+      } catch (e) { toast(e.message, 'bad'); }
+    } }));
+  } else {
+    save.addEventListener('click', () => patch(ta.value, 'Saved.', n.kind === 'voice'));
+    actions.append(save);
+    if (n.kind === 'review') {
+      actions.append(h('button', { type: 'button', className: 'btn btn--sm btn--ok', textContent: 'Confirmed — clear flag', onclick: () =>
+        patch(ta.value.replace(/^(<Note\b[^>]*?)\s+review(?=[\s>/])/, '$1'), 'Flag cleared.') }));
+    }
+    if (n.kind === 'voice') {
+      actions.append(h('button', { type: 'button', className: 'btn btn--sm btn--ok', textContent: 'Looks right ✓', onclick: async () => {
+        if (ta.value !== original) return patch(ta.value, 'Saved and marked as checked.', true);
+        try { await api('/ack', { method: 'POST', body: { id: n.id } }); toast('Marked as checked.'); await refresh(); } catch (e) { toast(e.message, 'bad'); }
+      } }));
+    }
+  }
+  actions.append(h('span', { className: 'spacer' }));
+  if (n.slug) actions.append(h('button', { type: 'button', className: 'btn btn--sm', textContent: 'Show in post', onclick: () => openPost(n.slug, { find: original, section: n.section }) }));
+  actions.append(h('a', { className: 'btn btn--sm', href: vscodeLink(n.file, n.line), textContent: 'VS Code ↗', title: `${n.file}:${n.line}` }));
+  c.append(ta, actions);
+  return c;
+}
+
+/* ---------- Sections ---------- */
+function splitSections(body) {
+  const starts = [0];
+  let pos = 0, fence = false;
+  for (const line of body.split('\n')) {
+    if (/^```/.test(line)) fence = !fence;
+    if (!fence && pos > 0 && /^## /.test(line)) starts.push(pos);
+    pos += line.length + 1;
+  }
+  return starts.map((s, i) => body.slice(s, starts[i + 1] ?? body.length));
+}
+function secName(chunk) {
+  if (!chunk.startsWith('## ')) return 'Introduction';
+  const nl = chunk.indexOf('\n');
+  return chunk.slice(3, nl === -1 ? undefined : nl).trim();
+}
+const wordsIn = (t) => t.replace(/<[^>]+>|\{[^}]*\}|^import .*$/gm, ' ').split(/\s+/).filter(Boolean).length;
+const postNeeds = () => needs.filter((n) => current && n.slug === current.slug);
+
+/** Copy the textarea back into `chunks`. */
+function syncChunk() {
+  if (!chunks.length) return;
+  if (sec === -1) chunks = splitSections($('#sectionText').value);
+  else chunks[sec] = $('#sectionText').value;
+}
+/** Re-split after edits (a heading may have been added or removed), keeping roughly the same place. */
+function resplit() {
+  syncChunk();
+  const offset = sec <= 0 ? 0 : chunks.slice(0, sec).join('').length;
+  chunks = splitSections(chunks.join(''));
+  if (sec > 0) {
+    let acc = 0;
+    const i = chunks.findIndex((c) => (acc += c.length) > offset);
+    sec = i === -1 ? chunks.length - 1 : i;
+  }
+}
+
+function renderOutline() {
+  const o = $('#outline');
+  o.innerHTML = '';
+  o.append(h('div', { className: 'outline__h', textContent: `${chunks.length} sections` }));
+  const pn = postNeeds();
+  chunks.forEach((c, i) => {
+    const name = secName(c);
+    const count = pn.filter((n) => n.section === name).length;
+    const ex = (c.match(/<Exhibit\b/g) || []).length;
+    const b = h('button', { type: 'button', className: 'sec' + (sec === i ? ' is-on' : '') },
+      h('span', { className: 'sec__t' }, h('span', { textContent: name }), count ? h('span', { className: 'count', textContent: count }) : null),
+      h('span', { className: 'sec__m', textContent: `${wordsIn(c)} words${ex ? ` · ${ex} exhibit${ex > 1 ? 's' : ''}` : ''}` }));
+    b.addEventListener('click', () => selectSection(i));
+    o.append(b);
+  });
+  const all = h('button', { type: 'button', className: 'sec sec--all' + (sec === -1 ? ' is-on' : '') },
+    h('span', { className: 'sec__t', textContent: 'Whole file' }), h('span', { className: 'sec__m', textContent: 'Edit everything at once' }));
+  all.addEventListener('click', () => selectSection(-1));
+  o.append(all);
+}
+
+function selectSection(i, { keep = false } = {}) {
+  if (!keep) resplit();
+  sec = Math.max(-1, Math.min(i, chunks.length - 1));
+  const ta = $('#sectionText');
+  ta.value = sec === -1 ? chunks.join('') : chunks[sec];
+  ta.scrollTop = 0;
+  $('#secTitle').textContent = sec === -1 ? 'Whole file' : secName(chunks[sec]);
+  $('#prevSec').disabled = sec <= 0;
+  $('#nextSec').disabled = sec === -1 || sec >= chunks.length - 1;
+  renderOutline();
+  renderHere();
+}
+
+/** Shortcut buttons for the items in the current section that need you. */
+function renderHere() {
+  const box = $('#here');
+  box.innerHTML = '';
+  const name = sec === -1 ? null : secName(chunks[sec]);
+  postNeeds().filter((n) => n.start != null && (name === null || n.section === name)).forEach((n) => {
+    const b = h('button', { type: 'button' },
+      h('span', { className: `chip k-${n.kind}`, textContent: KIND[n.kind].label }),
+      h('span', { textContent: n.original.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160) }));
+    b.addEventListener('click', () => highlight(n.original.replace(/\r\n/g, '\n')));
+    box.append(b);
   });
 }
 
+function highlight(snippet) {
+  const ta = $('#sectionText');
+  const i = ta.value.indexOf(snippet);
+  if (i === -1) return;
+  ta.focus();
+  ta.setSelectionRange(i, i + snippet.length);
+  const lineH = parseFloat(getComputedStyle(ta).lineHeight) || 20;
+  ta.scrollTop = Math.max(0, (ta.value.slice(0, i).split('\n').length - 3) * lineH);
+}
+
+/* ---------- Editor ---------- */
+function setDirty(v) { dirty = v; $('#dirty').hidden = !v; }
+function setTab(t) {
+  document.querySelectorAll('.tab').forEach((b) => {
+    const on = b.dataset.tab === t;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-selected', String(on));
+  });
+  $('#tab-content').hidden = t !== 'content';
+  $('#tab-details').hidden = t !== 'details';
+}
+
+async function openPost(slug, { tab = 'content', find = null, section = null } = {}) {
+  const sameOpen = view === 'editor' && current?.slug === slug;
+  if (!sameOpen && !confirmDiscard()) return;
+  if (sameOpen) {
+    resplit();
+  } else {
+    const p = await api('/posts/' + encodeURIComponent(slug));
+    current = { slug: p.slug, folder: p.folder, status: p.status };
+    const f = $('#editor');
+    const fm = p.frontmatter;
+    f.title.value = fm.title || '';
+    f.date.value = fm.date || '';
+    f.updated.value = fm.updated || '';
+    f.kicker.value = fm.kicker || '';
+    f.motif.value = fm.motif || 'paths';
+    f.tags.value = (fm.tags || []).join(', ');
+    f.featured.checked = !!fm.featured;
+    f.draft.checked = !!fm.draft;
+    f.dek.value = fm.dek || '';
+    f.thesis.value = fm.thesis || '';
+    f.takeaways.value = (fm.takeaways || []).join('\n');
+    f.sources.value = (fm.sources || []).map((s) => `${s.label} | ${s.url}`).join('\n');
+    f.review.value = fm.review || '';
+    // Keep any frontmatter fields the form doesn't expose.
+    const known = ['title', 'date', 'updated', 'kicker', 'motif', 'tags', 'featured', 'draft', 'dek', 'thesis', 'takeaways', 'sources', 'review'];
+    f.dataset.extra = JSON.stringify(Object.fromEntries(Object.entries(fm).filter(([key]) => !known.includes(key))));
+    chunks = splitSections(p.body.replace(/\r\n/g, '\n'));
+    sec = 0;
+    $('#formErr').textContent = '';
+    setDirty(false);
+    updateChrome();
+  }
+  setView('editor');
+  setTab(tab);
+  let target = sameOpen ? sec : 0;
+  if (find) target = Math.max(0, chunks.findIndex((c) => c.includes(find)));
+  else if (section) target = Math.max(0, chunks.findIndex((c) => secName(c) === section));
+  selectSection(target, { keep: true });
+  if (find) highlight(find);
+}
+
+function updateChrome() {
+  const chip = $('#statusChip');
+  chip.className = `chip s-${current.status}`;
+  chip.textContent = STATUS[current.status];
+  $('#formTitle').textContent = $('#editor').title.value || current.slug;
+  $('#previewBtn').href = `/blog/${current.slug}/`;
+  $('#moveBtn').textContent = current.folder === 'drafts' ? 'Move to blog' : 'Move to local drafts';
+}
+
 function collect() {
-  const f = $('#form');
+  const f = $('#editor');
   const lines = (s) => s.split('\n').map((x) => x.trim()).filter(Boolean);
-  const fm = {
-    ...JSON.parse(f.dataset.extra || '{}'),
-    title: f.title.value.trim(),
-    dek: f.dek.value.trim(),
-    date: f.date.value,
-    kicker: f.kicker.value.trim(),
-    motif: f.motif.value,
-    tags: f.tags.value.split(',').map((t) => t.trim()).filter(Boolean),
-    featured: f.featured.checked,
-    draft: f.draft.checked,
-    thesis: f.thesis.value.trim(),
-    takeaways: lines(f.takeaways.value),
-    sources: lines(f.sources.value).map((l) => {
-      const i = l.lastIndexOf('|');
-      return i === -1 ? { label: l, url: '' } : { label: l.slice(0, i).trim(), url: l.slice(i + 1).trim() };
-    }),
-    review: f.review.value.trim(),
+  syncChunk();
+  return {
+    frontmatter: {
+      ...JSON.parse(f.dataset.extra || '{}'),
+      title: f.title.value.trim(),
+      dek: f.dek.value.trim(),
+      date: f.date.value,
+      updated: f.updated.value,
+      kicker: f.kicker.value.trim(),
+      motif: f.motif.value,
+      tags: f.tags.value.split(',').map((t) => t.trim()).filter(Boolean),
+      featured: f.featured.checked,
+      draft: f.draft.checked,
+      thesis: f.thesis.value.trim(),
+      takeaways: lines(f.takeaways.value),
+      sources: lines(f.sources.value).map((l) => {
+        const i = l.lastIndexOf('|');
+        return i === -1 ? { label: l, url: '' } : { label: l.slice(0, i).trim(), url: l.slice(i + 1).trim() };
+      }),
+      review: f.review.value.trim(),
+    },
+    body: chunks.join(''),
   };
-  return { frontmatter: fm, body: f.body.value };
 }
 
 async function save() {
@@ -322,11 +650,12 @@ async function save() {
   $('#saveBtn').disabled = true;
   try {
     const r = await api('/posts/' + encodeURIComponent(current.slug), { method: 'PUT', body: collect() });
+    current.status = r.status;
     $('#formErr').textContent = '';
     setDirty(false);
-    updateChrome(r.status, current.folder);
-    renderFlags();
-    await refreshList();
+    await refresh();
+    updateChrome();
+    selectSection(sec);
     toast('Saved — the dev server reloads the preview automatically.');
   } catch (e) {
     $('#formErr').textContent = e.message;
@@ -336,6 +665,7 @@ async function save() {
   }
 }
 
+/* ---------- Wiring ---------- */
 $('#loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   $('#loginErr').textContent = '';
@@ -345,23 +675,26 @@ $('#loginForm').addEventListener('submit', async (e) => {
     await showApp();
   } catch (err) { $('#loginErr').textContent = err.message; }
 });
-
 $('#logoutBtn').addEventListener('click', async () => {
-  if (dirty && !confirm('Discard unsaved changes?')) return;
+  if (!confirmDiscard()) return;
   await api('/logout', { method: 'POST' }).catch(() => {});
   setDirty(false); current = null; showLogin();
 });
+$('#needsNav').addEventListener('click', showNeeds);
+$('#search').addEventListener('input', renderList);
+document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
+$('#prevSec').addEventListener('click', () => selectSection(sec - 1));
+$('#nextSec').addEventListener('click', () => selectSection(sec + 1));
 
-$('#form').addEventListener('submit', (e) => { e.preventDefault(); save(); });
-$('#form').addEventListener('input', (e) => {
+$('#editor').addEventListener('submit', (e) => { e.preventDefault(); save(); });
+$('#editor').addEventListener('input', (e) => {
   setDirty(true);
   if (e.target.name === 'title') $('#formTitle').textContent = e.target.value;
-  if (e.target.name === 'body' || e.target.name === 'review') renderFlags();
 });
 document.addEventListener('keydown', (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && current) { e.preventDefault(); save(); }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && view === 'editor' && current) { e.preventDefault(); save(); }
 });
-$('#form').body.addEventListener('keydown', (e) => {
+$('#sectionText').addEventListener('keydown', (e) => {
   if (e.key !== 'Tab' || e.shiftKey) return;
   e.preventDefault();
   const t = e.target, s = t.selectionStart;
@@ -369,7 +702,6 @@ $('#form').body.addEventListener('keydown', (e) => {
   setDirty(true);
 });
 window.addEventListener('beforeunload', (e) => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
-$('#search').addEventListener('input', renderList);
 
 $('#moveBtn').addEventListener('click', async () => {
   if (!current) return;
@@ -381,19 +713,20 @@ $('#moveBtn').addEventListener('click', async () => {
   if (!confirm(msg)) return;
   try {
     await api(`/posts/${encodeURIComponent(current.slug)}/move`, { method: 'POST', body: { to } });
-    await refreshList();
-    await openPost(current.slug);
+    const slug = current.slug;
+    current = null;
+    await refresh();
+    await openPost(slug);
     toast(to === 'blog' ? 'Moved to blog/.' : 'Moved to drafts/.');
   } catch (e) { toast(e.message, 'bad'); }
 });
-
 $('#trashBtn').addEventListener('click', async () => {
   if (!current || !confirm('Move this post to src/content/.trash? You can restore it from there.')) return;
   try {
     await api('/posts/' + encodeURIComponent(current.slug), { method: 'DELETE' });
-    current = null; setDirty(false);
-    $('#form').hidden = true; $('#empty').hidden = false;
-    await refreshList();
+    setDirty(false); current = null;
+    await refresh();
+    showNeeds();
     toast('Moved to trash.');
   } catch (e) { toast(e.message, 'bad'); }
 });
@@ -406,10 +739,12 @@ $('#newTitle').addEventListener('input', (e) => {
 });
 $('#newForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+  if (!confirmDiscard()) return;
   try {
     const r = await api('/posts', { method: 'POST', body: { title: $('#newTitle').value.trim(), slug: $('#newSlug').value.trim() } });
     dlg.close();
-    await refreshList();
+    setDirty(false); current = null;
+    await refresh();
     await openPost(r.slug);
     toast('Created as a local draft.');
   } catch (err) { $('#newErr').textContent = err.message; }

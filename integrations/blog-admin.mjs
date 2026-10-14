@@ -25,7 +25,10 @@ const ROOT = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const CONTENT = path.join(ROOT, 'src', 'content');
 const FOLDERS = { blog: path.join(CONTENT, 'blog'), drafts: path.join(CONTENT, 'drafts') };
 const TRASH = path.join(CONTENT, '.trash');
+const DATA = path.join(ROOT, 'src', 'data');
 const ADMIN_HTML = path.join(ROOT, 'admin', 'index.html');
+/** Git-ignored local state: which "your experience" passages you have already checked. */
+const STATE = path.join(ROOT, 'admin', '.state.json');
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SESSION_MS = 8 * 60 * 60 * 1000;
@@ -122,7 +125,124 @@ async function findPost(slug) {
   return null;
 }
 
+/* ---------- "Needs you": find the passages that need the author, not the whole file ---------- */
+
+const idOf = (...parts) => createHash('sha256').update(parts.join('\u0000')).digest('hex').slice(0, 16);
+const lineAt = (text, i) => text.slice(0, i).split('\n').length;
+const TODO = /TODO|\bTK\b|\[confirm\]|\[citation needed\]/;
+const PLACEHOLDERS = ['Opening paragraph.', 'Write here.', 'One-sentence summary of the post.'];
+
+async function readState() {
+  try {
+    return { acks: {}, ...JSON.parse(await fs.readFile(STATE, 'utf8')) };
+  } catch {
+    return { acks: {} };
+  }
+}
+const writeState = (s) => fs.writeFile(STATE, JSON.stringify(s, null, 2), 'utf8');
+
+/** Heading of the `## ` section that contains offset i ("Introduction" before the first one). */
+function sectionAt(text, i) {
+  const hs = [...text.slice(0, i).matchAll(/^## +(.+?)\s*$/gm)];
+  return hs.length ? hs[hs.length - 1][1] : 'Introduction';
+}
+
+function fenceRanges(text) {
+  return [...text.matchAll(/^```[\s\S]*?^```/gm)].map((m) => [m.index, m.index + m[0].length]);
+}
+
+/**
+ * Scan one post. Offsets (`start`) and `original` refer to the raw file text, so a fix can be
+ * applied to exactly that snippet (and refused if the file changed since it was scanned).
+ */
+function scanPost(slug, folder, text, acks) {
+  const { frontmatter: fm } = parsePost(text);
+  const base = { slug, folder, file: path.relative(ROOT, path.join(FOLDERS[folder], `${slug}.mdx`)).replace(/\\/g, '/'), title: fm.title ?? slug };
+  const items = [];
+  const at = (start, original, extra) => ({ ...base, start, original, line: lineAt(text, start), section: sectionAt(text, start), ...extra });
+
+  if (fm.review) items.push({ ...base, kind: 'review', id: idOf(slug, 'fm-review'), field: 'review', original: String(fm.review), section: 'Post details', line: 1 });
+
+  for (const m of text.matchAll(/<Note\b[^>]*>[\s\S]*?<\/Note>/g)) {
+    const open = m[0].match(/^<Note\b[^>]*>/)[0];
+    const review = /\sreview(?=[\s>/=])/.test(open);
+    const voice = /kind=["']field["']/.test(open);
+    if (!review && !voice) continue;
+    const id = idOf(slug, m[0].replace(/\r\n/g, '\n'));
+    if (!review && acks[id]) continue;
+    items.push(at(m.index, m[0], { kind: review ? 'review' : 'voice', id }));
+  }
+
+  const fences = fenceRanges(text);
+  for (const m of text.matchAll(/^.*$/gm)) {
+    if (!TODO.test(m[0]) || fences.some(([a, b]) => m.index >= a && m.index < b)) continue;
+    items.push(at(m.index, m[0], { kind: 'todo', id: idOf(slug, 'todo', m[0]) }));
+  }
+  for (const p of PLACEHOLDERS) {
+    const i = text.indexOf(p);
+    if (i === -1) continue;
+    const start = text.lastIndexOf('\n', i) + 1;
+    const end = text.indexOf('\n', i);
+    const line = text.slice(start, end === -1 ? undefined : end).replace(/\r$/, '');
+    items.push(at(start, line, { kind: 'placeholder', id: idOf(slug, 'ph', p) }));
+  }
+
+  const missing = [!fm.thesis && 'thesis', !fm.takeaways?.length && 'key takeaways', !fm.sources?.length && 'sources'].filter(Boolean);
+  if (missing.length) items.push({ ...base, kind: 'details', id: idOf(slug, 'details'), section: 'Post details', line: 1, missing });
+  return items;
+}
+
+/** `TODO(confirm)` markers in src/data/*.ts — the site facts only you can supply. */
+async function scanData() {
+  const items = [];
+  for (const f of (await fs.readdir(DATA)).filter((x) => x.endsWith('.ts'))) {
+    const text = await fs.readFile(path.join(DATA, f), 'utf8');
+    const lines = text.split('\n');
+    let offset = 0;
+    const starts = lines.map((l) => ((offset += l.length + 1), offset - l.length - 1));
+    lines.forEach((l, i) => {
+      if (!l.includes('TODO(confirm)')) return;
+      // Snippet: an inline comment is just its line; a `//` comment takes the code line it describes;
+      // a line inside a /** */ block runs to the end of that block.
+      let j = i;
+      const t = l.trim();
+      if (t.startsWith('*') || t.startsWith('/*')) while (j < lines.length - 1 && !lines[j].includes('*/')) j++;
+      else if (t.startsWith('//')) while (j < lines.length - 1 && j - i < 8 && /^\s*\/\//.test(lines[j])) j++;
+      const original = lines.slice(i, j + 1).join('\n').replace(/\r$/, '');
+      items.push({ kind: 'site', id: idOf('data', f, l), file: `src/data/${f}`, title: f, start: starts[i], original, line: i + 1, section: f.replace(/\.ts$/, '') });
+    });
+  }
+  return items;
+}
+
+async function scanAll() {
+  const { acks } = await readState();
+  const items = [];
+  for (const [folder, dir] of Object.entries(FOLDERS)) {
+    let files = [];
+    try {
+      files = await fs.readdir(dir);
+    } catch {}
+    for (const f of files.filter((x) => x.endsWith('.mdx'))) {
+      items.push(...scanPost(f.replace(/\.mdx$/, ''), folder, await fs.readFile(path.join(dir, f), 'utf8'), acks));
+    }
+  }
+  items.push(...(await scanData()));
+  return items;
+}
+
+/** Resolve a patch target to a file path. Only posts and src/data/*.ts are editable. */
+async function targetFile(t = {}) {
+  if (t.type === 'post' && SLUG.test(t.slug || '')) return (await findPost(t.slug))?.file ?? null;
+  if (t.type === 'data' && /^[A-Za-z0-9_-]+\.ts$/.test(t.name || '')) {
+    const files = await fs.readdir(DATA);
+    return files.includes(t.name) ? path.join(DATA, t.name) : null;
+  }
+  return null;
+}
+
 async function listPosts() {
+  const { acks } = await readState();
   const out = [];
   for (const [folder, dir] of Object.entries(FOLDERS)) {
     let files = [];
@@ -142,6 +262,7 @@ async function listPosts() {
         draft: !!fm.draft,
         status: statusOf(folder, fm, body),
         reviewFlags: reviewFlags(fm, body),
+        needs: scanPost(f.replace(/\.mdx$/, ''), folder, text, acks).length,
         words: body.replace(/<[^>]+>|\{[^}]*\}|import .*/g, ' ').split(/\s+/).filter(Boolean).length,
       });
     }
@@ -156,6 +277,8 @@ function validate(fm) {
   if (!clean.title || typeof clean.title !== 'string') errors.push('Title is required.');
   if (!clean.dek || typeof clean.dek !== 'string') errors.push('Dek (summary) is required.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(clean.date || ''))) errors.push('Date must be YYYY-MM-DD.');
+  if (clean.updated && !/^\d{4}-\d{2}-\d{2}$/.test(String(clean.updated))) errors.push('Updated date must be YYYY-MM-DD.');
+  if (clean.updated && clean.date && String(clean.updated) < String(clean.date)) errors.push('Updated date cannot be before the publish date.');
   if (clean.motif && !MOTIFS.includes(clean.motif)) errors.push(`Motif must be one of: ${MOTIFS.join(', ')}.`);
   for (const k of ['tags', 'takeaways']) {
     if (clean[k] != null && (!Array.isArray(clean[k]) || clean[k].some((x) => typeof x !== 'string'))) errors.push(`${k} must be a list of strings.`);
@@ -173,7 +296,7 @@ function validate(fm) {
       });
   }
   // Drop empty optional fields so the files stay tidy.
-  for (const k of ['kicker', 'thesis', 'review']) if (clean[k] === '' || clean[k] == null) delete clean[k];
+  for (const k of ['kicker', 'thesis', 'review', 'updated']) if (clean[k] === '' || clean[k] == null) delete clean[k];
   for (const k of ['featured', 'draft']) if (!clean[k]) delete clean[k];
   for (const k of ['takeaways', 'sources', 'tags']) if (Array.isArray(clean[k]) && clean[k].length === 0) delete clean[k];
   // Keep date as a plain YYYY-MM-DD scalar (not a quoted string or timestamp).
@@ -214,9 +337,50 @@ async function handleApi(req, res, url) {
     return json(res, 200, { ok: true });
   }
 
-  if (route === '/meta' && method === 'GET') return json(res, 200, { motifs: MOTIFS });
+  if (route === '/meta' && method === 'GET') return json(res, 200, { motifs: MOTIFS, root: ROOT.split(path.sep).join('/') });
 
   if (route === '/posts' && method === 'GET') return json(res, 200, { posts: await listPosts() });
+
+  if (route === '/needs' && method === 'GET') {
+    const slug = url.searchParams.get('slug');
+    const items = await scanAll();
+    return json(res, 200, { items: slug ? items.filter((i) => i.slug === slug) : items });
+  }
+
+  // Replace one snippet in a post or data file. Refused (409) if the file changed since it was scanned.
+  if (route === '/patch' && method === 'POST') {
+    const { target, start, original, replacement, ack } = await readBody(req);
+    const file = await targetFile(target);
+    if (!file) return json(res, 400, { error: 'Unknown or non-editable file.' });
+    if (typeof start !== 'number' || typeof original !== 'string' || typeof replacement !== 'string') return json(res, 400, { error: 'Bad patch.' });
+    const text = await fs.readFile(file, 'utf8');
+    if (text.slice(start, start + original.length) !== original) return json(res, 409, { error: 'The file changed since this list was loaded. Refresh and try again.' });
+    const lf = replacement.replace(/\r\n/g, '\n');
+    const rep = /\r\n/.test(text) ? lf.replace(/\n/g, '\r\n') : lf;
+    await fs.writeFile(file, text.slice(0, start) + rep + text.slice(start + original.length), 'utf8');
+    if (ack && target.type === 'post') {
+      const state = await readState();
+      state.acks[idOf(target.slug, lf)] = new Date().toISOString();
+      await writeState(state);
+    }
+    return json(res, 200, { ok: true });
+  }
+
+  // Mark a "your experience" passage as checked (it reappears if its text changes).
+  if (route === '/ack' && method === 'POST') {
+    const { id } = await readBody(req);
+    if (!/^[a-f0-9]{16}$/.test(id || '')) return json(res, 400, { error: 'Bad id.' });
+    const state = await readState();
+    state.acks[id] = new Date().toISOString();
+    await writeState(state);
+    return json(res, 200, { ok: true });
+  }
+  if (route === '/ack' && method === 'DELETE') {
+    const state = await readState();
+    state.acks = {};
+    await writeState(state);
+    return json(res, 200, { ok: true });
+  }
 
   if (route === '/posts' && method === 'POST') {
     const { slug, title } = await readBody(req);
