@@ -1,0 +1,168 @@
+---
+dek: "When you work with an AI that writes code, decide how you talk to it: make it explain simply when you don't understand, give it clear instructions like a new intern, and only let it talk in short grunts when you already know what it's doing."
+takeaways:
+  - "Brief the coding agent like a smart new intern: say what you want, why, what 'done' looks like, and what it must ask you about first."
+  - "When you don't understand a change, or a mistake would be costly, make the agent explain it in plain words, then explain it back yourself before you say yes."
+  - "Short 'caveman' answers are fine when you already know the work, but they save less money than people claim, and they should never hide a warning."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Imagine hiring a builder to redo your kitchen. You can ask them to explain the plan as if you've never seen a kitchen before. You can hand them a clear brief, the way you would a capable apprentice. Or you can let them grunt "wall gone, sink in" as they work. All three are fine, at the right moment. The trouble starts when the builder knocks down a wall you needed, explained in words you didn't understand, and you nodded anyway.</p>
+
+Coding agents are AI tools that don't just suggest code; they do the work. Claude Code, Cursor, GitHub Copilot's agent mode and OpenAI's Codex can read your project, run commands and change files on their own. That makes *how you talk to them* surprisingly important.
+
+The big idea is this: **the way you talk to a coding agent is a control, not a matter of taste. Use ELI5 ("explain like I'm five") to understand, intern-style instructions to hand off work, and caveman-style short answers to go fast. The danger is letting the agent's fancy words get ahead of what you actually understand about what's going live.**
+
+## Why this matters: feeling fast isn't the same as being fast
+
+People are not good at judging how much an AI is helping them.
+
+In 2025, a research group called METR ran a careful experiment with 16 experienced programmers working on projects they knew very well. For each task, a coin flip decided whether they could use AI tools. With AI, tasks took **19% longer**. Yet afterwards the programmers *believed* AI had made them **20% faster**.
+
+<Exhibit
+  n={1}
+  title="They felt faster with AI; the clock said slower"
+  sub="Experienced programmers, early 2025"
+  source="METR (10 Jul 2025)"
+  sourceUrl="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/"
+  note="A small study (16 people) using early-2025 tools. A later METR follow-up hints that newer tools may help more, but its numbers are shaky."
+  table={[['Measure', 'Result'], ['What they believed afterwards', '20% faster'], ['What was measured', '19% slower']]}
+>
+  <Bars unit="%" data={[
+    { label: 'What they believed', value: 20, display: '20% faster' },
+    { label: 'What was measured', value: -19, display: '19% slower', hl: true, neg: true },
+  ]} />
+</Exhibit>
+
+If experts can misjudge their *speed*, which you can time with a stopwatch, they can certainly misjudge their *understanding*, which you can't.
+
+Programmers seem to sense this. In Stack Overflow's big 2025 survey, more of them distrusted AI's accuracy (46%) than trusted it (33%). In 2026, 48% said they trust AI's output mainly when it's easy to check. That makes sense: you can only check what you understand.
+
+There's a name for the risk: **comprehension debt**. It's the growing gap between how much code exists and how much of it any person really understands. Like money debt, it's easy to rack up and painful to pay back.
+
+## The three ways to talk
+
+Think of the conversation as two directions, each with its own rule.
+
+**What you say to the agent: always the "intern" style.** Treat it like a brilliant new employee who doesn't know your workplace yet. Anthropic, the company behind Claude, says almost exactly this in its own advice: think of Claude as "a brilliant but new employee who lacks context." So tell it:
+
+- the **background** (what the app does, where the code lives);
+- the **goal** (what should be true when it's finished);
+- **why** it matters;
+- the **rules** (which tools it may use, which example to copy);
+- what **"done"** looks like (which tests must pass and what proof to show you);
+- what it must **ask you about first** (adding new software it depends on, deleting files, touching passwords or payments).
+
+Don't shorten your own instructions to save money. A 2026 study found that squashing the *question* into caveman-speak backfired: answers got worse *and* cost more, because the AI wrote longer replies to make up for it.
+
+**What the agent says back: a dial you turn.** Turn it to **ELI5** when you need to understand, and to **caveman** when you already do. Two questions decide where the dial goes:
+
+1. How well do I understand this change?
+2. How bad would a mistake be?
+
+<Exhibit
+  n={2}
+  title="Choosing how the agent should talk back to you"
+  sub="Pick by how well you understand the change and how costly a mistake would be"
+  note="The author’s framework, simplified."
+>
+  <Matrix
+    x="How well I understand it"
+    y="How bad a mistake would be"
+    quads={[
+      { title: 'Explain simply, then brief', text: 'New code, real risk. Plan first; explain it back before saying yes.', hl: true },
+      { title: 'Intern brief', text: 'Familiar code, real risk. Clear rules and proof that it works.' },
+      { title: 'Explain to learn', text: 'New code, low risk. Ask “why?”, not just “what?”.' },
+      { title: 'Caveman', text: 'Familiar code, low risk. Short answers are fine.' },
+    ]}
+  />
+</Exhibit>
+
+## ELI5: make it explain before you approve
+
+"Explain like I'm five" doesn't mean baby talk. It means: tell me *what* changes, *why*, *what it touches* and *what could go wrong*, without assuming I already know.
+
+There's good evidence this protects your skills. In a 2026 experiment by Anthropic, 52 mostly junior programmers learned a new tool. Those who leaned on an AI assistant scored about **50%** on a quiz afterwards, against **67%** for those who coded by hand. The biggest gap was in debugging, which means finding and fixing mistakes. But the AI users who asked it to *explain* things, rather than just write the code, scored about as well as the hand-coders.
+
+Tools now have this built in. Claude Code has an **Explanatory** style that adds short "Insight" notes about why it made each choice, and a **Learning** style that leaves small decisions for you to code yourself. It also has **plan mode**, where the agent looks around and proposes a plan *without changing anything* until you approve. Cursor has a similar Plan Mode.
+
+<Note kind="field">
+I built this website with Claude Code and kept it in the Explanatory style, so the agent explained its choices as it worked.
+</Note>
+
+One warning: a smooth explanation can make you *feel* you understand when you don't. Psychologists call this the illusion of explanatory depth. So finish with a test on yourself. **Explain the plan back in two sentences**, and let the agent correct you. Here's a prompt you can copy:
+
+```text
+Before you change anything, explain this to me as if I'm new to this project.
+Use plain words; if you must use a technical term, swap it for a plain phrase.
+Tell me: what will change, which files, what could break, and what you won't touch.
+Then ask me to explain the plan back in two sentences. Don't edit until I approve.
+```
+
+## Jargon decoder
+
+Agents talk in jargon. Claude Code's official glossary alone listed 52 terms in October 2026. Research on science writing found that jargon makes reading harder *even when the terms are defined*. So in ELI5 mode, ask the agent to **replace** jargon with plain words, not just explain it. Here are the terms you'll meet most:
+
+<Exhibit
+  n={3}
+  title="What the agent means, in plain words"
+  sub="Common coding-agent terms"
+  source="Based on the Claude Code and Claude platform glossaries (accessed 14 Oct 2026)"
+  sourceUrl="https://code.claude.com/docs/en/glossary"
+  note="Plain wording by the author. The table scrolls sideways on small screens."
+>
+  <Compare
+    cols={['Plain words']}
+    rows={[
+      { k: 'Token', v: ['A small chunk of a word. You pay for each one the AI reads and writes.'] },
+      { k: 'Context window', v: ['The agent’s short-term memory for this conversation.'] },
+      { k: 'Compaction', v: ['When memory fills up, older parts get summarised. Details can be lost.'] },
+      { k: 'Tool call', v: ['An action the agent takes, like reading a file or running a command.'] },
+      { k: 'Diff', v: ['The exact lines added and removed. The change itself, not a description of it.'] },
+      { k: 'Plan mode', v: ['The agent proposes a plan without changing anything yet.'] },
+      { k: 'Subagent', v: ['A helper sent off on a side task that reports back a summary.'] },
+      { k: 'MCP server', v: ['A plug-in that connects the agent to outside systems, such as a database.'] },
+      { k: 'Hook', v: ['A script that runs automatically at set moments, every time.'] },
+      { k: 'CLAUDE.md / AGENTS.md', v: ['A file of house rules the agent reads at the start of every session.'] },
+    ]}
+  />
+</Exhibit>
+
+A tip: put your house rules in that file, not just in the chat. When the agent's memory gets summarised, rules you only *said* can get lost.
+
+## Caveman: fun, useful, and oversold
+
+"Caveman" is a popular free add-on made by Julius Brussee in April 2026. It makes the agent answer in clipped fragments. Its slogan is "why use many token when few token do trick", and by 14 October 2026 it had over 111,000 stars on GitHub. Instead of a paragraph about why a web page keeps redrawing itself, you get: "New object ref each render, so React re-renders. Wrap the prop in `useMemo`."
+
+The project says it cuts 65% of tokens. Independent testing found much less. JetBrains, a company that makes programming tools, ran a careful test on 82 pairs of real coding tasks. With caveman, the agent wrote **8.5% fewer** words, and the quality of the work didn't measurably change. On caveman's own benchmark, simply telling the AI "Answer concisely." got most of the way there.
+
+<Exhibit
+  n={4}
+  title="Caveman’s promise vs. a careful test"
+  sub="How much shorter the agent’s replies got"
+  source="Caveman README; JetBrains AI Blog (6 Jul 2026)"
+  sourceUrl="https://blog.jetbrains.com/ai/2026/07/speak-to-ai-agents-like-cavemen-tosave-tokens/"
+  note="The two numbers measure slightly different things. Shorter replies are not the same as a smaller bill."
+  table={[['Source', 'Reduction'], ['Advertised by the project', '65%'], ['JetBrains test on real coding tasks', '8.5%']]}
+>
+  <Bars unit="%" data={[
+    { label: 'Advertised', value: 65, display: '65%' },
+    { label: 'JetBrains test', value: 8.5, display: '8.5%', hl: true },
+  ]} />
+</Exhibit>
+
+Why so little? Most of what an agent produces is code and actions, which caveman leaves alone, as it should. And most of the bill comes from what the agent *reads* (your files and the conversation, over and over), not from its chatty sentences. Each word an agent writes does cost more than each word it reads (at least five times as much on Claude's current models), but there are far fewer of them.
+
+So use caveman when you already understand the work and just want less to read. Claude Code also has a built-in **Concise** style that does much the same. One rule matters more than the savings: **warnings, anything that can't be undone and anything the agent is unsure about must still come in full sentences.**
+
+## If you remember one thing
+
+Talk to your coding agent like a capable intern. Make it explain like you're five whenever you don't understand the change, or can't afford to be wrong. Let it grunt only when you already know what it's going to say.
+
+<Note kind="insight">
+Never let the agent's words get ahead of your understanding. If you can't explain the change in plain language, you're not ready to approve it.
+</Note>

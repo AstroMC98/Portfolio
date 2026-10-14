@@ -1,0 +1,135 @@
+---
+dek: "AI models quietly get worse after launch because the world, the supplier and your own team keep changing things, so a system only deserves to be called “production” when someone is watching for that and knows what to do when it happens."
+takeaways:
+  - "Getting worse over time is normal, not rare: in one study, 9 out of 10 models degraded after they were put to work."
+  - "If you rent an AI model from a vendor, it can change underneath you even when your own code has not changed at all, so you have to watch its answers yourself."
+  - "Always compare today against a snapshot frozen on launch day, tune your alarms so they don’t cry wolf, and have a plan you have practised for when quality slips."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Waffle from '../../components/blog/Waffle.astro';
+import Slope from '../../components/blog/Slope.astro';
+import Columns from '../../components/blog/Columns.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Imagine printing a city map and handing it to every delivery driver. On day one it is perfect. Then roads close, new estates go up, a bridge is rebuilt, and nobody reprints the map. Nothing about the paper has changed, yet the map gets a little more wrong every week. An AI model is that map. And if you rent your model from a vendor, there is a second problem: somebody else can quietly redraw parts of it while you are not looking.</p>
+
+That second problem is not hypothetical. On 31 August 2025, for one hour, 16% of requests to one of the most widely used AI models in the world were sent to servers set up the wrong way. Answers got worse. The model itself had not changed, and neither had the code of the companies using it. A small configuration tweak at the provider was enough, and it took the provider weeks to connect the scattered complaints to the cause.
+
+My argument is this: **drift is not an edge case. It is what happens to every model once it is deployed.** A system has not earned the word “production” until it has three things: a frozen snapshot of what “good” looked like at launch, alarms that someone has tuned so they don’t go off constantly, and a response plan that has been practised at least once.
+
+## Why launch is the start, not the finish
+
+People say “it’s in production” with relief, as if launch were the finish line. In practice, launch starts a clock. A model is built on the world as it was. It is used in the world as it is becoming, and the gap between the two grows every day.
+
+Three things make this more pressing now:
+
+- **The model is now a service you rent.** In older machine learning, the model only changed when your own team retrained it. A hosted AI model belongs to the vendor, which patches it, re-hosts it and eventually retires it on its own schedule.
+- **There are more moving parts.** A typical AI assistant that looks things up in your company’s documents has a set of instructions, a document library, a search step and the model itself. Each can change, and some are changed by your own team in updates that look harmless.
+- **People use it for whatever they think of.** A tool built for one job ends up doing ten, often including tasks nobody ever tested.
+
+The cost is real. In McKinsey’s November 2025 survey, 51% of respondents said their organisation had experienced at least one negative consequence from AI, and inaccuracy was the most common. Some of that inaccuracy was not there on launch day. It drifted in. Regulators have noticed too: the EU AI Act requires providers of high-risk systems to keep monitoring them after launch.
+
+## Jargon decoder
+
+<Compare
+  cols={["In plain words"]}
+  rows={[
+    { k: "Model drift", v: ["A deployed AI model slowly (or suddenly) getting worse at its job"] },
+    { k: "Hosted model / LLM", v: ["A large AI language model you rent from a vendor over the internet, rather than run yourself"] },
+    { k: "Baseline", v: ["A snapshot of inputs, answers and scores taken at launch, kept frozen to compare against"] },
+    { k: "Pinning", v: ["Asking for one exact, dated version of a model so it doesn’t switch under you"] },
+    { k: "Prompt", v: ["The written instructions sent to the model along with each question"] },
+    { k: "Retrieval / RAG", v: ["The step where the system looks up relevant documents before the model answers"] },
+    { k: "Embedding", v: ["A list of numbers that captures what a piece of text is about, so texts can be compared"] },
+    { k: "False alarm", v: ["A drift alert that fires when nothing important has actually changed"] },
+  ]}
+/>
+
+## The evidence: models age, and rented models change under you
+
+The best systematic study I know is from Vela and colleagues, published in *Scientific Reports* in 2022. They took 32 datasets from weather, hospitals, airlines and finance, trained four common types of model on each, and watched what happened as the models “aged” after training.
+
+<Exhibit
+  n={1}
+  title="Nine in ten models got measurably worse as time passed after training"
+  sub="Share of model–dataset pairs that degraded over time (128 pairs: 4 model types × 32 datasets)"
+  source="Vela et al., Scientific Reports (2022)"
+  sourceUrl="https://pmc.ncbi.nlm.nih.gov/articles/PMC9270447/"
+  note="These were classic prediction models on business data, not language models."
+>
+  <Waffle value={91} label="of model–dataset pairs got worse over time" />
+</Exhibit>
+
+Two details matter. First, decline was not always gradual: sometimes a model was fine and then fell off a cliff. Second, the same data could make one type of model age gracefully and another fall apart. You cannot assume; you have to measure.
+
+Rented AI models add a second clock. Researchers asked the March 2023 and June 2023 versions of GPT-4 the same questions, through the same model name. On one task, telling prime numbers from non-prime numbers, accuracy fell from 84% to 51% in three months.
+
+<Exhibit
+  n={2}
+  title="Same model name, same questions, three months apart"
+  sub="GPT-4 accuracy at telling prime from non-prime numbers"
+  source="Chen, Zaharia & Zou (Harvard Data Science Review, 2024; arXiv 2307.09009)"
+  sourceUrl="https://arxiv.org/abs/2307.09009"
+  note="Some behaviours improved while others got worse. The real risk is silent change that breaks the instructions you wrote for the old version."
+>
+  <Slope left="March 2023" right="June 2023" unit="%" max={100} min={40} items={[
+    { label: "Prime vs not prime", a: 84, b: 51, hl: true },
+  ]} />
+</Exhibit>
+
+The point is not that the model simply “got worse”. It *changed*: some things improved, others slipped, and instructions written for the March version stopped working as intended.
+
+Even when the model stays exactly the same, the service around it can drift. Anthropic published two candid reports about this. In 2025, three behind-the-scenes bugs degraded Claude’s answers; one was the routing error from the opening, which reached roughly 30% of Claude Code users at least once. In 2026, three product changes made its coding assistant worse for weeks, including a single line added to its instructions that cost about 3% on an internal test. None of these changed the model. All of them changed what users got. The vendor’s own tests did not catch the 2025 problems at first. A customer with no monitoring had little chance.
+
+## Three clocks, five kinds of drift
+
+“Drift” gets used loosely, so it helps to ask *which clock moved*. The **world’s clock** moves when the questions, the facts or the users change. The **supplier’s clock** moves when the vendor changes the model or the systems around it. **Your own clock** moves when your team changes the instructions, the documents or the settings. Those clocks produce five kinds of drift:
+
+1. **Data drift (world).** The inputs change: new topics, formats or languages the model rarely saw.
+2. **Concept drift (world).** The right answer changes while the question looks identical: a new refund policy, a renamed product, a shifting housing market.
+3. **Upstream drift (supplier).** The vendor changes something behind the same model name.
+4. **Prompt and retrieval drift (yours).** Your own team edits the instructions or the document library in a way nobody tested.
+5. **Usage drift (world).** Different people start using the tool for different jobs.
+
+Concept drift is the sneaky one, because every check on the *inputs* stays quiet while the answers go wrong. Zillow’s home-buying business, which priced homes on forecasts of their future sale prices, wrote down about $304 million in one quarter of 2021 and wound the business down, cutting about 25% of its workforce. Many things contributed, and no monitor would have saved it, but it is a clear case of the link between inputs and outcomes moving faster than anyone was measuring. The only real way to catch concept drift is to keep checking a fresh, human-marked sample of recent answers.
+
+## How to catch drift without crying wolf
+
+The single most important habit is to **compare today against a frozen launch snapshot, not against yesterday.** If each week is only slightly different from the last, a week-on-week check never fires, even as the system slides a long way from where it started.
+
+<Note kind="field">
+On my LLMOps Evaluation Platform, the drift detector stores one summary of what traffic looked like at launch, and compares each batch of the most recent 500 real queries against that frozen snapshot. When it fires, a slower, more thorough test runs as a second opinion. The design choice that mattered most was the frozen baseline. Comparing each batch with the previous one would never have caught a slow slide.
+</Note>
+
+The second problem is the opposite: alarms that fire all the time until the team mutes them. The maths is unforgiving. Run a lot of separate checks, each with a 5% chance of a false alarm, and with nothing wrong at all you are almost guaranteed at least one alert every time.
+
+<Exhibit
+  n={3}
+  title="Run enough checks and a false alarm becomes almost certain"
+  sub="Chance of at least one false alarm per round of checks when nothing has drifted, at a 5% false-alarm rate per check"
+  note="Arithmetic illustration assuming the checks are independent."
+  table={[["Checks per round", "Chance of at least one false alarm"], ["1", "5%"], ["10", "40%"], ["100", "99%"]]}
+>
+  <Columns unit="%" max={100} data={[
+    { label: "1 check", value: 5, display: "5%" },
+    { label: "10 checks", value: 40.1, display: "40%" },
+    { label: "100 checks", value: 99.4, display: "99%", hl: true },
+  ]} />
+</Exhibit>
+
+The fixes are practical. Set each alarm level using your own launch data, so you know in advance how often it will go off by chance. Only alert when a problem persists for several rounds, but keep a separate, higher “cliff” alarm that fires immediately. And judge every alarm by whether answer *quality* actually moved. A shift in inputs is a reason to look, not a verdict.
+
+## What a real “production” system has
+
+When an alarm does fire, the first question is always “did *we* change anything?” That takes minutes instead of days if every request is logged with a **version list**: which exact model, which version of the instructions, which version of the document library, which release of the app.
+
+**Pin every version you can.** Anthropic’s documentation says every Claude model ID is a fixed snapshot, with a published retirement date. Pin it, and set every setting yourself so a vendor’s default change can’t reach you. But pinning is not immunity: the 2025 bugs hit pinned models, because they lived in the serving systems, not the model. Every snapshot eventually retires, too. Pinning makes drift visible and reversible; it does not make it impossible.
+
+Then watch the vendor’s outputs every day with a small fixed set of test questions with known good answers, sent through the same path as real traffic. A vendor’s status page reports outages, not a model that has become slightly worse at following your instructions.
+
+Is this overkill for a small internal tool? Scale it to the stakes, but not to zero. The minimum version is a frozen sample, a daily set of around fifty test questions, a few cheap measures you already log, and a version list. That is days of work, not a platform.
+
+## If you remember one thing
+
+Every deployed model is drifting away from the world it was built for, and a rented model can also be changed by a supplier whose changes never show up in your own code. That is no reason not to deploy. It is a reason to stop treating launch as the finish line. A production system is one where you would *notice*: a snapshot frozen on launch day, alarms people trust, everything pinned that can be pinned, and a practised plan. Without that, what you have is a demo with a countdown.

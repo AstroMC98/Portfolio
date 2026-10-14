@@ -34,8 +34,13 @@ export async function getPosts({
 }
 
 export function readingMinutes(p: Post) {
-  const words = (p.body ?? '').replace(/<[^>]+>|import .*|\{[^}]*\}/g, ' ').split(/\s+/).filter(Boolean).length;
-  return Math.max(3, Math.round(words / 230));
+  return minutesFor(p.body);
+}
+
+/** Reading time for any MDX body (also used for the ELI5 versions). */
+export function minutesFor(body = '') {
+  const words = body.replace(/<[^>]+>|import .*|\{[^}]*\}/g, ' ').split(/\s+/).filter(Boolean).length;
+  return Math.max(2, Math.round(words / 230));
 }
 
 export const fmtDate = (d: Date) =>

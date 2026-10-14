@@ -1,0 +1,144 @@
+---
+dek: "AI works well in government when it helps staff get through lots of work that can be checked and fixed, and goes badly wrong when it is allowed to make harmful decisions about people on its own."
+takeaways:
+  - "Government AI is growing fast: US federal agencies reported 3,611 uses in 2025, more than double the year before. But most of the big success numbers are people's own estimates, not measurements."
+  - "The famous disasters, Australia's Robodebt and the Dutch childcare scandal, were not about clever AI making mistakes. A system sent harmful decisions to people at huge volume, and citizens had to prove the system wrong."
+  - "The safe pattern is simple: let AI sort, flag and draft; let a named person who can see the evidence make every decision that could hurt someone; and give people a real way to appeal."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Think about a spell-checker. It underlines a word, suggests a fix, and you decide whether to accept it. Now imagine a spell-checker that rewrote your letter and posted it before you saw it, and if it got something wrong, it was your job to prove it. The first is a helpful tool. The second is roughly what Australia built when, in late 2016, its welfare department was sending more than 20,000 automated debt notices a week. A Royal Commission later called that scheme "a crude and cruel mechanism, neither fair nor legal." This piece is about the difference between those two kinds of tool, and why that difference matters more than how clever the technology is.</p>
+
+Here is the whole argument in one sentence: **AI in government works when it helps staff with large amounts of work that can be checked and undone, under a named person in charge, and it fails badly when it is left to make harmful decisions about people, however accurate it is.**
+
+<Note kind="field">
+I have worked on both sides of this line. In 2024 my team won the Department of Health's Hack4Health with a fraud-detection platform for unified health data, and in 2025 I trained public servants for the Department of Information and Communications Technology (DICT). Fraud detection can become a Robodebt if it is wired the wrong way; AI assistants for public servants are the tools whose benefits are easiest to overstate.
+</Note>
+
+## Jargon decoder
+
+- **Model:** the trained software that makes a prediction or writes text.
+- **AI use case:** one specific job an organisation uses AI for, such as summarising letters or flagging claims.
+- **Adverse decision:** any decision that hurts a person, such as a debt, a refused benefit or a fraud label.
+- **Reversible:** a mistake that can be caught and fixed before it reaches anyone.
+- **Human in the loop:** a person checks the system's output before it takes effect.
+- **Self-reported:** people's own estimate of the time they saved, rather than a measurement.
+- **Baseline or comparison group:** the same work done without AI, so you can tell what the AI actually changed.
+- **Randomised controlled trial:** an experiment where chance decides who gets the tool, which makes the comparison fair.
+- **F1 score:** a number from 0 to 1 showing how closely two sets of labels agree. Higher is better.
+
+## Two stories with the same label
+
+**Story one: a tool that reads.** When a government asks the public for views on a policy, thousands of people write in, and someone has to read every response and sort them into themes. In October 2025 the UK published results for a tool called Consult that does this. It read more than 50,000 responses to a water-industry review in about two hours, for £240 of computing cost plus 22 hours of experts checking its work. Then the government compared its themes with those of expert reviewers.
+
+<Exhibit
+  n={1}
+  title="The UK's Consult tool agreed with experts more closely than human reviewers agreed with each other"
+  sub="How closely two sets of themes matched, F1 score (higher is better)"
+  source="GOV.UK, 16 Oct 2025"
+  sourceUrl="https://www.gov.uk/government/news/ground-breaking-use-of-ai-saves-taxpayers-money-and-delivers-greater-government-efficiency"
+  note="One consultation; the government's own evaluation. Experts still checked the output."
+  table={[["Comparison", "F1"], ["Consult vs expert group B", "0.82"], ["Consult vs expert group A", "0.79"], ["Human reviewer vs human reviewer", "0.74"]]}
+>
+  <Bars max={1} data={[
+    { label: "Consult vs experts (B)", value: 0.82, display: "0.82", hl: true },
+    { label: "Consult vs experts (A)", value: 0.79, display: "0.79" },
+    { label: "Human vs human", value: 0.74, display: "0.74" },
+  ]} />
+</Exhibit>
+
+What makes this safe is not only the score. A theme summary decides nothing about any individual; a mislabelled response just makes a summary slightly wrong. The mistake is cheap, visible and fixable.
+
+**Story two: a tool that sends bills.** Robodebt ran in Australia from 2015 to 2019. It took a person's yearly income from tax records, spread it evenly across the year, and compared that average with the income the person had reported every fortnight while on benefits. Any mismatch produced a letter saying they owed money, and it was up to them to prove otherwise.
+
+The flaw was not hidden. People on benefits often earn unevenly, so averaging invents income in fortnights when none was earned. A tribunal found the method unlawful in 2017, yet the scheme ran until 2019. Around 450,000 people are estimated to have been affected, and the total cost now exceeds A$2.4 billion. Robodebt was a simple automated rule, not sophisticated AI, which is rather the point: the harm came from where the tool was placed, not how smart it was.
+
+The Netherlands had its own version. The tax authority reclaimed childcare benefits from tens of thousands of parents on fraud accusations that later proved false, using a risk system that, Amnesty International found, treated nationality as a risk factor. Prime Minister Mark Rutte's cabinet resigned on 15 January 2021.
+
+Both disasters share a recipe. A cheap signal stood in for real evidence. The harmful action was automatic and happened at huge volume. The cost of every mistake landed on citizens. Reviews did not catch the errors, and warnings did not stop the system. None of that is about the quality of the model.
+
+## What the evidence really says
+
+Adoption is real. US federal agencies reported 1,757 AI use cases in 2024 and 3,611 in 2025, up 105%, with 445 classed as "high-impact", concentrated in agencies that hold the most records about people.
+
+The results are shakier than the headlines. Consult is the rare result measured against a human baseline. Most famous numbers are self-reported: in the UK's Copilot trial, more than 20,000 civil servants said they saved 26 minutes a day; in Pennsylvania's ChatGPT pilot, 175 staff said they saved 95. Those are the users' own estimates, and people can be confidently wrong about how much a tool helps them.
+
+<Exhibit
+  n={2}
+  title="Developers believed AI made them 20% faster; measured fairly, it made them 19% slower"
+  sub="Change in speed with AI tools allowed, % (positive = faster)"
+  source="METR, randomised controlled trial (10 Jul 2025)"
+  sourceUrl="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/"
+  note="16 experienced software developers, 246 real tasks, early-2025 tools. Not a government study; it is here because it measures the gap between how fast people feel and how fast they are."
+  table={[["Measure", "Speed change"], ["Forecast before the study", "+24%"], ["Belief after the study", "+20%"], ["Measured result", "−19%"]]}
+>
+  <Bars unit="%" data={[
+    { label: "What they expected", value: 24, display: "+24%" },
+    { label: "What they believed after", value: 20, display: "+20%" },
+    { label: "What was measured", value: 19, display: "−19%", neg: true, hl: true },
+  ]} />
+</Exhibit>
+
+This is one study of coders, not civil servants, and its authors say it does not show AI is unhelpful in general. But it shows why self-reported savings are a weak foundation. The UK's Department for Business and Trade published one of the more honest evaluations: staff liked the tool, yet it "did not find evidence that time savings have led to improved productivity." That honesty is worth more than a big number.
+
+The fair reading: AI does well on narrow, high-volume text tasks that can be checked, and staff like it. Whether it makes services better or cheaper is largely unmeasured.
+
+## The test: who pays when it goes wrong?
+
+When an agency asks where to start, I place each task on two scales. Across: how much of the work there is, and whether a mistake can be caught and undone. Up: how badly a person is hurt if the output is wrong.
+
+<Exhibit n={3} title="Start where work is high-volume and fixable; on decisions that can hurt people, AI may inform but never decide" sub="Author's framework for placing government AI" note="Author's framework. Robodebt and the Dutch childcare system sat in the top-right box but were run as if they were in the bottom-right.">
+  <Matrix
+    x="How much work, and how fixable"
+    y="How badly a person is hurt by a mistake"
+    quads={[
+      { title: "Help a decision-maker", text: "Rare, high-stakes cases: AI finds and drafts; an official decides" },
+      { title: "Sort, never decide", text: "Lots of high-stakes cases: AI flags with evidence; a named person signs; appeals are real", hl: true },
+      { title: "Not worth it yet", text: "Little work, low stakes: the effort outweighs the benefit" },
+      { title: "Start here", text: "Lots of low-harm, fixable work: drafts, search, translation, summaries", hl: true },
+    ]}
+  />
+</Exhibit>
+
+Three questions put a task in its box:
+
+1. **Who bears the mistake?** If the agency does (a draft that needs editing), it belongs at the bottom. If a citizen does (a debt, a fraud flag, a refusal), it belongs at the top.
+2. **Can it be undone before it hurts someone?** A draft letter an officer reviews can be. A notice already sent or a payment already stopped cannot, in any way that matters to the person.
+3. **Who signs?** Every harmful decision needs a named official who has seen the evidence and can explain it. If nobody can be named, the system is deciding.
+
+Notice that accuracy is not one of the questions. That is deliberate. A model that is 95% accurate, used for a million harmful decisions, still wrongs 50,000 people.
+
+## Why "a human checks it" is not enough
+
+The usual fix is "keep a human in the loop." The instinct is right, but the slogan is not enough. Researcher Ben Green reviewed 41 policies that require human oversight of government algorithms and concluded that "people are unable to perform the desired oversight functions." Another set of experiments, with 1,509 participants, found something subtler: people did not blindly trust the algorithm, but they were more likely to accept its advice when it confirmed a negative stereotype about a minority. The human check can amplify bias rather than remove it.
+
+So the human check has to be designed, not just added. Show the reviewer the evidence, not just a "high risk" score. Ask for reasons when they agree, not only when they disagree. Track how often reviewers overrule the system; near zero suggests rubber-stamping. And keep caseloads small enough for review to be real.
+
+<Note kind="field">
+Our winning Hack4Health entry was a fraud-detection platform for unified health data, which was later presented as BANT.AI at the 20th National Health Research Forum for Action. For a tool like that, the right output in a government workflow is an investigator's to-do list, with each flagged claim showing the specific inconsistencies that triggered it, not an automatic denial. Flag, explain, and let a person decide.
+</Note>
+
+## What this means for the Philippines
+
+The Philippines is moving quickly, and the foundations are good. A DICT and Civil Service Commission circular issued on 9 June 2026 says AI "shall not displace ultimate human responsibility and accountability", requires agencies to disclose AI use in services, and gives people the right to contest AI-assisted decisions and ask for human review.
+
+Meanwhile, a DICT partnership with Google is putting Gemini Enterprise in front of more than 50,000 public servants, rising to 200,000 within 18 months. For drafting and summarising, that is the "start here" box at national scale. The risks: without a baseline, the country will be left with self-reported savings; and assistants will drift into casework that touches citizens' rights, whether or not anyone decided they should.
+
+Health shows both faces. Tuberculosis screening with AI-assisted portable chest X-rays, aiming at 12 million people by 2026, is close to ideal: the AI prioritises cases for a confirming test, and a false alarm leads to another test, not a penalty. PhilHealth's planned AI check on health claims is the real test. A flagged claim sent back for correction with a clear reason is fair and fixable; one silently blocked at volume is the dangerous box run as if it were the safe one.
+
+<Note kind="field">
+I ran AI trainings for public servants through the DICT in August and November 2025. Any such programme must first answer two questions: what staff may paste into a chatbot, and who is accountable when a drafted reply is wrong.
+</Note>
+
+Three steps would make the biggest difference: publish a national list of government AI uses; run an independent, fairly compared evaluation of the Gemini rollout in at least two agencies; and make "flag with evidence, named sign-off, real appeal" a condition for any AI used in benefits, health claims or enforcement.
+
+## If you remember one thing
+
+Read the consultation responses, draft the reply, screen the X-ray for a doctor to confirm: the mistake is cheap and fixable, and the evidence for AI is strongest there. Generate the debt, score the family, deny the claim: the mistake falls on a citizen, multiplies at volume, and is undone, if at all, years later.
+
+<Note kind="insight">
+In government, the question is never only "is the model accurate enough?" It is "what happens to the person when it is wrong, how quickly can it be undone, and whose name is on the decision?"
+</Note>

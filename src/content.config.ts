@@ -31,4 +31,18 @@ const blog = defineCollection({
   }),
 });
 
-export const collections = { blog };
+/**
+ * ELI5 / "intern" versions of blog posts: src/content/simple/<slug>.mdx, same slug as the in-depth post.
+ * Rendered on the post page behind the "In depth | ELI5" toggle (linkable as ?view=eli5).
+ */
+const simple = defineCollection({
+  loader: glob({ pattern: '*.mdx', base: './src/content/simple' }),
+  schema: z.object({
+    /** The whole idea in one plain sentence. Replaces the dek when ELI5 is selected. */
+    dek: z.string().optional(),
+    /** Three plain-English takeaways. */
+    takeaways: z.array(z.string()).default([]),
+  }),
+});
+
+export const collections = { blog, simple };

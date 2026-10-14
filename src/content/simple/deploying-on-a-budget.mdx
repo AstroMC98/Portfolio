@@ -1,0 +1,131 @@
+---
+dek: "You can put a small app with a real database on the internet for $0 using Vercel and Supabase, as long as you lock the database properly and the app is not making anyone money."
+takeaways:
+  - "Vercel shows your web page to the world and Supabase stores your data, and both have free plans that are plenty for a side project."
+  - "The key your page uses to reach the database is visible to everyone on purpose, so the real protection is a set of database rules called Row Level Security."
+  - "Free has strings attached: no commercial use on Vercel's free plan, and a Supabase database that goes to sleep after a quiet week."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Stats from '../../components/blog/Stats.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Imagine a public library with its address printed on every flyer in town. Anyone can walk in. That is fine, because the librarian has rules: you may read the books and leave a note on the board, but you may not tear pages out. Putting an app online for free with Vercel and Supabase works exactly like that library. The address is public on purpose. The librarian's rules are the part you have to write yourself.</p>
+
+## The big idea
+
+The in-depth article walks through deploying a tiny app called **Budget Board**. It is a public message board: anyone can read messages and post one of up to 280 characters, and nobody can edit or delete them. It is small on purpose, so you can see every piece.
+
+The app has two halves. The **front end** is the page you see in your browser. Vercel hosts it and sends it to visitors around the world. The **database** is where the messages live. Supabase runs it. Both have free plans, and for a side project the total bill is $0 a month.
+
+The main argument is simple. This free combination is the quickest sensible way to get a small app with real data online in October 2026. But it is only safe if you write the database rules properly. And it stops being the right choice once the project makes money, needs a computer running all the time, or cannot cope with a database that sometimes falls asleep.
+
+## Jargon decoder
+
+You will meet these words in the full article. Here is what each one means in plain language.
+
+<Exhibit n={1} title="The words you need, in plain English" sub="Terms used in the step-by-step guide">
+  <Compare
+    cols={["Plain meaning"]}
+    rows={[
+      { k: "Deploy", v: ["Put your app on the internet so other people can use it"] },
+      { k: "Vercel", v: ["A service that stores your web page and sends it to visitors quickly"] },
+      { k: "Supabase", v: ["A service that runs your database and lets the page talk to it"] },
+      { k: "Free tier", v: ["The no-cost plan, with limits on how much you can use"] },
+      { k: "Publishable key", v: ["The public address for your database; fine for anyone to see"] },
+      { k: "Secret key", v: ["A master key that skips all the rules; never put it in a web page"] },
+      { k: "Row Level Security", v: ["Rules inside the database about who may read or change which rows"] },
+      { k: "Grant", v: ["Permission to touch a table at all, before the row rules apply"] },
+      { k: "Preview deployment", v: ["A private test copy of your app, made for each proposed change"] },
+    ]}
+  />
+</Exhibit>
+
+A "row" is one line in a table, like one message. A "table" is like one sheet in a spreadsheet. That is all the database vocabulary you need.
+
+## The recipe, in plain steps
+
+The full article has thirteen numbered steps with every command. Here is the shape of it.
+
+1. **Make the project.** One command creates a starter app; one more adds the Supabase toolkit.
+2. **Create a Supabase project.** Pick a name, a strong password and a region near your users.
+3. **Run the setup script.** Paste one SQL file into Supabase's SQL Editor and press Run. SQL is the language databases speak. This file creates the messages table, switches on the rules, and says exactly who may do what.
+4. **Copy two values.** The project's web address and its publishable key. Not the secret key. Never the secret key.
+5. **Try it on your own computer.** Put the two values in a local settings file and start the app.
+6. **Push the code to GitHub.** GitHub is where your code lives online.
+7. **Import it into Vercel.** Vercel spots that it is a Vite app and fills in the build settings for you.
+8. **Give Vercel the two values.** These are called environment variables: settings kept outside your code. If you change them later, you must deploy again, because they are baked in when the app is built.
+9. **Deploy.** You get a live web address.
+10. **Test it, including the part that should fail.** Post a message. Then press the "Test the lock" button, which tries to delete a message. It should be refused. The article also shows how to try the same thing from the command line, the way an attacker would.
+11. **Try a preview.** Make a small change on a separate branch and open a pull request. Vercel builds a private test copy and posts the link. For anything with real users, point previews at a second, separate database so tests do not touch real data.
+12. **Add your own domain (optional).** Vercel tells you exactly which DNS records to add. The domain itself is the only thing in this guide that costs money.
+13. **Set up guardrails.** Watch your usage each month, and switch on spending limits before you ever move to a paid plan.
+
+## The lock that matters
+
+Here is the part that surprises people. The publishable key ends up inside the page that every visitor downloads. Anyone who opens their browser's developer tools can see it. Supabase designed it that way. Its documentation says the key is safe to expose online, but that it only reaches what Row Level Security allows.
+
+So the real lock is not the key. It is two layers of rules inside the database:
+
+- **Grants** decide whether visitors may touch the messages table at all. Budget Board lets them read and add, and nothing else.
+- **Row Level Security** decides which rows they may read or write. Budget Board lets anyone read every message and add a message of 1 to 280 characters. There is no rule for editing or deleting, so those are refused.
+
+A third safety net sits in the table itself: a check that rejects any message that is empty or longer than 280 characters, even if someone skips the web page entirely.
+
+Why does this matter so much? Because people have got it wrong at scale. In 2025, a researcher scanned apps built with an AI app builder called Lovable, which also used Supabase.
+
+<Exhibit n={2} title="About one in ten scanned apps left the database door open" sub="A 2025 scan of apps built with Lovable" source="Matt Palmer, Statement on CVE-2025-48757 (29 May 2025)" sourceUrl="https://mattpalmer.io/posts/statement-on-CVE-2025-48757/">
+  <Stats items={[
+    { value: "1,645", label: "apps scanned", source: "PALMER · MAY 2025" },
+    { value: "170", label: "apps with weak or missing database rules", source: "PALMER · MAY 2025" },
+    { value: "10.3%", label: "share of the scanned apps affected", source: "PALMER · MAY 2025" },
+  ]} />
+</Exhibit>
+
+In those apps, things like users' emails, phone numbers and payment details could be reached with nothing but the public key. Lovable disputes that the problem was its responsibility, saying each customer must protect their own app's data. Either way, the lesson for you is the same: write the rules, then test them as if you were the attacker.
+
+One more 2026 change to know. From 30 October 2026, Supabase no longer lets its web API see new tables automatically. You must grant access on purpose. Older tutorials skip this, which is why they now show empty pages or confusing errors. The setup script in the full article includes the grants.
+
+## What "free" really means
+
+Free plans are generous, but they come with conditions. The three that matter most:
+
+- **No commercial use on Vercel's free plan.** Vercel calls its Hobby plan personal and non-commercial. That includes a site a paid consultant builds for a client, and any site that sells, advertises or takes payments. The paid plan, Vercel Pro, costs $20 a month.
+- **The free database naps.** Supabase pauses a free project after about a week with very little activity. It emails you first, and you can wake it from the dashboard. Paying for Supabase Pro, at $25 a month, stops the naps.
+- **Limits are monthly.** Vercel's free plan includes 100 GB of data transfer and 1 million CDN requests (each file a visitor downloads counts as a request). Supabase's free plan includes a 500 MB database and 5 GB of data sent out from the database.
+
+Which limit runs out first? Not the big bandwidth number. The author worked out a rough estimate for Budget Board, assuming each first visit downloads about 58 KB in about four files and loads the message list once.
+
+<Exhibit n={3} title="For a small app, the request count runs out long before the bandwidth" sub="Rough number of first visits per month before each free limit is reached (thousands) — author's estimate" source="Author's estimate from the demo app's build and Vercel and Supabase limits, checked 14 Oct 2026" sourceUrl="https://vercel.com/docs/plans/hobby" note="Repeat visits are cheaper because browsers keep the files. Bots make everything more expensive.">
+  <Bars unit="K" data={[
+    { label: "Vercel bandwidth", value: 1720, display: "~1.7M" },
+    { label: "Supabase data out", value: 280, display: "~280K" },
+    { label: "Vercel requests", value: 250, display: "~250K", hl: true },
+  ]} />
+</Exhibit>
+
+A quarter of a million visits a month is a lot for a hobby project. It is not much for a real product. When you outgrow free, paying for both Pro plans costs about $45 a month before any extra usage. Both companies offer spending controls; switch them on before you need them.
+
+## When to pick something else
+
+The article suggests three quick questions before you start. Think of them as gates.
+
+1. **Purpose.** Is anyone being paid, or is the site selling something? If yes, do not use Vercel's free plan.
+2. **Persistence.** Does the app need a computer running all the time, or can it not cope with a database that naps? If so, look elsewhere or plan to pay.
+3. **Permissions.** Can you say, in one sentence per table, who may read and write? If not, you are not ready to put a public key online.
+
+If one gate fails, swap one piece rather than starting over. A few examples from the article:
+
+- **A portfolio or simple website with no database:** GitHub Pages is free and simple, but it is not for running a business. This blog itself is a static site on GitHub Pages, built and published automatically by GitHub Actions.
+- **A site expecting lots of traffic:** Cloudflare serves static files for free with no request limit for those files.
+- **A database that sleeps cheaply:** Neon offers free Postgres that switches off after five minutes of quiet.
+- **An app that needs a server running all the time:** Render's free option falls asleep after 15 minutes without visitors and takes about a minute to wake up. Railway and Fly.io are low-cost paid options.
+
+<Note kind="insight">
+The two halves are not glued together. The front end is just a folder of files any host can serve, and the database is standard Postgres you can export. That means you can switch one half without rebuilding the other.
+</Note>
+
+## If you remember one thing
+
+The publishable key is not a secret, and it was never meant to be. Your protection is the set of rules you write inside the database: grants that say who may touch a table, and Row Level Security that says which rows. Write those rules first, test them like an attacker would, and the free plans will carry a side project a long way. The key was never the secret. The policy is.

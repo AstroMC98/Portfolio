@@ -57,6 +57,7 @@
   .k-voice { color: var(--violet); border-color: rgb(179 169 255 / 0.45); }
   .k-site { color: var(--blue); border-color: rgb(127 178 240 / 0.45); }
   .k-details { color: var(--text-2); }
+  .k-eli5 { color: var(--blue); border-color: rgb(127 178 240 / 0.45); border-style: dashed; }
   .count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--amber); color: var(--ink); font: 700 0.72rem/1 var(--mono); flex: none; }
   .count.zero { background: var(--line-2); color: var(--muted); }
 
@@ -129,6 +130,10 @@
   .details { padding: 20px 24px; display: grid; gap: 18px; max-width: 1100px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 14px; }
   .span2 { grid-column: span 2; }
+  .eli5-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 20px 24px 0; }
+  .eli5-empty { padding: 20px 24px; max-width: 1100px; }
+  .eli5-empty .done { display: grid; gap: 12px; justify-items: center; }
+  .eli5-empty .done b { margin-bottom: 0; }
 
   .toast { position: fixed; right: 16px; bottom: 16px; z-index: 50; max-width: min(420px, calc(100vw - 32px)); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line-2); background: #050706; font-size: 0.9rem; box-shadow: 0 10px 30px rgb(0 0 0 / 0.5); }
   .toast.ok { border-color: rgb(61 245 167 / 0.5); }
@@ -146,7 +151,8 @@
     .bar { flex-wrap: wrap; }
     .side { position: static; height: auto; max-height: 50vh; border-right: 0; border-bottom: 1px solid var(--line); }
     .span2 { grid-column: auto; }
-    .bar, .needs, .content, .details { padding-left: 16px; padding-right: 16px; }
+    .bar, .needs, .content, .details, .eli5-fields, .eli5-empty { padding-left: 16px; padding-right: 16px; }
+    .eli5-fields { grid-template-columns: 1fr; }
     .tabs { padding: 0 16px; }
   }
 </style>
@@ -202,8 +208,24 @@
           </div>
         </div>
         <div class="tabs" role="tablist">
-          <button class="tab is-on" type="button" role="tab" data-tab="content" aria-selected="true">Content</button>
+          <button class="tab is-on" type="button" role="tab" data-tab="content" aria-selected="true">In depth</button>
+          <button class="tab" type="button" role="tab" data-tab="eli5" aria-selected="false">ELI5</button>
           <button class="tab" type="button" role="tab" data-tab="details" aria-selected="false">Details &amp; sources</button>
+        </div>
+
+        <!-- ELI5 version (src/content/simple/<slug>.mdx): empty state, or its dek/takeaways above the section editor. -->
+        <div class="eli5-empty" id="eli5Empty" hidden>
+          <div class="done">
+            <b>No ELI5 version yet</b>
+            <span>A plain-English version of this post, shown behind the “In depth | ELI5” toggle. It lives in <span class="mono" id="eli5Path"></span>.</span>
+            <button class="btn btn--primary" type="button" id="createEli5">Create ELI5 version</button>
+            <span class="hint">Starts from a short template: a lede, “Jargon decoder” and “If you remember one thing”. Nothing is written until you save.</span>
+            <span class="hint" id="eli5DraftNote" hidden>This post is a local draft, but src/content/simple/ is not git-ignored: the ELI5 file will show up in your next commit.</span>
+          </div>
+        </div>
+        <div class="eli5-fields" id="eli5Fields" hidden>
+          <label>ELI5 dek <textarea id="eli5Dek" rows="2"></textarea><span class="hint">The whole idea in one plain sentence. Leave empty to reuse the in-depth dek.</span></label>
+          <label>ELI5 takeaways <textarea id="eli5Takeaways" rows="3"></textarea><span class="hint">One per line.</span></label>
         </div>
 
         <div class="content" id="tab-content">
@@ -283,9 +305,41 @@ let meta = { motifs: [], root: '' };
 let filter = 'all';
 let view = 'needs';
 let current = null; // { slug, folder, status }
-let chunks = []; // the post body split at `## ` headings; chunks.join('') is the whole body
+let tab = 'content'; // 'content' (In depth) | 'eli5' | 'details'
+// The section editor shows one version at a time: 'full' (the post) or 'simple' (its ELI5 file).
+// `chunks`/`sec` belong to the version in `ver`; the other version's are parked in `docs`.
+let ver = 'full';
+const docs = { full: { chunks: [], sec: 0 }, simple: { chunks: [], sec: 0, exists: false, extra: {} } };
+let chunks = []; // the body split at `## ` headings; chunks.join('') is the whole body
 let sec = 0; // selected section index, or -1 for "whole file"
-let dirty = false;
+const dirty = { full: false, simple: false };
+const isDirty = () => dirty.full || dirty.simple;
+const ELI5_TEMPLATE = `import Exhibit from '../../components/blog/Exhibit.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Opening paragraph.</p>
+
+## Jargon decoder
+
+- **Term:** what it means in plain English.
+
+## If you remember one thing
+
+Write here.
+`;
+
+/** Cover motifs are unique per post: motifs taken by other posts are shown but disabled. */
+function renderMotifOptions(slug) {
+  const sel = $('#motif');
+  const keep = sel.value;
+  sel.innerHTML = '';
+  meta.motifs.forEach((m) => {
+    const owner = m === 'generative' ? null : posts.find((p) => p.motif === m && p.slug !== slug);
+    sel.append(h('option', { value: m, disabled: !!owner, textContent: owner ? `${m} — used by “${owner.title.slice(0, 40)}”` : m === 'generative' ? 'generative (unique per post)' : m }));
+  });
+  if (keep) sel.value = keep;
+}
 
 /* ---------- API ---------- */
 async function api(path, opts = {}) {
@@ -313,7 +367,7 @@ async function showApp() {
   $('#login').hidden = true; $('#app').hidden = false;
   meta = await api('/meta');
   $('#motif').innerHTML = '';
-  meta.motifs.forEach((m) => $('#motif').append(h('option', { value: m, textContent: m })));
+  renderMotifOptions(null);
   await refresh();
   showNeeds();
 }
@@ -331,7 +385,8 @@ function renderList() {
   posts.filter((p) => !q || p.title.toLowerCase().includes(q)).forEach((p) => {
     const b = h('button', { type: 'button', className: 'item' + (view === 'editor' && current?.slug === p.slug ? ' is-on' : '') },
       h('span', { className: 'item__t' }, h('span', { textContent: p.title }), p.needs ? h('span', { className: 'count', textContent: p.needs, title: `${p.needs} item(s) need you` }) : null),
-      h('span', { className: 'item__m' }, h('span', { className: `chip s-${p.status}`, textContent: STATUS[p.status] }), h('span', { textContent: p.date }), h('span', { textContent: `${Math.round(p.words / 100) / 10}k words` })));
+      h('span', { className: 'item__m' }, h('span', { className: `chip s-${p.status}`, textContent: STATUS[p.status] }), h('span', { textContent: p.date }), h('span', { textContent: `${Math.round(p.words / 100) / 10}k words` }),
+        p.hasSimple ? h('span', { className: 'chip k-eli5', textContent: 'ELI5', title: 'Has an ELI5 version' }) : null));
     b.addEventListener('click', () => openPost(p.slug));
     list.append(b);
   });
@@ -343,7 +398,7 @@ function setView(v) {
   $('#needsNav').classList.toggle('is-on', v === 'needs');
   renderList();
 }
-function confirmDiscard() { return !dirty || confirm('Discard unsaved changes?'); }
+function confirmDiscard() { return !isDirty() || confirm('Discard unsaved changes?'); }
 function showNeeds() {
   if (!confirmDiscard()) return;
   setDirty(false); current = null;
@@ -381,12 +436,14 @@ function renderNeeds() {
   for (const [file, items] of groups) {
     const first = items[0];
     const post = posts.find((p) => p.slug === first.slug);
+    const eli5 = first.version === 'simple';
     const head = h('div', { className: 'group__h' },
       h('span', { style: 'display:flex;gap:10px;align-items:center;flex-wrap:wrap' },
         h('b', { textContent: first.kind === 'site' ? `Site data · ${first.title}` : first.title }),
+        eli5 ? h('span', { className: 'chip k-eli5', textContent: 'ELI5' }) : null,
         post ? h('span', { className: `chip s-${post.status}`, textContent: STATUS[post.status] }) : null),
-      first.slug
-        ? h('button', { type: 'button', className: 'btn btn--sm', textContent: 'Open post →', onclick: () => openPost(first.slug) })
+      first.slug && post
+        ? h('button', { type: 'button', className: 'btn btn--sm', textContent: eli5 ? 'Open ELI5 →' : 'Open post →', onclick: () => openPost(first.slug, { tab: eli5 ? 'eli5' : 'content' }) })
         : h('a', { className: 'btn btn--sm', href: vscodeLink(file, first.line), textContent: 'Open file in VS Code ↗' }));
     box.append(h('div', { className: 'group' }, head, items.map(card)));
   }
@@ -400,8 +457,10 @@ const PRIORITY = { review: 0, todo: 0, placeholder: 0, site: 1, details: 2, voic
 
 function card(n) {
   const k = KIND[n.kind];
+  const eli5 = n.version === 'simple';
   const top = h('div', { className: 'card__top' },
     h('span', { className: `chip k-${n.kind}`, textContent: k.label }),
+    eli5 ? h('span', { className: 'chip k-eli5', textContent: 'ELI5', title: 'In the ELI5 version' }) : null,
     h('span', { textContent: n.kind === 'site' ? `${n.file} · line ${n.line}` : `§ ${n.section}${n.line > 1 ? ` · line ${n.line}` : ''}` }));
   const why = h('p', { className: 'card__why', textContent: n.kind === 'details' ? `Missing: ${n.missing.join(', ')}. ${k.why}` : k.why });
   const c = h('div', { className: 'card' }, top, why);
@@ -419,7 +478,7 @@ function card(n) {
   const save = h('button', { type: 'button', className: 'btn btn--sm btn--primary', textContent: 'Save edit', disabled: true });
   ta.addEventListener('input', () => { save.disabled = ta.value === original; autosize(ta); });
 
-  const target = n.slug ? { type: 'post', slug: n.slug } : { type: 'data', name: n.file.split('/').pop() };
+  const target = n.slug ? { type: eli5 ? 'simple' : 'post', slug: n.slug } : { type: 'data', name: n.file.split('/').pop() };
   const patch = async (replacement, msg, ack = false) => {
     try {
       await api('/patch', { method: 'POST', body: { target, start: n.start, original: n.original, replacement, ack } });
@@ -454,7 +513,7 @@ function card(n) {
     }
   }
   actions.append(h('span', { className: 'spacer' }));
-  if (n.slug) actions.append(h('button', { type: 'button', className: 'btn btn--sm', textContent: 'Show in post', onclick: () => openPost(n.slug, { find: original, section: n.section }) }));
+  if (n.slug && posts.some((p) => p.slug === n.slug)) actions.append(h('button', { type: 'button', className: 'btn btn--sm', textContent: 'Show in post', onclick: () => openPost(n.slug, { tab: eli5 ? 'eli5' : 'content', find: original, section: n.section }) }));
   actions.append(h('a', { className: 'btn btn--sm', href: vscodeLink(n.file, n.line), textContent: 'VS Code ↗', title: `${n.file}:${n.line}` }));
   c.append(ta, actions);
   return c;
@@ -477,7 +536,8 @@ function secName(chunk) {
   return chunk.slice(3, nl === -1 ? undefined : nl).trim();
 }
 const wordsIn = (t) => t.replace(/<[^>]+>|\{[^}]*\}|^import .*$/gm, ' ').split(/\s+/).filter(Boolean).length;
-const postNeeds = () => needs.filter((n) => current && n.slug === current.slug);
+/** Items for the post and version the section editor is showing. */
+const postNeeds = () => needs.filter((n) => current && n.slug === current.slug && (n.version || 'full') === ver);
 
 /** Copy the textarea back into `chunks`. */
 function syncChunk() {
@@ -487,6 +547,7 @@ function syncChunk() {
 }
 /** Re-split after edits (a heading may have been added or removed), keeping roughly the same place. */
 function resplit() {
+  if (!chunks.length) return;
   syncChunk();
   const offset = sec <= 0 ? 0 : chunks.slice(0, sec).join('').length;
   chunks = splitSections(chunks.join(''));
@@ -495,6 +556,25 @@ function resplit() {
     const i = chunks.findIndex((c) => (acc += c.length) > offset);
     sec = i === -1 ? chunks.length - 1 : i;
   }
+  // Keep the textarea in step with `chunks`, so a later syncChunk() cannot write stale text back.
+  $('#sectionText').value = sec === -1 ? chunks.join('') : chunks[sec];
+}
+
+/** Point the section editor at another version, parking the current one's sections. */
+function bind(v) {
+  if (v === ver) return false;
+  syncChunk();
+  docs[ver].chunks = chunks;
+  docs[ver].sec = sec;
+  ver = v;
+  ({ chunks, sec } = docs[v]);
+  if (!chunks.length) $('#sectionText').value = '';
+  return true;
+}
+/** The whole body of one version, including unsynced edits in the textarea. */
+function bodyOf(v) {
+  if (v === ver) { syncChunk(); return chunks.join(''); }
+  return docs[v].chunks.join('');
 }
 
 function renderOutline() {
@@ -519,6 +599,7 @@ function renderOutline() {
 }
 
 function selectSection(i, { keep = false } = {}) {
+  if (!chunks.length) return; // ELI5 tab before an ELI5 file exists
   if (!keep) resplit();
   sec = Math.max(-1, Math.min(i, chunks.length - 1));
   const ta = $('#sectionText');
@@ -556,15 +637,35 @@ function highlight(snippet) {
 }
 
 /* ---------- Editor ---------- */
-function setDirty(v) { dirty = v; $('#dirty').hidden = !v; }
+/** Mark one version ('full' | 'simple') dirty or clean; with no version, all of them. */
+function setDirty(v, which) {
+  if (which) dirty[which] = v;
+  else dirty.full = dirty.simple = v;
+  const el = $('#dirty');
+  el.hidden = !isDirty();
+  el.textContent = '● unsaved' + (dirty.simple ? (dirty.full ? ' · in depth + ELI5' : ' · ELI5') : '');
+}
 function setTab(t) {
+  tab = t;
   document.querySelectorAll('.tab').forEach((b) => {
     const on = b.dataset.tab === t;
     b.classList.toggle('is-on', on);
     b.setAttribute('aria-selected', String(on));
   });
-  $('#tab-content').hidden = t !== 'content';
+  // "In depth" and "ELI5" share the section editor; Details keeps whichever version was last shown.
+  const want = t === 'eli5' ? 'simple' : t === 'content' ? 'full' : ver;
+  if (bind(want)) selectSection(sec, { keep: true });
+  const hasEli5 = docs.simple.exists;
+  $('#tab-content').hidden = !(t === 'content' || (t === 'eli5' && hasEli5));
+  $('#eli5Fields').hidden = !(t === 'eli5' && hasEli5);
+  $('#eli5Empty').hidden = !(t === 'eli5' && !hasEli5);
   $('#tab-details').hidden = t !== 'details';
+  if (current) updatePreview();
+}
+function updatePreview() {
+  const eli5 = tab === 'eli5';
+  $('#previewBtn').href = `/blog/${current.slug}/${eli5 ? '?view=eli5' : ''}`;
+  $('#previewBtn').textContent = eli5 ? 'Preview ELI5 ↗' : 'Preview ↗';
 }
 
 async function openPost(slug, { tab = 'content', find = null, section = null } = {}) {
@@ -573,7 +674,10 @@ async function openPost(slug, { tab = 'content', find = null, section = null } =
   if (sameOpen) {
     resplit();
   } else {
-    const p = await api('/posts/' + encodeURIComponent(slug));
+    const [p, s] = await Promise.all([
+      api('/posts/' + encodeURIComponent(slug)),
+      api('/posts/' + encodeURIComponent(slug) + '?version=simple'),
+    ]);
     current = { slug: p.slug, folder: p.folder, status: p.status };
     const f = $('#editor');
     const fm = p.frontmatter;
@@ -581,6 +685,7 @@ async function openPost(slug, { tab = 'content', find = null, section = null } =
     f.date.value = fm.date || '';
     f.updated.value = fm.updated || '';
     f.kicker.value = fm.kicker || '';
+    renderMotifOptions(p.slug);
     f.motif.value = fm.motif || 'paths';
     f.tags.value = (fm.tags || []).join(', ');
     f.featured.checked = !!fm.featured;
@@ -593,14 +698,29 @@ async function openPost(slug, { tab = 'content', find = null, section = null } =
     // Keep any frontmatter fields the form doesn't expose.
     const known = ['title', 'date', 'updated', 'kicker', 'motif', 'tags', 'featured', 'draft', 'dek', 'thesis', 'takeaways', 'sources', 'review'];
     f.dataset.extra = JSON.stringify(Object.fromEntries(Object.entries(fm).filter(([key]) => !known.includes(key))));
-    chunks = splitSections(p.body.replace(/\r\n/g, '\n'));
-    sec = 0;
+    // ELI5 version: its own dek/takeaways fields and sections (empty until the file exists).
+    const sfm = s.exists ? s.frontmatter : {};
+    $('#eli5Dek').value = sfm.dek || '';
+    $('#eli5Takeaways').value = (sfm.takeaways || []).join('\n');
+    $('#eli5Path').textContent = s.file;
+    $('#eli5DraftNote').hidden = p.folder !== 'drafts';
+    docs.simple = {
+      chunks: s.exists ? splitSections(s.body.replace(/\r\n/g, '\n')) : [],
+      sec: 0,
+      exists: s.exists,
+      extra: Object.fromEntries(Object.entries(sfm).filter(([key]) => key !== 'dek' && key !== 'takeaways')),
+    };
+    docs.full = { chunks: splitSections(p.body.replace(/\r\n/g, '\n')), sec: 0 };
+    ver = 'full';
+    ({ chunks, sec } = docs.full);
+    $('#sectionText').value = chunks[0];
     $('#formErr').textContent = '';
     setDirty(false);
     updateChrome();
   }
   setView('editor');
   setTab(tab);
+  if (!chunks.length) return; // ELI5 tab, no ELI5 file yet: the empty state is showing
   let target = sameOpen ? sec : 0;
   if (find) target = Math.max(0, chunks.findIndex((c) => c.includes(find)));
   else if (section) target = Math.max(0, chunks.findIndex((c) => secName(c) === section));
@@ -613,14 +733,12 @@ function updateChrome() {
   chip.className = `chip s-${current.status}`;
   chip.textContent = STATUS[current.status];
   $('#formTitle').textContent = $('#editor').title.value || current.slug;
-  $('#previewBtn').href = `/blog/${current.slug}/`;
+  updatePreview();
   $('#moveBtn').textContent = current.folder === 'drafts' ? 'Move to blog' : 'Move to local drafts';
 }
 
 function collect() {
   const f = $('#editor');
-  const lines = (s) => s.split('\n').map((x) => x.trim()).filter(Boolean);
-  syncChunk();
   return {
     frontmatter: {
       ...JSON.parse(f.dataset.extra || '{}'),
@@ -641,22 +759,36 @@ function collect() {
       }),
       review: f.review.value.trim(),
     },
-    body: chunks.join(''),
+    body: bodyOf('full'),
   };
 }
+function collectSimple() {
+  return {
+    frontmatter: { ...docs.simple.extra, dek: $('#eli5Dek').value.trim(), takeaways: lines($('#eli5Takeaways').value) },
+    body: bodyOf('simple'),
+  };
+}
+const lines = (s) => s.split('\n').map((x) => x.trim()).filter(Boolean);
 
+/** Save every version with unsaved changes (the in-depth post when nothing is marked dirty). */
 async function save() {
   if (!current) return;
+  const which = ['full', 'simple'].filter((v) => dirty[v] && (v === 'full' || docs.simple.exists));
+  if (!which.length) which.push('full');
   $('#saveBtn').disabled = true;
   try {
-    const r = await api('/posts/' + encodeURIComponent(current.slug), { method: 'PUT', body: collect() });
-    current.status = r.status;
+    for (const v of which) {
+      const url = '/posts/' + encodeURIComponent(current.slug) + (v === 'simple' ? '?version=simple' : '');
+      const r = await api(url, { method: 'PUT', body: v === 'simple' ? collectSimple() : collect() });
+      if (v === 'full') current.status = r.status;
+      setDirty(false, v);
+    }
     $('#formErr').textContent = '';
-    setDirty(false);
     await refresh();
     updateChrome();
     selectSection(sec);
-    toast('Saved — the dev server reloads the preview automatically.');
+    const what = which.length > 1 ? 'Saved both versions' : which[0] === 'simple' ? 'ELI5 version saved' : 'Saved';
+    toast(`${what} — the dev server reloads the preview automatically.`);
   } catch (e) {
     $('#formErr').textContent = e.message;
     toast(e.message, 'bad');
@@ -688,7 +820,8 @@ $('#nextSec').addEventListener('click', () => selectSection(sec + 1));
 
 $('#editor').addEventListener('submit', (e) => { e.preventDefault(); save(); });
 $('#editor').addEventListener('input', (e) => {
-  setDirty(true);
+  // Section text belongs to the version on screen; the ELI5 fields to ELI5; everything else to the post.
+  setDirty(true, e.target.id === 'sectionText' ? ver : e.target.closest('#eli5Fields') ? 'simple' : 'full');
   if (e.target.name === 'title') $('#formTitle').textContent = e.target.value;
 });
 document.addEventListener('keydown', (e) => {
@@ -699,17 +832,33 @@ $('#sectionText').addEventListener('keydown', (e) => {
   e.preventDefault();
   const t = e.target, s = t.selectionStart;
   t.setRangeText('  ', s, t.selectionEnd, 'end');
-  setDirty(true);
+  setDirty(true, ver);
 });
-window.addEventListener('beforeunload', (e) => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('beforeunload', (e) => { if (isDirty()) { e.preventDefault(); e.returnValue = ''; } });
+
+$('#createEli5').addEventListener('click', () => {
+  if (!current || docs.simple.exists) return;
+  docs.simple = { chunks: splitSections(ELI5_TEMPLATE), sec: 0, exists: true, extra: {} };
+  $('#eli5Dek').value = '';
+  $('#eli5Takeaways').value = '';
+  // The ELI5 tab is showing (with no sections), so the editor is already bound to 'simple'.
+  if (ver === 'simple') ({ chunks, sec } = docs.simple);
+  else bind('simple');
+  setDirty(true, 'simple');
+  setTab('eli5');
+  selectSection(0, { keep: true });
+  $('#eli5Dek').focus();
+  toast('ELI5 version started from the template. Save (Ctrl+S) to create the file.');
+});
 
 $('#moveBtn').addEventListener('click', async () => {
   if (!current) return;
-  if (dirty) { toast('Save first.', 'bad'); return; }
+  if (isDirty()) { toast('Save first.', 'bad'); return; }
   const to = current.folder === 'drafts' ? 'blog' : 'drafts';
-  const msg = to === 'blog'
+  const msg = (to === 'blog'
     ? 'Move to src/content/blog? It will be included in your next commit and publishes on its date (unless it is a draft or has review flags).'
-    : 'Move to local drafts? It will be git-ignored and never publish.';
+    : 'Move to local drafts? It will be git-ignored and never publish.')
+    + (docs.simple.exists ? ' Its ELI5 version stays in src/content/simple/, which serves blog posts and drafts alike (and is not git-ignored).' : '');
   if (!confirm(msg)) return;
   try {
     await api(`/posts/${encodeURIComponent(current.slug)}/move`, { method: 'POST', body: { to } });
@@ -721,13 +870,13 @@ $('#moveBtn').addEventListener('click', async () => {
   } catch (e) { toast(e.message, 'bad'); }
 });
 $('#trashBtn').addEventListener('click', async () => {
-  if (!current || !confirm('Move this post to src/content/.trash? You can restore it from there.')) return;
+  if (!current || !confirm(`Move this post${docs.simple.exists ? ' and its ELI5 version' : ''} to src/content/.trash? You can restore ${docs.simple.exists ? 'them' : 'it'} from there.`)) return;
   try {
-    await api('/posts/' + encodeURIComponent(current.slug), { method: 'DELETE' });
+    const r = await api('/posts/' + encodeURIComponent(current.slug), { method: 'DELETE' });
     setDirty(false); current = null;
     await refresh();
     showNeeds();
-    toast('Moved to trash.');
+    toast(r.trashedSimple ? 'Moved the post and its ELI5 version to trash.' : 'Moved to trash.');
   } catch (e) { toast(e.message, 'bad'); }
 });
 

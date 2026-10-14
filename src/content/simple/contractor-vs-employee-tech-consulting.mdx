@@ -1,0 +1,159 @@
+---
+dek: "Working for yourself can pay more than a job, but only if you charge enough to cover the days you can't bill and the safety net your employer used to pay for."
+takeaways:
+  - "A job pays you for every working day and quietly pays for extras like a 13th-month bonus, part of your social insurance and paid leave; as a contractor you pay for all of that yourself."
+  - "In the Philippines, tax is often lower for a contractor earning under ₱3 million, so the real cost of going solo is the days you can't bill and the risk of having no client."
+  - "Only jump when you have clients lined up and enough savings to survive a slow stretch; otherwise stay employed and build those two things first."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Imagine renting a flat versus owning a house. The rent can look higher than the mortgage, so owning seems like a bargain — until the roof leaks and there is no landlord to call. A job is a bit like renting: someone else handles the repairs. Becoming an independent contractor is like buying the house. It can be the better deal, but only if you budget for the roof.</p>
+
+That is the whole idea of this article. People often compare a contractor's daily rate with an employee's salary and conclude that working for yourself pays more. Sometimes it does. But a salary is more than a price for your time. It comes with extras the law requires, and when you leave a job you have to pay for those extras yourself.
+
+My point is simple: **going independent is a trade, not a raise.** In the Philippines, the tax side often works in the contractor's favour. The real costs are the days you can't charge for and the risks nobody covers for you any more.
+
+<Note kind="field">
+I have done both. From 2022 to 2024 I was an employee — a Data Scientist at AIA Digital+, then Global Data Science Manager at TDCX AI in Singapore. Since September 2024 I have been an independent contractor, working from the Philippines as Lead AI Engineer and Tech Consultant for Intelligent AI Solutions, a UK consultancy.
+
+I didn't find that work on a job board. Cid was my classmate and capstone teammate at the Asian Institute of Management. When he started building Intelligent AI Solutions, he asked me to help, and it turned into a role. He had already seen how I work under pressure — and that mattered more than any CV.
+</Note>
+
+## Who counts as a contractor?
+
+Calling yourself a contractor doesn't make you one. In the Philippines, the Supreme Court looks at how the work really happens, not what the contract says.
+
+The biggest question is **control**. If a client tells you *what result* they want — "build a system that answers questions in under two seconds" — that points to you being a contractor. If they tell you *how* to work — "log in at 9, use our laptop, join every meeting, follow our process" — that starts to look like a job.
+
+The courts also look at the bigger picture. Do you own your own tools? Can you take other clients? Can you earn more by working smarter? Or do you depend on this one company for your living, year after year?
+
+This matters for two reasons. If a company treats you like staff but calls you a contractor, you might be missing out on benefits you are owed. And if you want the freedom of contracting, you have to act like a business: agree on results, use your own tools, send invoices and keep the door open to other clients.
+
+<Note kind="warn">
+The Philippines has no special law protecting freelancers yet. A bill passed the House in 2023 but never became law. For now, your written contract is your main protection.
+</Note>
+
+## What a job quietly gives you
+
+Here is what Philippine law gives an employee that a contractor has to fund alone:
+
+- **A 13th-month bonus** — an extra month of basic pay each year, paid by 24 December.
+- **Part of your social insurance paid for you.** That covers SSS (pensions and other benefits), PhilHealth (health insurance) and Pag-IBIG (a savings and housing fund). Your employer pays a big share; as a contractor, you pay both shares.
+- **Paid days off** — at least five days of paid leave a year once you have worked a full year, plus paid public holidays.
+- **Separation pay** if the company lets you go for reasons like closing a department — at least a month's pay, and often more, depending on how long you worked there.
+- **Someone to handle your taxes.** Your employer takes tax out of your pay and files it. A contractor registers with the tax office, sends invoices and files every quarter.
+
+The social insurance piece is the easiest to see in numbers. At the maximum levels, an employee pays ₱4,450 a month and the employer adds ₱6,200 more. A contractor pays the whole ₱10,650.
+
+<Exhibit
+  n={1}
+  title="For the same social insurance, a contractor pays more than twice as much each month"
+  sub="Monthly SSS, PhilHealth and Pag-IBIG contributions you pay yourself, at the maximum, ₱"
+  source="RA 11199 and KPMG (SSS, 2025); PhilHealth Advisory 2025-0002; HDMF Circular 460 via Forvis Mazars"
+  sourceUrl="https://lawphil.net/statutes/repacts/ra2019/ra_11199_2019.html"
+  note="Author’s calculation at the contribution ceilings. The employer covers the ₱6,200 difference for employees."
+  table={[['Who pays', '₱ per month'], ['Employee', '4,450'], ['Contractor', '10,650']]}
+>
+  <Bars prefix="₱" data={[
+    { label: 'Employee pays', value: 4450, display: '₱4,450' },
+    { label: 'Contractor pays', value: 10650, display: '₱10,650', hl: true },
+  ]} />
+</Exhibit>
+
+## The surprise: tax often favours the contractor
+
+Here is the part most people don't expect. If you earn under ₱3 million a year as a contractor, the Philippines lets you choose a simple tax: **8% of what you earn above ₱250,000.** You pick it on your first tax return of the year, and it replaces both the normal income tax and an extra 3% tax.
+
+In the in-depth example, an employee earning ₱1.95 million in cash pays about ₱354,000 in income tax. A contractor earning about the same on the 8% option pays about ₱137,000. That is a big difference, and it covers most of the extra costs of going solo — the full social insurance, your own laptop and software, an accountant, and the fees for getting paid from abroad.
+
+Those fees are real, by the way. Services like PayPal, Payoneer and Wise all charge somewhere: to receive the money, to change dollars into pesos, or to move it to your bank. Changing currencies is usually the biggest hidden cost. Always ask what a payment costs from start to finish.
+
+## The real catch: days you can't bill
+
+So if tax is lower, where does the money go? Into the days nobody pays you for.
+
+An employee is paid for every working day of the year — about 260 — including holidays and leave. A contractor is paid only for the days they actually charge a client. Everything else is unpaid: holidays, rest, sick days, time spent finding the next client, paperwork and the gap between one project and the next.
+
+In the in-depth example, the contractor needs about ₱1.97 million a year to match the employee. Spread over 200 billable days, that is about ₱9,835 a day — 31% more than the employee's ₱7,500 per working day. Add a 20% safety margin for slow months and late payments, and it is about ₱11,800 a day.
+
+<Exhibit
+  n={2}
+  title="To match a job, the contractor must charge about a third more per day — and more again for safety"
+  sub="Illustrative day rates, ₱"
+  note="Made-up example numbers, not anyone’s real pay. Employee: ₱1,950,000 a year over 260 working days. Contractor: ₱1,966,944 a year over 200 billable days, then plus a 20% safety margin."
+  table={[['Scenario', '₱ per day'], ['Employee, per working day', '7,500'], ['Contractor, just breaking even', '9,835'], ['Contractor, with a safety margin', '11,802']]}
+>
+  <Bars prefix="₱" data={[
+    { label: 'Employee day pay', value: 7500, display: '₱7,500' },
+    { label: 'Contractor, break-even', value: 9835, display: '₱9,835', hl: true },
+    { label: 'With safety margin', value: 11802, display: '₱11,802' },
+  ]} />
+</Exhibit>
+
+A quick rule of thumb from that example: **every 20 days you can't bill costs you about 10% of your income.** That is why finding clients matters so much. In a 2023 Payoneer survey of more than 2,000 freelancers, 73% said finding new clients was their biggest challenge. At a job, you sell yourself once, at the interview. As a consultant, you do it at the start of every project.
+
+There is a second way to lose days: saying yes to everything. "Scope" means the list of work you and the client agreed on.
+
+<Note kind="field" label="My early mistake">
+When I started, I said yes to every "small extra request" without discussing it. Projects took longer, I missed other opportunities because I was stuck on stretched work, and eventually I burned out. Now I agree the scope up front, and when something falls outside it I say so: "that's outside what we agreed — here's what it would take." That isn't being difficult. It's being professional.
+</Note>
+
+The upside is real too. Filipino freelancers with clients abroad earn as much as 57% more per hour than those with only local clients, according to a 2022 Payoneer and GCash study. Working for yourself also brings freedom over what you work on, more variety and a reputation that travels internationally.
+
+## Jargon decoder
+
+<Compare
+  cols={['Plain words']}
+  rows={[
+    { k: 'Independent contractor', v: ['Someone who sells their work to clients as a small business, not as staff'] },
+    { k: 'Four-fold test', v: ['The four questions courts ask to decide if you are really an employee: who hired you, who pays you, who can fire you, and who controls how you work'] },
+    { k: '13th-month pay', v: ['A legally required extra month of basic pay each year'] },
+    { k: 'SSS, PhilHealth, Pag-IBIG', v: ['Government programmes for pensions, health insurance and housing savings'] },
+    { k: '8% option', v: ['A simple flat tax for self-employed people earning under ₱3 million a year'] },
+    { k: 'Billable day', v: ['A day you can actually charge a client for'] },
+    { k: 'Utilisation', v: ['How many of your working days are billable'] },
+    { k: 'Runway', v: ['How many months you could pay your bills with no income'] },
+    { k: 'Pipeline', v: ['Paying work that is lined up or likely to arrive soon'] },
+    { k: 'Scope creep', v: ['Extra work that sneaks into a project without anyone agreeing to pay for it'] },
+  ]}
+/>
+
+## How to tell which one fits you now
+
+I score five things before deciding:
+
+1. **Runway** — do you have at least six months of savings, plus money set aside for tax?
+2. **Risk tolerance** — could your household handle a bad few months?
+3. **Pipeline** — do you have clients ready to sign, or would you be starting from zero?
+4. **Career stage** — have you built and delivered real systems you can show people?
+5. **Need for mentorship** — do you still need a manager and daily feedback to grow?
+
+If you are weak on runway or pipeline, that usually decides it, however strong you are elsewhere. Early in your career, a good team that reviews your work is worth more than any day rate.
+
+<Exhibit
+  n={3}
+  title="Go independent only when you have both clients and savings"
+  sub="Which way of working fits you now"
+  note="Framework by the author."
+>
+  <Matrix
+    x="Clients lined up"
+    y="Savings and ability to take risk"
+    quads={[
+      { title: 'Find clients first', text: 'Savings but no clients: stay employed and build your reputation' },
+      { title: 'Go independent', text: 'Clients waiting and months of savings', hl: true },
+      { title: 'Stay and build', text: 'No clients, no savings: grow skills, savings and proof in a good team' },
+      { title: 'One anchor client', text: 'Clients but thin savings: start with one main client or work through a firm while you save' },
+    ]}
+  />
+</Exhibit>
+
+If you do decide to go, do it in steps over about a year: work out your own numbers, save, show your work publicly, line up a first client with a proper written contract, and only then register as self-employed and hand in your notice. Check your current job contract first — many limit outside work.
+
+## If you remember one thing
+
+A job sells your time and gives you safety as part of the deal. Working for yourself means selling results and buying that safety back with your own money. Charge enough to cover the days you can't bill, line up clients before you leave, keep savings for the slow months, and protect the scope you agreed. Do that, and independence can be the better deal. Skip it, and the freedom is borrowed.

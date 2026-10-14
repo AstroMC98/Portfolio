@@ -83,7 +83,7 @@
   line-height: 1.65;
   overflow-x: auto;
 }
-.prose table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.prose table { width: 100%; border-collapse: collapse; font-size: 0.95rem; display: block; overflow-x: auto; }
 .prose th { text-align: left; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
 .prose th, .prose td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .prose hr { border: 0; height: 1px; background: var(--line); margin-block: 3em; }
@@ -117,7 +117,7 @@
 .exhibit__foot { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); display: grid; gap: 6px; font-size: 0.78rem; color: var(--muted); }
 .exhibit__foot a { color: var(--text-2); text-decoration: underline; text-decoration-color: var(--line-2); }
 .exhibit__foot .mono { font-family: var(--font-mono); }
-.exhibit details { font-size: 0.8rem; }
+.exhibit details { font-size: 0.8rem; max-width: 100%; overflow-x: auto; } /* wide data tables scroll on phones */
 .exhibit summary { cursor: pointer; color: var(--text-2); font-family: var(--font-mono); letter-spacing: 0.06em; }
 .exhibit details table { margin-top: 10px; width: 100%; border-collapse: collapse; }
 .exhibit details td, .exhibit details th { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; }

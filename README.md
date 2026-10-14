@@ -50,7 +50,7 @@ Posts are MDX files in `src/content/blog/` (schema in `src/content.config.ts`). 
 
 `npm run admin` starts the dev server and opens `http://localhost:4321/admin`, a password-protected editor for the blog.
 
-- **Needs you** (the landing view) lists every passage that needs the author, across all posts and `src/data/*.ts`, and each one can be fixed in place without opening the file:
+- **Needs you** (the landing view) lists every passage that needs the author, across all posts, their ELI5 versions (tagged "ELI5") and `src/data/*.ts`, and each one can be fixed in place without opening the file:
   - review flags, which block publishing;
   - `TODO` markers and template placeholders;
   - first-person "your experience" notes (`<Note kind="field">`), each with a **Looks right** check-off;
@@ -59,9 +59,11 @@ Posts are MDX files in `src/content/blog/` (schema in `src/content.config.ts`). 
 
   Checked-off passages are stored in the git-ignored `admin/.state.json` and come back if their text changes.
 - **Post editor**:
-  - *Content* shows the body one `##` section at a time, with an outline giving word count, exhibit count and needs badges per section.
+  - *In depth* shows the body one `##` section at a time, with an outline giving word count, exhibit count and needs badges per section.
+  - *ELI5* edits the plain-English version (`src/content/simple/<slug>.mdx`) the same way, plus its own dek and takeaways. Posts without one get a **Create ELI5 version** button that starts from a short template (lede, "Jargon decoder", "If you remember one thing"); posts that have one show an "ELI5" marker in the sidebar.
   - *Details & sources* holds the frontmatter, including an optional `updated` date shown as "Updated …" under the byline.
-- Preview links, "new post" (created as a local draft), move between `blog/` and `drafts/`, and trash (`src/content/.trash/`, git-ignored).
+  - One Save (Ctrl+S) writes whichever versions have unsaved changes.
+- Preview links (`?view=eli5` from the ELI5 tab), "new post" (created as a local draft), move between `blog/` and `drafts/` (the ELI5 file stays in `src/content/simple/` either way), and trash (`src/content/.trash/`, git-ignored; the ELI5 file goes with the post, suffixed `.eli5`).
 
 - Set the password in `.env` (git-ignored): copy `.env.example` and set `ADMIN_PASSWORD`. Without it the admin refuses all logins.
 - It exists **only in `astro dev`** (`integrations/blog-admin.mjs`, Vite middleware) and answers only loopback requests. The static build and GitHub Pages never contain it — publishing still happens by committing and pushing.

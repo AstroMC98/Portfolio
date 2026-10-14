@@ -1,0 +1,136 @@
+---
+dek: "When an AI system is too expensive or makes too many mistakes, the best fix is usually not a bigger AI model but the cheaper, older tools around it: sending easy work to cheap models, honest confidence scores, and people reviewing the right cases."
+takeaways:
+  - "Most questions don’t need the most expensive AI model. Sending the easy ones to a cheap model can cut costs by more than two thirds while the hard ones still get the best model."
+  - "An AI saying “I’m 90% sure” is not a real probability. Turn confidence into numbers you can trust by checking them against cases where you already know the answer."
+  - "Put people where the AI is unsure and mistakes are costly, work out how many reviewers that takes, and report every test score with its margin of error."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Columns from '../../components/blog/Columns.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">A hospital does not send every patient straight to its most senior surgeon. A triage nurse sees everyone first. Most people need a plaster or a prescription; a few need the specialist; and a doctor double-checks the cases where getting it wrong would be serious. Nobody thinks the answer to a crowded waiting room is “hire a more famous surgeon”. Yet that is exactly the reflex many teams have when their AI system is too expensive or makes too many mistakes: buy a bigger model.</p>
+
+Before working on today’s large AI models, I built what is now called classic machine learning: a claims fraud-detection model at an insurer, workforce forecasting, and skill scoring for a labour-market dashboard. When generative AI arrived it was tempting to throw that toolbox away. That would have been a mistake.
+
+My argument: **the cheapest, most reliable improvements to an AI system come from the statistics, simpler machine learning and human review wrapped around the model, not from swapping in a bigger model.** The bigger model sometimes helps, but it is usually the most expensive way to buy a small improvement. It also leaves the real problems in place: the system still can’t tell you which answers to trust, can’t prove its error rate, and can’t learn from the people who correct it.
+
+## Why this matters now
+
+Three things make the “boring” toolbox more valuable than ever.
+
+- **Price differences are huge.** On Anthropic’s published prices, its top model, Claude Opus 5.5, costs $4 per million tokens of input (a token is a small chunk of text, often part of a word). Its small model, Haiku 5.5, starts at a fortieth of that price. Anthropic itself says the small model is built for jobs like sorting and routing. Sending every request to the flagship is a choice to overpay.
+- **Trust is the bottleneck, and review habits are uneven.** In McKinsey’s March 2025 survey, 27% of organisations using generative AI reviewed all of its outputs before use, while a similar share checked 20% or less. Reviewing everything doesn’t scale; reviewing almost nothing is a gamble. What is missing is a principled way to decide *which* answers a person should see.
+- **Risk teams want numbers, not adjectives.** “The model is usually right” won’t get past a risk committee. “The automated path is wrong 1.8% of the time, give or take 0.6 points, and we send the 12% of uncertain cases to a person” will.
+
+## Jargon decoder
+
+<Compare
+  cols={["In plain words"]}
+  rows={[
+    { k: "LLM", v: ["A large language model: the kind of AI behind chat assistants"] },
+    { k: "Router", v: ["A quick check that decides which model, or which person, should handle a request"] },
+    { k: "Cascade", v: ["Try the cheap model first; pass the job up only if its answer looks shaky"] },
+    { k: "Classifier", v: ["A small model that sorts things into fixed categories, such as “refund request” or “complaint”"] },
+    { k: "Calibration", v: ["Making sure that when the system says 80% sure, it is right about 80% of the time"] },
+    { k: "Conformal prediction", v: ["A statistical method that turns a score into a guarantee, e.g. “the right answer is on this shortlist 90% of the time”"] },
+    { k: "Human-in-the-loop", v: ["Building people into the process to check or decide certain cases"] },
+    { k: "Margin of error", v: ["How far a test score could be off just by chance, the “give or take” part"] },
+  ]}
+/>
+
+## Layer 1: send easy work to the cheap model
+
+Think of the system as a sandwich. The AI model is the filling. The statistics and simpler tools on either side are what make it safe to pick up. The first slice of bread is **routing**: deciding, before the expensive work starts, who should handle each request.
+
+The research is striking. A 2024 study called RouteLLM trained routers that sent easy questions to a cheaper model and hard ones to GPT-4. On a chat benchmark it cut cost by more than 85% while keeping 95% of GPT-4’s quality. An earlier study, FrugalGPT, matched GPT-4 with up to 98% lower cost using a cascade. The savings were smaller on harder test sets, though: your mix of easy and hard questions, not the paper’s, decides what you save.
+
+Here is what it looks like with published prices, for a million requests a month:
+
+<Exhibit
+  n={1}
+  title="The cost is driven by one number: how much traffic reaches the big model"
+  sub="Illustrative monthly cost for 1 million requests, US dollars"
+  source="Prices: Anthropic models overview (Opus 5.5 and Haiku 5.5 list prices)"
+  sourceUrl="https://platform.claude.com/docs/en/about-claude/models/overview"
+  note="Illustrative arithmetic from published list prices, not measured data. Each request assumed to be 2,000 input and 500 output tokens. The router sends 30% of requests to Opus and 70% to Haiku."
+  table={[["Strategy", "Monthly cost"], ["Everything to the big model (Opus 5.5)", "$18,000"], ["Router: 30% to the big model", "$5,715"], ["Everything to the small model (Haiku 5.5)", "$450"]]}
+>
+  <Columns prefix="$" data={[
+    { label: "All big model", value: 18000, display: "$18,000" },
+    { label: "Router, 30% big", value: 5715, display: "$5,715", hl: true },
+    { label: "All small model", value: 450, display: "$450" },
+  ]} />
+</Exhibit>
+
+The saving is roughly the share of traffic you keep away from the expensive model. The risk is a genuinely hard question being routed down, so you keep checking a sample of what the cheap model handled.
+
+<Note kind="field">
+In a hybrid chatbot I built, the “router” sat in front of an expensive document search. A smaller, faster model looked at the conversation and answered one question: does the conversation already contain what’s needed to answer this? If yes, the search was skipped. On conversations full of follow-up questions, that removed roughly 40% of the search cost. It wasn’t a new model, just a decision placed in front of an expensive step.
+</Note>
+
+## Layer 2: small specialists and honest confidence scores
+
+For narrow sorting jobs with a fixed set of labels, small models trained on your own examples still beat giant models asked cold. Two 2024 studies found exactly that. The big AI model still has a starring role, just a different one: it is an excellent, cheap **labeller**. One study found ChatGPT labelled tweets more accurately than paid crowd workers on four of five tasks, at about a twentieth of the cost. So the recipe is: the big model labels, people check a sample, and a small model does the day-to-day work.
+
+The second problem is confidence. When you ask a chat model how sure it is, you get text that *looks* like a probability but isn’t one. Research found that when models state their confidence, they tend to be overconfident, and that even the better confidence signals were only slightly better than a coin flip at spotting the model’s own mistakes.
+
+The fix is **calibration**: take signals you can actually measure (how much several answers agree, how well the answer is backed by the documents it found), then check them against a set of cases where you already know the right answer, and adjust the scores until “80%” really means right 80% of the time.
+
+**Conformal prediction** goes one step further and gives a guarantee. You hold back a few hundred to a thousand cases with known answers, see how wrong the model tends to be, and set a cut-off. Afterwards, for each new case, the system produces a shortlist that contains the right answer at least, say, 90% of the time. The size of that shortlist becomes a routing rule anyone can understand. One answer: automate it. Two or three: send it to a person with the shortlist ready. Empty or everything: something unusual is going on, so escalate. The guarantee holds only while new cases resemble the ones you tested on, so you keep re-checking.
+
+## Layer 3: people where it matters, and arithmetic for the queue
+
+Human review is the most expensive part of the system and the one most often designed by accident. Put people where the model is uncertain *and* a mistake would be costly. For confident, low-stakes work, automate it, but have someone review a small random sample, or you will never see the model’s *confident* mistakes.
+
+Size the queue with arithmetic, not hope. Suppose 20,000 items arrive a day and 6% go to review: 1,200 items. At four minutes each, that is 80 hours of reviewing a day, or about 13 reviewers. Send 12% to review and you need about 27. The review threshold is a staffing decision as much as a statistical one.
+
+Every human correction is also free training data. Feed it back into the router, the small models, the calibration and the tests, so each human decision makes the next automated one better.
+
+The UK government’s Consult tool shows the sandwich in miniature. In October 2025 it analysed more than 50,000 public consultation responses in about two hours for £240, followed by 22 hours of expert checking.
+
+<Exhibit
+  n={2}
+  title="The AI agreed with experts more often than the experts agreed with each other"
+  sub="Agreement scores on sorting responses into themes (1.0 = perfect agreement)"
+  source="GOV.UK, 16 Oct 2025"
+  sourceUrl="https://www.gov.uk/government/news/ground-breaking-use-of-ai-saves-taxpayers-money-and-delivers-greater-government-efficiency"
+  note="Government-reported figures (F1 scores). Consult was compared with two separate groups of human experts."
+  table={[["Comparison", "Agreement (F1)"], ["Consult vs. expert group 1", "0.79"], ["Consult vs. expert group 2", "0.82"], ["Expert group vs. expert group", "0.74"]]}
+>
+  <Bars max={1} data={[
+    { label: "AI vs. experts (1)", value: 0.79, display: "0.79", hl: true },
+    { label: "AI vs. experts (2)", value: 0.82, display: "0.82", hl: true },
+    { label: "Experts vs. experts", value: 0.74, display: "0.74" },
+  ]} />
+</Exhibit>
+
+The lesson is not that AI beat the humans. It is that measuring how much humans agree with *each other* gave the AI’s score a meaning.
+
+## Layer 4: test scores need a margin of error
+
+Every claim above rests on a test score, and most test scores in industry are reported with no “give or take”. That matters, because small tests are noisy.
+
+<Exhibit
+  n={3}
+  title="A 100-question test can’t tell 80% accuracy from 87%"
+  sub="Margin of error on a measured accuracy of 80%, by number of test questions (± percentage points, 95% confidence)"
+  source="Method: Miller, Adding Error Bars to Evals (2024)"
+  sourceUrl="https://arxiv.org/abs/2411.00640"
+  note="Arithmetic illustration assuming independent questions."
+  table={[["Questions", "Margin of error"], ["50", "±11.1"], ["100", "±7.8"], ["1,000", "±2.5"]]}
+>
+  <Columns unit=" pts" data={[
+    { label: "50 questions", value: 11.1, display: "±11.1" },
+    { label: "100 questions", value: 7.8, display: "±7.8", hl: true },
+    { label: "1,000 questions", value: 2.5, display: "±2.5" },
+  ]} />
+</Exhibit>
+
+Many teams pick models and settings on 50 to 100 examples, where a 5-point “win” is just noise. Spotting a genuine 3-point improvement takes roughly 1,000 questions.
+
+## If you remember one thing
+
+The AI model is the most impressive part of any system it sits in, and usually the least controllable. Everything around it, from the router and the small models to the confidence scores, the review queue and the tests, can be measured and improved, and all of it costs less than the next model tier. Before you buy a bigger model, build the instruments that show what the current one is doing. Usually they point to a cheaper fix. When they don’t, at least you will know the upgrade worked.

@@ -1,10 +1,10 @@
 ---
-import { render } from 'astro:content';
+import { render, getEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Nav from '../../components/Nav.astro';
 import Logo from '../../components/Logo.astro';
 import PostCover from '../../components/blog/PostCover.astro';
-import { getPosts, isLive, needsReview, readingMinutes, fmtDate, type Post } from '../../lib/posts';
+import { getPosts, isLive, needsReview, readingMinutes, minutesFor, fmtDate, type Post } from '../../lib/posts';
 import { PROFILE } from '../../data/profile';
 import '../../styles/blog.css';
 
@@ -21,30 +21,60 @@ const { Content, headings } = await render(post);
 const d = post.data;
 const toc = headings.filter((h) => h.depth === 2);
 const scheduled = !isLive(post);
+
+// Optional ELI5 / intern version (src/content/simple/<slug>.mdx), shown behind the reading-level toggle.
+const simple = await getEntry('simple', post.id);
+const eli5 = simple ? await render(simple) : null;
+const Eli5Content = eli5?.Content;
+const eliToc = eli5 ? eli5.headings.filter((h) => h.depth === 2) : [];
+const eliMinutes = simple ? minutesFor(simple.body) : 0;
 ---
 <Base title={`${d.title} — Marc Castro`} description={d.dek}>
   <Nav />
   <div class="progress" aria-hidden="true"><span data-progress></span></div>
   <main id="main" class="post">
+    {simple && (
+      <>
+        <input class="view-radio" type="radio" name="view" id="view-full" value="full" checked aria-label="In depth" />
+        <input class="view-radio" type="radio" name="view" id="view-eli5" value="eli5" aria-label="ELI5" />
+      </>
+    )}
     <header class="post-hero wrap">
       <nav class="crumbs mono" aria-label="Breadcrumb"><a href="/blog/">← Writing</a></nav>
       <div class="post-hero__meta mono">
         {d.kicker && <span class="post-hero__kicker">{d.kicker}</span>}
         <span><time datetime={d.date.toISOString().slice(0, 10)}>{fmtDate(d.date)}</time></span>
         {d.updated && <span>Updated <time datetime={d.updated.toISOString().slice(0, 10)}>{fmtDate(d.updated)}</time></span>}
-        <span>{readingMinutes(post)} min read</span>
+        <span data-v="full">{readingMinutes(post)} min read</span>
+        {simple && <span data-v="eli5">{eliMinutes} min read · ELI5</span>}
         {scheduled && <span class="badge-sched">{d.draft ? 'Draft' : needsReview(post) ? 'Needs review' : 'Scheduled'} · not public yet</span>}
       </div>
       <h1 class="post-hero__title">{d.title}</h1>
-      <p class="post-hero__dek">{d.dek}</p>
+      <p class="post-hero__dek" data-v="full">{d.dek}</p>
+      {simple && <p class="post-hero__dek" data-v="eli5">{simple.data.dek ?? d.dek}</p>}
+      {simple && (
+        <div class="view-switch" role="group" aria-label="Reading level">
+          <span class="view-switch__k mono">Read it</span>
+          <div class="view-switch__seg">
+            <label for="view-full"><b>In depth</b><small>the full analysis</small></label>
+            <label for="view-eli5"><b>ELI5</b><small>plain English, no jargon</small></label>
+          </div>
+        </div>
+      )}
       <div class="post-hero__tags">{d.tags.map((t) => <a class="chip" href={`/blog/#${encodeURIComponent(t)}`}>{t}</a>)}</div>
       <div class="post-hero__cover"><PostCover motif={d.motif} slug={post.id} banner /></div>
     </header>
 
     <div class="post-body wrap">
       <aside class="toc" aria-label="In this article">
+        {simple && (
+          <div class="toc-switch mono" aria-hidden="true">
+            <label for="view-full">In depth</label><label for="view-eli5">ELI5</label>
+          </div>
+        )}
         <p class="toc__k mono">In this article</p>
-        <ol>{toc.map((h) => <li><a href={`#${h.slug}`} data-toc>{h.text}</a></li>)}</ol>
+        <ol data-v="full">{toc.map((h) => <li><a href={`#${h.slug}`} data-toc>{h.text}</a></li>)}</ol>
+        {simple && <ol data-v="eli5">{eliToc.map((h) => <li><a href={`#eli5-${h.slug}`} data-toc>{h.text}</a></li>)}</ol>}
       </aside>
 
       <article class="post-article">
@@ -55,18 +85,33 @@ const scheduled = !isLive(post);
           </aside>
         )}
         {d.thesis && (
-          <section class="thesis" aria-label="Thesis">
+          <section class="thesis" aria-label="Thesis" data-v="full">
             <p class="thesis__k mono">Thesis</p>
             <p class="thesis__t">{d.thesis}</p>
           </section>
         )}
         {d.takeaways.length > 0 && (
-          <section class="takeaways" aria-label="Key takeaways">
+          <section class="takeaways" aria-label="Key takeaways" data-v="full">
             <p class="takeaways__k mono">Key takeaways</p>
             <ol>{d.takeaways.map((t) => <li>{t}</li>)}</ol>
           </section>
         )}
-        <div class="prose"><Content /></div>
+        <div class="prose" data-v="full"><Content /></div>
+        {simple && Eli5Content && (
+          <div data-v="eli5" data-eli5>
+            <aside class="eli5-intro">
+              <p class="eli5-intro__k mono">ELI5 version</p>
+              <p>The same argument and evidence in plain English. Want the charts, caveats and methodology? Switch to <label for="view-full">In depth</label>.</p>
+            </aside>
+            {simple.data.takeaways.length > 0 && (
+              <section class="takeaways" aria-label="In short">
+                <p class="takeaways__k mono">In short</p>
+                <ol>{simple.data.takeaways.map((t) => <li>{t}</li>)}</ol>
+              </section>
+            )}
+            <div class="prose"><Eli5Content /></div>
+          </div>
+        )}
 
         {d.sources.length > 0 && (
           <section class="sources" aria-labelledby="sources-title">
@@ -118,6 +163,35 @@ const scheduled = !isLive(post);
   .post-hero__tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
   .post-hero__cover { margin-top: clamp(32px, 4vw, 48px); }
 
+  /* Reading-level toggle. CSS :has() swaps versions without JS; JS mirrors the choice on data-view. */
+  .view-radio { position: absolute; opacity: 0; pointer-events: none; }
+  .post:has(#view-eli5:checked) [data-v='full'] { display: none; }
+  .post:not(:has(#view-eli5:checked)) [data-v='eli5'] { display: none; }
+  .view-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 26px; }
+  .view-switch__k { font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .view-switch__seg { display: inline-grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border: 1px solid var(--line-2); border-radius: 999px; background: var(--ink-2); }
+  .view-switch__seg label { display: grid; gap: 1px; padding: 8px 18px; border-radius: 999px; cursor: pointer; text-align: center; line-height: 1.15; transition: background 0.2s, color 0.2s; }
+  .view-switch__seg b { font-weight: 750; font-size: 0.95rem; }
+  .view-switch__seg small { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; color: var(--muted); }
+  .view-switch__seg label:hover { background: var(--ink-3, #172019); }
+  .post:has(#view-full:checked) .view-switch__seg label[for='view-full'],
+  .post:has(#view-eli5:checked) .view-switch__seg label[for='view-eli5'] { background: var(--signal); color: var(--ink); }
+  .post:has(#view-full:checked) .view-switch__seg label[for='view-full'] small,
+  .post:has(#view-eli5:checked) .view-switch__seg label[for='view-eli5'] small { color: rgb(10 13 12 / 0.7); }
+  .post:has(#view-full:focus-visible) .view-switch__seg label[for='view-full'],
+  .post:has(#view-eli5:focus-visible) .view-switch__seg label[for='view-eli5'] { outline: 2px solid var(--signal); outline-offset: 2px; }
+  .toc-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; margin-bottom: 22px; border: 1px solid var(--line); border-radius: 999px; font-size: 11px; letter-spacing: 0.06em; }
+  .toc-switch label { padding: 5px 0; border-radius: 999px; text-align: center; cursor: pointer; color: var(--muted); }
+  .post:has(#view-full:checked) .toc-switch label[for='view-full'],
+  .post:has(#view-eli5:checked) .toc-switch label[for='view-eli5'] { background: var(--ink-3, #172019); color: var(--signal); }
+  .eli5-intro { margin-bottom: 1.6em; padding: 16px 20px; border: 1px dashed var(--line-2); border-radius: 14px; color: var(--text-2); font-size: 0.95rem; }
+  .eli5-intro__k { font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--signal); margin-bottom: 6px; }
+  .eli5-intro label { color: var(--signal); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  @media (max-width: 480px) {
+    .view-switch__seg { width: 100%; }
+    .view-switch__seg label { padding: 8px 10px; }
+  }
+
   .post-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: clamp(32px, 5vw, 80px); padding-block: clamp(48px, 6vw, 80px); }
   .toc { position: sticky; top: 110px; align-self: start; max-height: calc(100vh - 140px); overflow-y: auto; scrollbar-width: thin; padding-right: 6px; }
   .toc__k { font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
@@ -168,6 +242,38 @@ const scheduled = !isLive(post);
 </style>
 
 <script>
+  // Reading level: ?view=eli5 deep link > remembered choice > in depth.
+  const main = document.querySelector<HTMLElement>('main.post')!;
+  const radios = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="view"]'));
+  // ELI5 headings get an "eli5-" prefix so their ids never collide with the in-depth ones.
+  document.querySelectorAll('[data-eli5] .prose [id]').forEach((el) => { el.id = `eli5-${el.id}`; });
+  const setView = (v: string, remember: boolean) => {
+    main.dataset.view = v;
+    radios.forEach((r) => { r.checked = r.value === v; });
+    if (remember) {
+      try { localStorage.setItem('mc-view', v); } catch {}
+      const u = new URL(location.href);
+      if (v === 'eli5') u.searchParams.set('view', 'eli5'); else u.searchParams.delete('view');
+      u.hash = '';
+      history.replaceState(null, '', u);
+    }
+    dispatchEvent(new Event('scroll'));
+  };
+  if (radios.length) {
+    let initial = new URL(location.href).searchParams.get('view');
+    if (initial !== 'eli5' && initial !== 'full') {
+      try { initial = localStorage.getItem('mc-view'); } catch { initial = null; }
+    }
+    setView(initial === 'eli5' ? 'eli5' : 'full', false);
+    if (location.hash.startsWith('#eli5-')) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+    radios.forEach((r) => r.addEventListener('change', () => {
+      setView(r.value, true);
+      // Keep the reader oriented: if they're deep in the article, jump to the start of the new version.
+      const top = document.querySelector('.post-body')!.getBoundingClientRect().top + scrollY - 90;
+      if (scrollY > top) scrollTo({ top, behavior: 'instant' as ScrollBehavior });
+    }));
+  }
+
   // Reading progress + active TOC entry
   const bar = document.querySelector<HTMLElement>('[data-progress]')!;
   const article = document.querySelector<HTMLElement>('.post-article')!;
@@ -178,7 +284,10 @@ const scheduled = !isLive(post);
     const p = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - innerHeight)));
     bar.style.transform = `scaleX(${p})`;
     let active = -1;
-    heads.forEach((h, i) => { if (h && h.getBoundingClientRect().top < innerHeight * 0.3) active = i; });
+    heads.forEach((h, i) => {
+      // Skip headings in the hidden version (they have no layout box).
+      if (h && h.offsetParent !== null && h.getBoundingClientRect().top < innerHeight * 0.3) active = i;
+    });
     tocLinks.forEach((a, i) => a.classList.toggle('is-active', i === active));
   };
   onScroll();

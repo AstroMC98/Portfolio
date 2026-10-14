@@ -3,7 +3,8 @@
  *
  * Runs ONLY inside `astro dev` (via the astro:server:setup hook) — it adds no routes to the
  * production build, so nothing here is ever deployed. It serves admin/index.html at /admin and a
- * small JSON API that reads and writes the MDX posts in src/content/{blog,drafts}.
+ * small JSON API that reads and writes the MDX posts in src/content/{blog,drafts} and their ELI5
+ * versions in src/content/simple (same slug; `?version=simple` on the post endpoints).
  *
  * Safeguards:
  *  - Only answers requests from the local machine (loopback addresses).
@@ -12,7 +13,7 @@
  *  - Failed logins are rate-limited (5 per 5 minutes).
  *  - State-changing requests must carry an `X-Admin: 1` header (blocks cross-site form posts).
  *  - Slugs are validated, so paths can never escape the content folders.
- *  - "Delete" moves a post to src/content/.trash (git-ignored) instead of erasing it.
+ *  - "Delete" moves a post (and its ELI5 version) to src/content/.trash (git-ignored) instead of erasing it.
  */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { promises as fs } from 'node:fs';
@@ -24,6 +25,8 @@ import { loadEnv } from 'vite';
 const ROOT = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const CONTENT = path.join(ROOT, 'src', 'content');
 const FOLDERS = { blog: path.join(CONTENT, 'blog'), drafts: path.join(CONTENT, 'drafts') };
+/** ELI5 versions: one folder for blog posts and local drafts alike (the post page looks them up by slug). */
+const SIMPLE = path.join(CONTENT, 'simple');
 const TRASH = path.join(CONTENT, '.trash');
 const DATA = path.join(ROOT, 'src', 'data');
 const ADMIN_HTML = path.join(ROOT, 'admin', 'index.html');
@@ -33,7 +36,9 @@ const STATE = path.join(ROOT, 'admin', '.state.json');
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SESSION_MS = 8 * 60 * 60 * 1000;
 const COOKIE = 'mc_admin';
-const MOTIFS = ['paths', 'deploy', 'civic', 'shield', 'brush', 'triad', 'chip', 'stack', 'loop', 'drift'];
+const MOTIFS = ['paths', 'deploy', 'civic', 'shield', 'brush', 'triad', 'chip', 'stack', 'loop', 'drift', 'fork', 'pipeline', 'budget', 'sketch', 'podium', 'dialogue', 'generative'];
+/** Cover motifs must be unique per post, except 'generative', which draws a different picture for every slug. */
+const SHARED_MOTIF = 'generative';
 
 const sessions = new Map(); // token -> expiry
 const failures = []; // timestamps of failed logins
@@ -98,7 +103,8 @@ function serialisePost(frontmatter, body, original = '') {
   for (const [key, value] of Object.entries(frontmatter)) {
     if (JSON.stringify(before[key]) !== JSON.stringify(value)) doc.set(key, value);
   }
-  const fm = doc.toString({ lineWidth: 0, flowCollectionPadding: false }).trimEnd();
+  // An empty map would print as `{}`: an ELI5 file with no dek/takeaways gets an empty frontmatter block.
+  const fm = doc.contents.items.length ? doc.toString({ lineWidth: 0, flowCollectionPadding: false }).trimEnd() : '';
   const text = `---\n${fm}\n---\n${body.replace(/\r\n/g, '\n').replace(/^\n+/, '')}`;
   return eol === '\n' ? text : text.replace(/\n/g, eol);
 }
@@ -125,12 +131,23 @@ async function findPost(slug) {
   return null;
 }
 
+const simpleFile = (slug) => path.join(SIMPLE, `${slug}.mdx`);
+async function exists(file) {
+  try {
+    await fs.access(file);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /* ---------- "Needs you": find the passages that need the author, not the whole file ---------- */
 
 const idOf = (...parts) => createHash('sha256').update(parts.join('\u0000')).digest('hex').slice(0, 16);
 const lineAt = (text, i) => text.slice(0, i).split('\n').length;
 const TODO = /TODO|\bTK\b|\[confirm\]|\[citation needed\]/;
-const PLACEHOLDERS = ['Opening paragraph.', 'Write here.', 'One-sentence summary of the post.'];
+// The last one comes from the admin's ELI5 template ("Jargon decoder").
+const PLACEHOLDERS = ['Opening paragraph.', 'Write here.', 'One-sentence summary of the post.', 'what it means in plain English.'];
 
 async function readState() {
   try {
@@ -152,31 +169,36 @@ function fenceRanges(text) {
 }
 
 /**
- * Scan one post. Offsets (`start`) and `original` refer to the raw file text, so a fix can be
- * applied to exactly that snippet (and refused if the file changed since it was scanned).
+ * Scan one post, or (version 'simple') its ELI5 file. Offsets (`start`) and `original` refer to the raw
+ * file text, so a fix can be applied to exactly that snippet (and refused if the file changed since it
+ * was scanned). ELI5 item ids include the version, so they never collide with the in-depth post's.
  */
-function scanPost(slug, folder, text, acks) {
+function scanPost(slug, folder, text, acks, { version = 'full', title } = {}) {
+  const simple = version === 'simple';
   const { frontmatter: fm } = parsePost(text);
-  const base = { slug, folder, file: path.relative(ROOT, path.join(FOLDERS[folder], `${slug}.mdx`)).replace(/\\/g, '/'), title: fm.title ?? slug };
+  const file = simple ? simpleFile(slug) : path.join(FOLDERS[folder], `${slug}.mdx`);
+  const base = { slug, folder, file: path.relative(ROOT, file).replace(/\\/g, '/'), title: title ?? fm.title ?? slug, ...(simple ? { version: 'simple' } : {}) };
+  const key = simple ? [slug, 'simple'] : [slug];
+  const id = (...parts) => idOf(...key, ...parts);
   const items = [];
   const at = (start, original, extra) => ({ ...base, start, original, line: lineAt(text, start), section: sectionAt(text, start), ...extra });
 
-  if (fm.review) items.push({ ...base, kind: 'review', id: idOf(slug, 'fm-review'), field: 'review', original: String(fm.review), section: 'Post details', line: 1 });
+  if (fm.review && !simple) items.push({ ...base, kind: 'review', id: id('fm-review'), field: 'review', original: String(fm.review), section: 'Post details', line: 1 });
 
   for (const m of text.matchAll(/<Note\b[^>]*>[\s\S]*?<\/Note>/g)) {
     const open = m[0].match(/^<Note\b[^>]*>/)[0];
     const review = /\sreview(?=[\s>/=])/.test(open);
     const voice = /kind=["']field["']/.test(open);
     if (!review && !voice) continue;
-    const id = idOf(slug, m[0].replace(/\r\n/g, '\n'));
-    if (!review && acks[id]) continue;
-    items.push(at(m.index, m[0], { kind: review ? 'review' : 'voice', id }));
+    const nid = id(m[0].replace(/\r\n/g, '\n'));
+    if (!review && acks[nid]) continue;
+    items.push(at(m.index, m[0], { kind: review ? 'review' : 'voice', id: nid }));
   }
 
   const fences = fenceRanges(text);
   for (const m of text.matchAll(/^.*$/gm)) {
     if (!TODO.test(m[0]) || fences.some(([a, b]) => m.index >= a && m.index < b)) continue;
-    items.push(at(m.index, m[0], { kind: 'todo', id: idOf(slug, 'todo', m[0]) }));
+    items.push(at(m.index, m[0], { kind: 'todo', id: id('todo', m[0]) }));
   }
   for (const p of PLACEHOLDERS) {
     const i = text.indexOf(p);
@@ -184,11 +206,12 @@ function scanPost(slug, folder, text, acks) {
     const start = text.lastIndexOf('\n', i) + 1;
     const end = text.indexOf('\n', i);
     const line = text.slice(start, end === -1 ? undefined : end).replace(/\r$/, '');
-    items.push(at(start, line, { kind: 'placeholder', id: idOf(slug, 'ph', p) }));
+    items.push(at(start, line, { kind: 'placeholder', id: id('ph', p) }));
   }
 
+  if (simple) return items; // ELI5 files have no thesis/sources to be missing.
   const missing = [!fm.thesis && 'thesis', !fm.takeaways?.length && 'key takeaways', !fm.sources?.length && 'sources'].filter(Boolean);
-  if (missing.length) items.push({ ...base, kind: 'details', id: idOf(slug, 'details'), section: 'Post details', line: 1, missing });
+  if (missing.length) items.push({ ...base, kind: 'details', id: id('details'), section: 'Post details', line: 1, missing });
   return items;
 }
 
@@ -215,25 +238,39 @@ async function scanData() {
   return items;
 }
 
+async function mdxIn(dir) {
+  try {
+    return (await fs.readdir(dir)).filter((x) => x.endsWith('.mdx'));
+  } catch {
+    return [];
+  }
+}
+
 async function scanAll() {
   const { acks } = await readState();
   const items = [];
+  const owners = new Map(); // slug -> { folder, title } of the in-depth post
   for (const [folder, dir] of Object.entries(FOLDERS)) {
-    let files = [];
-    try {
-      files = await fs.readdir(dir);
-    } catch {}
-    for (const f of files.filter((x) => x.endsWith('.mdx'))) {
-      items.push(...scanPost(f.replace(/\.mdx$/, ''), folder, await fs.readFile(path.join(dir, f), 'utf8'), acks));
+    for (const f of await mdxIn(dir)) {
+      const slug = f.replace(/\.mdx$/, '');
+      const text = await fs.readFile(path.join(dir, f), 'utf8');
+      owners.set(slug, { folder, title: parsePost(text).frontmatter.title ?? slug });
+      items.push(...scanPost(slug, folder, text, acks));
     }
+  }
+  for (const f of await mdxIn(SIMPLE)) {
+    const slug = f.replace(/\.mdx$/, '');
+    const owner = owners.get(slug) ?? { folder: null, title: slug };
+    items.push(...scanPost(slug, owner.folder, await fs.readFile(path.join(SIMPLE, f), 'utf8'), acks, { version: 'simple', title: owner.title }));
   }
   items.push(...(await scanData()));
   return items;
 }
 
-/** Resolve a patch target to a file path. Only posts and src/data/*.ts are editable. */
+/** Resolve a patch target to a file path. Only posts, their ELI5 files and src/data/*.ts are editable. */
 async function targetFile(t = {}) {
   if (t.type === 'post' && SLUG.test(t.slug || '')) return (await findPost(t.slug))?.file ?? null;
+  if (t.type === 'simple' && SLUG.test(t.slug || '')) return (await exists(simpleFile(t.slug))) ? simpleFile(t.slug) : null;
   if (t.type === 'data' && /^[A-Za-z0-9_-]+\.ts$/.test(t.name || '')) {
     const files = await fs.readdir(DATA);
     return files.includes(t.name) ? path.join(DATA, t.name) : null;
@@ -250,19 +287,28 @@ async function listPosts() {
       files = await fs.readdir(dir);
     } catch {}
     for (const f of files.filter((x) => x.endsWith('.mdx'))) {
+      const slug = f.replace(/\.mdx$/, '');
       const text = await fs.readFile(path.join(dir, f), 'utf8');
       const { frontmatter: fm, body } = parsePost(text);
+      let simpleText = null;
+      try {
+        simpleText = await fs.readFile(simpleFile(slug), 'utf8');
+      } catch {}
       out.push({
-        slug: f.replace(/\.mdx$/, ''),
+        slug,
         folder,
         title: fm.title ?? f,
         date: fm.date ? String(fm.date instanceof Date ? fm.date.toISOString().slice(0, 10) : fm.date) : '',
         kicker: fm.kicker ?? '',
+        motif: fm.motif ?? null,
         featured: !!fm.featured,
         draft: !!fm.draft,
         status: statusOf(folder, fm, body),
         reviewFlags: reviewFlags(fm, body),
-        needs: scanPost(f.replace(/\.mdx$/, ''), folder, text, acks).length,
+        hasSimple: simpleText !== null,
+        needs:
+          scanPost(slug, folder, text, acks).length +
+          (simpleText === null ? 0 : scanPost(slug, folder, simpleText, acks, { version: 'simple', title: fm.title }).length),
         words: body.replace(/<[^>]+>|\{[^}]*\}|import .*/g, ' ').split(/\s+/).filter(Boolean).length,
       });
     }
@@ -301,6 +347,18 @@ function validate(fm) {
   for (const k of ['takeaways', 'sources', 'tags']) if (Array.isArray(clean[k]) && clean[k].length === 0) delete clean[k];
   // Keep date as a plain YYYY-MM-DD scalar (not a quoted string or timestamp).
   if (clean.date) clean.date = String(clean.date);
+  return [clean, errors];
+}
+
+/** Validate an ELI5 file's frontmatter (the `simple` collection: optional dek, takeaways list). */
+function validateSimple(fm) {
+  const errors = [];
+  const clean = { ...fm };
+  if (clean.dek != null && typeof clean.dek !== 'string') errors.push('ELI5 dek must be text.');
+  if (clean.takeaways != null && (!Array.isArray(clean.takeaways) || clean.takeaways.some((x) => typeof x !== 'string'))) errors.push('ELI5 takeaways must be a list of strings.');
+  // Drop empty optional fields so the files stay tidy.
+  if (clean.dek == null || clean.dek === '') delete clean.dek;
+  if (clean.takeaways == null || (Array.isArray(clean.takeaways) && clean.takeaways.length === 0)) delete clean.takeaways;
   return [clean, errors];
 }
 
@@ -358,9 +416,9 @@ async function handleApi(req, res, url) {
     const lf = replacement.replace(/\r\n/g, '\n');
     const rep = /\r\n/.test(text) ? lf.replace(/\n/g, '\r\n') : lf;
     await fs.writeFile(file, text.slice(0, start) + rep + text.slice(start + original.length), 'utf8');
-    if (ack && target.type === 'post') {
+    if (ack && (target.type === 'post' || target.type === 'simple')) {
       const state = await readState();
-      state.acks[idOf(target.slug, lf)] = new Date().toISOString();
+      state.acks[target.type === 'simple' ? idOf(target.slug, 'simple', lf) : idOf(target.slug, lf)] = new Date().toISOString();
       await writeState(state);
     }
     return json(res, 200, { ok: true });
@@ -387,7 +445,7 @@ async function handleApi(req, res, url) {
     if (!SLUG.test(slug || '')) return json(res, 400, { error: 'Slug must be lowercase words joined by hyphens.' });
     if (await findPost(slug)) return json(res, 409, { error: 'A post with that slug already exists.' });
     const today = new Date().toISOString().slice(0, 10);
-    const fm = { title: title || 'Untitled post', dek: 'One-sentence summary of the post.', date: today, kicker: 'Essay', motif: 'paths', tags: [], draft: true };
+    const fm = { title: title || 'Untitled post', dek: 'One-sentence summary of the post.', date: today, kicker: 'Essay', motif: SHARED_MOTIF, tags: [], draft: true };
     await fs.mkdir(FOLDERS.drafts, { recursive: true });
     const body = `import Exhibit from '../../components/blog/Exhibit.astro';\nimport Note from '../../components/blog/Note.astro';\n\n<p class="lede">Opening paragraph.</p>\n\n## First section\n\nWrite here.\n`;
     await fs.writeFile(path.join(FOLDERS.drafts, `${slug}.mdx`), serialisePost(fm, body), 'utf8');
@@ -400,6 +458,31 @@ async function handleApi(req, res, url) {
     if (!SLUG.test(slug)) return json(res, 400, { error: 'Invalid slug.' });
     const found = await findPost(slug);
     if (!found) return json(res, 404, { error: 'Post not found.' });
+    const version = url.searchParams.get('version') || 'full';
+    if (version !== 'full' && version !== 'simple') return json(res, 400, { error: 'version must be "full" or "simple".' });
+
+    // ELI5 version: src/content/simple/<slug>.mdx (created on its first save).
+    if (version === 'simple') {
+      const file = simpleFile(slug);
+      const rel = path.relative(ROOT, file).replace(/\\/g, '/');
+      if (!m[2] && method === 'GET') {
+        if (!(await exists(file))) return json(res, 200, { slug, version, exists: false, file: rel });
+        const { frontmatter, body } = parsePost(await fs.readFile(file, 'utf8'));
+        return json(res, 200, { slug, version, exists: true, file: rel, frontmatter, body });
+      }
+      if (!m[2] && method === 'PUT') {
+        const { frontmatter, body } = await readBody(req);
+        if (typeof body !== 'string') return json(res, 400, { error: 'Body must be text.' });
+        if (frontmatter != null && (typeof frontmatter !== 'object' || Array.isArray(frontmatter))) return json(res, 400, { error: 'Frontmatter must be an object.' });
+        const [clean, errors] = validateSimple(frontmatter || {});
+        if (errors.length) return json(res, 422, { error: errors.join(' ') });
+        const original = (await exists(file)) ? await fs.readFile(file, 'utf8') : '';
+        await fs.mkdir(SIMPLE, { recursive: true });
+        await fs.writeFile(file, serialisePost(clean, body, original), 'utf8');
+        return json(res, 200, { ok: true, created: !original });
+      }
+      return json(res, 405, { error: 'Only GET and PUT take ?version=simple.' });
+    }
 
     if (!m[2] && method === 'GET') {
       const { frontmatter, body } = parsePost(await fs.readFile(found.file, 'utf8'));
@@ -412,6 +495,10 @@ async function handleApi(req, res, url) {
       if (typeof body !== 'string') return json(res, 400, { error: 'Body must be text.' });
       const [clean, errors] = validate(frontmatter || {});
       if (errors.length) return json(res, 422, { error: errors.join(' ') });
+      if (clean.motif && clean.motif !== SHARED_MOTIF) {
+        const clash = (await listPosts()).find((p) => p.slug !== slug && p.motif === clean.motif);
+        if (clash) return json(res, 422, { error: `Cover motif "${clean.motif}" is already used by "${clash.title}". Every post needs its own cover: pick another motif or "${SHARED_MOTIF}".` });
+      }
       await fs.writeFile(found.file, serialisePost(clean, body, await fs.readFile(found.file, 'utf8')), 'utf8');
       return json(res, 200, { ok: true, status: statusOf(found.folder, clean, body), reviewFlags: reviewFlags(clean, body) });
     }
@@ -422,14 +509,17 @@ async function handleApi(req, res, url) {
       if (to === found.folder) return json(res, 200, { ok: true, folder: to });
       await fs.mkdir(FOLDERS[to], { recursive: true });
       await fs.rename(found.file, path.join(FOLDERS[to], `${slug}.mdx`));
-      return json(res, 200, { ok: true, folder: to });
+      // The ELI5 file stays put: src/content/simple serves blog posts and local drafts alike.
+      return json(res, 200, { ok: true, folder: to, hasSimple: await exists(simpleFile(slug)) });
     }
 
     if (!m[2] && method === 'DELETE') {
       await fs.mkdir(TRASH, { recursive: true });
       const stamp = new Date().toISOString().replace(/[:.]/g, '-');
       await fs.rename(found.file, path.join(TRASH, `${slug}.${stamp}.mdx`));
-      return json(res, 200, { ok: true });
+      const eli5 = await exists(simpleFile(slug));
+      if (eli5) await fs.rename(simpleFile(slug), path.join(TRASH, `${slug}.${stamp}.eli5.mdx`));
+      return json(res, 200, { ok: true, trashedSimple: eli5 });
     }
   }
 

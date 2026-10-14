@@ -1,0 +1,135 @@
+---
+dek: "Writing down AI rules is not enough; the rules have to be built into the software itself, so that every time the AI is used it follows them and leaves a record anyone can check."
+takeaways:
+  - "Rules that live only in documents do not stop AI mistakes. Rules built into the software, on every single request, do."
+  - "When AI goes wrong, the damage clusters where the software was missing a basic check, such as who is allowed to use what, not where a policy document was missing."
+  - "Good AI governance means you can pick any answer the AI gave last month and show who asked, what the system looked at, what it said and who acted on it."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Columns from '../../components/blog/Columns.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Think of a restaurant kitchen. On the wall there is a poster that says "keep the fridge cold." Inside the fridge there is a thermometer that records the temperature every few minutes. When a health inspector arrives, the poster proves nothing. The thermometer's record proves everything. Most companies using AI today have the poster. Very few have the thermometer.</p>
+
+In February 2024 a Canadian tribunal ruled on a small but telling case. A passenger asked Air Canada's website chatbot about a discounted bereavement fare, and the chatbot told him he could claim it after travelling. Another page on the same website said he could not. Air Canada argued, more or less, that the chatbot was responsible for its own words. The tribunal disagreed: the chatbot was part of Air Canada's website, so Air Canada was liable. The amount of money was small. The lesson was large: **a company owns what its AI says, and "the model did it" is not a defence.**
+
+Every organisation I work with now has an AI policy. Very few can answer three simple questions on the day something goes wrong: *Who asked? What did the system see? What did it say, and who acted on it?*
+
+## The big idea in plain words
+
+My argument is this: **AI governance fails when it lives in policy documents and works only when it is built into the software as checks that run every time, and that leave behind records someone can verify.**
+
+There are three ideas packed into that sentence:
+
+- A **policy** says what should be true. ("Only finance staff may see salary data.")
+- A **control** makes it true, automatically, every time someone uses the AI. (The software checks who you are before it shows you anything.)
+- **Evidence** is the record the control leaves behind. (A log showing that, at 3:02 p.m. on a Tuesday, the system checked your identity and refused.)
+
+A policy without a control is a wish. A control without evidence is a claim nobody can check. You need all three.
+
+## Why this matters now
+
+AI going wrong is no longer a rare event. A public database that tracks AI incidents, used in Stanford's yearly AI Index, recorded about 149 incidents in 2023, 233 in 2024 and 362 in 2025. It only counts incidents that were reported publicly, so the real number is higher.
+
+<Exhibit
+  n={1}
+  title="Publicly recorded AI incidents have more than doubled in two years"
+  sub="Incidents recorded in the AI Incident Database, per year"
+  source="Stanford AI Index 2025 and 2026, Responsible AI chapters"
+  sourceUrl="https://hai.stanford.edu/ai-index/2026-ai-index-report/responsible-ai"
+  note="The 2023 figure is worked out from the reported 56.4% rise to 233 in 2024. Only publicly reported incidents are counted."
+  table={[["Year", "Recorded incidents"], ["2023 (derived)", "~149"], ["2024", 233], ["2025", 362]]}
+>
+  <Columns data={[
+    { label: "2023", value: 149, display: "~149" },
+    { label: "2024", value: 233 },
+    { label: "2025", value: 362, hl: true },
+  ]} />
+</Exhibit>
+
+Inside companies the story is similar. In McKinsey's surveys, the share of organisations reporting at least one bad outcome from their AI rose from 44% in early 2024 to 51% in late 2025. The most common problem was simply wrong answers.
+
+The most useful data, though, comes from IBM's 2025 study of data breaches, because it shows *which missing piece* let the damage in. Of the organisations that had an AI-related breach, 97% did not have proper controls on who could access their AI. Among all breached organisations, 63% had no AI policy. Only 34% of organisations even check whether staff are using AI tools nobody approved.
+
+<Exhibit
+  n={2}
+  title="Almost every organisation with an AI breach was missing access controls"
+  sub="Selected findings, % of organisations (each bar is measured on a different group — see note)"
+  source="IBM Cost of a Data Breach Report 2025"
+  sourceUrl="https://newsroom.ibm.com/2025-07-30-ibm-report-13-of-organizations-reported-breaches-of-ai-models-or-applications,-97-of-which-reported-lacking-proper-ai-access-controls"
+  note="The 97% is among organisations that reported an AI breach; the 63% is among breached organisations; the 34% is across all organisations studied."
+  table={[["Finding", "%"], ["AI-breached orgs lacking AI access controls", 97], ["Breached orgs with no AI policy", 63], ["Orgs that check for unapproved AI", 34]]}
+>
+  <Bars unit="%" max={100} data={[
+    { label: "No access controls", sub: "orgs with an AI breach", value: 97, hl: true },
+    { label: "No AI policy", sub: "breached orgs", value: 63 },
+    { label: "Check for unapproved AI", sub: "all orgs studied", value: 34 },
+  ]} />
+</Exhibit>
+
+Look at the first two bars side by side. A missing policy was common. A missing *control* was almost universal. The survey cannot prove cause and effect, but it points in a clear direction: the thermometer matters more than the poster.
+
+## What the rules actually ask for
+
+The biggest law in this area is the EU AI Act. In 2026 the EU delayed the rules for "high-risk" AI (things like AI used in hiring or education) to December 2027 and August 2028. Many people read that as "we have time." But several parts already apply: bans on certain uses, a duty to train staff in AI basics, and a duty to tell people when they are talking to an AI.
+
+When you read the Act from an engineer's chair, it looks less like a legal document and more like a to-do list for software:
+
+- **Keep automatic records** of what the system does over its whole life. Companies using high-risk AI must keep those logs for at least six months.
+- **Let a human understand, override and stop** the system.
+- **Report serious incidents on a clock:** within 15 days in general, 2 days for widespread problems and 10 days where someone has died.
+
+Fines can reach 7% of a company's worldwide yearly revenue for the worst breaches. Every item on that list is a log, a check, a button on a screen or a process with a deadline. None of it is satisfied by a policy PDF.
+
+## Seven checks that do most of the work
+
+I think of AI governance as a checkpoint that sits between the people using AI and the AI itself. Every request passes through it, and each check leaves a record behind.
+
+<Exhibit n={3} title="Each governance question becomes a check that runs every time and leaves a record" sub="The author’s seven controls, in plain words" note="Author’s framework, simplified from the in-depth version.">
+  <Compare
+    cols={["The question", "The check", "The record it leaves"]}
+    rows={[
+      { k: "1. Inventory", v: ["What AI do we run?", "A register of every AI use, with an owner; unregistered use is blocked", "A list that stays up to date by itself"] },
+      { k: "2. Access", v: ["Who can use it, and see what?", "Confirm who you are; show only what your role allows", "A yes/no decision for every request"] },
+      { k: "3. Quotas", v: ["Can it be abused or run up costs?", "Spending and usage limits per person", "Logs of every blocked request"] },
+      { k: "4. Traceability", v: ["What did it see and say?", "One reference number linking question, sources, version and answer", "A full receipt for every answer"] },
+      { k: "5. Testing", v: ["Is it good enough?", "A standard exam the AI must pass before each release", "A test report for each version"] },
+      { k: "6. Drift", v: ["Is it still behaving?", "Ongoing monitoring for changes in behaviour", "Alerts and dashboards"] },
+      { k: "7. Incidents", v: ["What if it goes wrong?", "An off switch, a way back to the last good version, a reporting deadline", "Incident log and lessons learned"] },
+    ]}
+  />
+</Exhibit>
+
+The test for each check is one question: **if an auditor asked you to prove this check worked last Tuesday at 3 p.m., could you?** If the answer depends on someone's memory or a spreadsheet updated by hand, it is a policy wearing a costume.
+
+<Note kind="field">
+On the enterprise AI chat platform I led, spending limits were enforced by one shared piece of code that every request passed through. Changing the rule was a single change that applied everywhere at once, and the "limit reached" messages it produced were the proof it was working. We also made a deliberate choice: if the spending tracker itself went down, the system let requests through, because for an internal staff assistant, blocking everyone over a billing glitch was the worse outcome. For an AI that can move money, the right choice is the opposite. The point is that someone has to decide, write it down and build it.
+</Note>
+
+Two of these checks surprise people. **Drift** matters because AI models change underneath you. Researchers found that one popular hosted model's accuracy at telling prime from non-prime numbers fell from 84% in March 2023 to 51% in June 2023. If you tested it in March and never again, you did not know what you were running in June. **Traceability** matters because, as Air Canada learned, you will one day need to show exactly what your system said and why.
+
+## Jargon decoder
+
+- **Governance:** the rules for how AI is used, plus who is responsible when it goes wrong.
+- **Request path:** the route a question takes from the person typing it to the AI and back. Checks placed here run every time.
+- **Control:** an automatic check built into the software, as opposed to a rule written in a document.
+- **Auditor:** someone, inside or outside the company, whose job is to verify that the rules were followed.
+- **Shadow AI:** AI tools staff use without approval, such as a personal chatbot account.
+- **Eval (evaluation):** a standard test the AI has to pass before a new version goes live.
+- **Drift:** the AI's behaviour slowly changing over time, often without anyone noticing.
+- **Kill switch:** a way to turn off one AI feature immediately, without rebuilding the software.
+- **Agent:** an AI that takes actions (sends an email, updates a record) rather than only suggesting them.
+
+## Agents raise the stakes
+
+An AI that drafts an email only causes harm if someone sends it. An AI agent that sends it causes harm straight away. In McKinsey's late-2025 survey, 62% of organisations were experimenting with AI agents and 23% were already scaling them. Gartner has predicted that more than 40% of agent projects will be cancelled by the end of 2027, and one of the reasons it gives is weak risk controls.
+
+My rule of thumb: **an agent should earn its freedom.** For actions that are hard to undo, such as payments, changing records or messaging customers, the agent proposes and a person approves. Only when tests, records and a track record show it can be trusted should it act alone. Governance, seen this way, is not a brake on agents. It is what lets you keep them.
+
+## If you remember one thing
+
+The companies that handle AI well will not be the ones with the longest policies. They will be the ones that can pick any AI answer from last month and show who asked, what the system saw, what it said, which version said it, what tests that version passed and what happened when something went wrong. That is not a dream; it is a set of checks a team can build in about 90 days.
+
+Write the policy, by all means. Then build it into the place where the requests go.

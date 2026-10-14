@@ -1,0 +1,708 @@
+---
+title: "Productionizing with Git: How GitHub Actions Turns Good Habits into Gates"
+dek: "“Production” is not a server you deploy to. It is the path a change has to travel to get there. This is a practical guide to building that path for an AI or data project with Git and GitHub Actions: CI with an eval gate, approvals and OIDC for deploys, scheduled canaries, and the cheap supply-chain controls that the 2025–2026 attacks showed were not optional."
+date: 2026-08-29
+updated: 2026-10-14
+kicker: "DevOps"
+motif: pipeline
+tags: ["DevOps", "LLMOps", "Security"]
+thesis: "Production is a property of the path code takes, not of the code itself; Git plus GitHub Actions can turn good habits into enforced, auditable gates, and the cheapest of those gates (required checks, least-privilege tokens and pinned dependencies) prevent the most expensive failures."
+takeaways:
+  - "A gate is a habit the system enforces. A required status check, a protected environment and a pinned action stop the same mistakes a disciplined engineer avoids, and they keep working when nobody is being disciplined."
+  - "The path itself is now a target. In March 2025 a GitHub Action used by more than 23,000 repositories was rewritten to dump CI secrets into build logs. Workflows that pinned it to a full commit SHA were not affected unless they updated during the attack window."
+  - "Least privilege limits the damage when a gate fails. Of the 218 repositories that leaked secrets in that incident, the vast majority leaked only the short-lived GITHUB_TOKEN, which is worth little to an attacker when it is scoped to read-only."
+  - "AI raises the stakes. DORA’s 2024 report estimated a 7.2% fall in delivery stability for every 25% increase in AI adoption, and its 2025 report, with 90% of respondents using AI, found throughput up but instability still rising."
+  - "LLM apps need an eval gate in CI next to the unit tests. A small golden set with a pass-rate threshold catches prompt and model regressions on the pull request, before they reach users."
+  - "Most of the protection costs an afternoon. Read-only default tokens, SHA-pinned third-party actions, OIDC instead of stored cloud keys, and a ruleset that requires checks to pass are all free features on GitHub."
+sources:
+  - label: "CISA — Supply Chain Compromise of Third-Party GitHub Action, CVE-2025-30066 (18 Mar 2025, revised 26 Mar 2025)"
+    url: "https://www.cisa.gov/news-events/alerts/2025/03/18/supply-chain-compromise-third-party-github-action-cve-2025-30066"
+  - label: "NIST NVD — CVE-2025-30066, tj-actions/changed-files (published 15 Mar 2025)"
+    url: "https://nvd.nist.gov/vuln/detail/CVE-2025-30066"
+  - label: "StepSecurity — Harden-Runner detection: tj-actions/changed-files action is compromised (14 Mar 2025)"
+    url: "https://www.stepsecurity.io/blog/harden-runner-detection-tj-actions-changed-files-action-is-compromised"
+  - label: "Wiz — GitHub Action tj-actions/changed-files supply chain attack: everything you need to know (15 Mar 2025)"
+    url: "https://www.wiz.io/blog/github-action-tj-actions-changed-files-supply-chain-attack-cve-2025-30066"
+  - label: "Endor Labs — Blast radius of the tj-actions/changed-files supply chain attack (19 Mar 2025)"
+    url: "https://www.endorlabs.com/learn/blast-radius-of-the-tj-actions-changed-files-supply-chain-attack"
+  - label: "Nx — Security advisory GHSA-cxm3-wv7p-598c, malicious versions of Nx (27 Aug 2025)"
+    url: "https://github.com/nrwl/nx/security/advisories/GHSA-cxm3-wv7p-598c"
+  - label: "Aqua Security — Trivy supply chain attack: what you need to know (22 Mar 2026)"
+    url: "https://www.aquasec.com/blog/trivy-supply-chain-attack-what-you-need-to-know"
+  - label: "NIST NVD — CVE-2026-33634, Trivy and trivy-action tag compromise (published 23 Mar 2026)"
+    url: "https://nvd.nist.gov/vuln/detail/CVE-2026-33634"
+  - label: "GitHub Changelog — Actions policy now supports blocking and SHA pinning actions (15 Aug 2025)"
+    url: "https://github.blog/changelog/2025-08-15-github-actions-policy-now-supports-blocking-and-sha-pinning-actions/"
+  - label: "GitHub Changelog — Immutable releases are now generally available (28 Oct 2025)"
+    url: "https://github.blog/changelog/2025-10-28-immutable-releases-are-now-generally-available/"
+  - label: "GitHub Changelog — Actions pull_request_target and environment branch protections changes (7 Nov 2025)"
+    url: "https://github.blog/changelog/2025-11-07-actions-pull_request_target-and-environment-branch-protections-changes/"
+  - label: "GitHub Blog — What’s coming to our GitHub Actions 2026 security roadmap (26 Mar 2026)"
+    url: "https://github.blog/news-insights/product-news/whats-coming-to-our-github-actions-2026-security-roadmap/"
+  - label: "GitHub Changelog — Immutable subject claims for GitHub Actions OIDC tokens (23 Apr 2026)"
+    url: "https://github.blog/changelog/2026-04-23-immutable-subject-claims-for-github-actions-oidc-tokens/"
+  - label: "GitHub Changelog — Workflow execution protections in GitHub Actions generally available (17 Sep 2026)"
+    url: "https://github.blog/changelog/2026-09-17-workflow-execution-protections-in-github-actions-generally-available/"
+  - label: "GitHub Docs — Workflow dependency lockfiles, public preview (accessed 14 Oct 2026)"
+    url: "https://docs.github.com/en/actions/concepts/security/workflow-dependency-lockfiles"
+  - label: "GitHub Docs — Secure use reference for GitHub Actions (accessed 14 Oct 2026)"
+    url: "https://docs.github.com/en/actions/reference/security/secure-use"
+  - label: "GitHub Docs — OpenID Connect in GitHub Actions (accessed 14 Oct 2026)"
+    url: "https://docs.github.com/en/actions/concepts/security/openid-connect"
+  - label: "GitHub Docs — Deployments and environments (accessed 14 Oct 2026)"
+    url: "https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments"
+  - label: "GitHub Docs — Events that trigger workflows: schedule (accessed 14 Oct 2026)"
+    url: "https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows"
+  - label: "GitHub Changelog — GitHub Actions: Late March 2026 updates (timezones for schedules; 19 Mar 2026)"
+    url: "https://github.blog/changelog/2026-03-19-github-actions-late-march-2026-updates/"
+  - label: "GitHub Docs — GitHub Actions billing: included minutes and per-minute rates (accessed 14 Oct 2026)"
+    url: "https://docs.github.com/en/billing/concepts/product-billing/github-actions"
+  - label: "GitHub Changelog — Update to GitHub Actions pricing (16 Dec 2025, with postponement note)"
+    url: "https://github.blog/changelog/2025-12-16-coming-soon-simpler-pricing-and-a-better-experience-for-github-actions/"
+  - label: "GitHub Docs — Actions limits (accessed 14 Oct 2026)"
+    url: "https://docs.github.com/en/actions/reference/limits"
+  - label: "DORA / Google Cloud — Accelerate State of DevOps Report 2024 (Oct 2024)"
+    url: "https://services.google.com/fh/files/misc/2024_final_dora_report.pdf"
+  - label: "DORA / Google Cloud — State of AI-assisted Software Development 2025 (Sep 2025)"
+    url: "https://services.google.com/fh/files/misc/2025_state_of_ai_assisted_software_development.pdf"
+  - label: "Google Cloud — Announcing the 2025 DORA Report (Sep 2025)"
+    url: "https://cloud.google.com/blog/products/ai-machine-learning/announcing-the-2025-dora-report"
+  - label: "DORA — Software delivery performance metrics (guide)"
+    url: "https://dora.dev/guides/dora-metrics/"
+  - label: "GitHub — Octoverse 2025 (28 Oct 2025)"
+    url: "https://github.blog/news-insights/octoverse/octoverse-a-new-developer-joins-github-every-second-as-ai-leads-typescript-to-1/"
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Stats from '../../components/blog/Stats.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Timeline from '../../components/blog/Timeline.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">At about 16:00 UTC on 14 March 2025, a GitHub Action used by more than 23,000 repositories began printing its users’ secrets into their build logs. None of those repositories had changed a line of code. Someone had rewritten the action’s version tags so that <code>v1</code> through <code>v45.0.7</code> all pointed at one malicious commit, and every workflow that referenced the action by tag ran that commit the next time it ran. The teams that were not affected had done one boring thing: they had pinned the action to a full commit SHA, which cannot be moved.</p>
+
+Most AI and data projects start the same way: a notebook, a script, a demo that works on the author’s laptop. The question “is it in production?” is usually answered by pointing at a server. I think that is the wrong place to look. Two copies of the same code can sit on the same server, and one can be production-grade while the other is not. The difference is how the code got there: who reviewed it, which checks it passed, what credentials touched it, and whether anyone could undo it.
+
+My argument is this: **production is a property of the path code takes, not of the code itself. Git plus GitHub Actions can turn good engineering habits into enforced, auditable gates, and the cheapest gates (required checks, least-privilege tokens, pinned dependencies) prevent the most expensive failures.**
+
+The article explains why this matters more now that AI writes and runs more of our code. It then sets out a five-rung framework for the path to production, and works through each rung with copy-pasteable workflows: CI for a Python LLM app with a small eval gate, a deploy workflow with environments and OIDC, and a scheduled canary. A deep dive on supply-chain security follows, then cost, case examples, objections, implications by role, a plan, and the limits of the evidence.
+
+## Context: why this matters now
+
+Three things have changed since “set up CI” was a line item you could defer.
+
+**The volume of automated change has exploded.** GitHub’s Octoverse 2025 reported 11.5 billion GitHub Actions minutes used in public projects in its 2025 year (September 2024 to August 2025), up 35% from 8.5 billion. Developers merged 518.7 million pull requests, up 29%, and pushed nearly a billion commits. More of those commits now start life in an AI assistant.
+
+<Exhibit
+  n={1}
+  title="The pipes are busier than ever: Actions usage and merged pull requests both grew by about a third"
+  sub="GitHub platform activity, Octoverse 2025 (September 2024 to August 2025), and AI adoption among DORA 2025 respondents"
+  source="GitHub, Octoverse 2025 (28 Oct 2025); DORA, State of AI-assisted Software Development 2025"
+  sourceUrl="https://github.blog/news-insights/octoverse/octoverse-a-new-developer-joins-github-every-second-as-ai-leads-typescript-to-1/"
+  note="Actions minutes are CPU minutes in public projects. Octoverse also reports 13.5 billion minutes (up 30%) using the previous year’s method, which included self-hosted usage. The 90% figure is the share of DORA’s 4,867 survey respondents who use AI in their work."
+>
+  <Stats items={[
+    { value: "11.5B", label: "GitHub Actions minutes in public projects, up 35% year on year" },
+    { value: "518.7M", label: "pull requests merged, up 29%" },
+    { value: "~1B", label: "commits pushed, up 25%" },
+    { value: "90%", label: "of DORA 2025 respondents use AI in their work" },
+  ]} />
+</Exhibit>
+
+**AI has changed the balance between speed and stability.** DORA, Google Cloud’s long-running research programme on software delivery, has measured this directly. Its 2024 report, drawing on nearly 3,000 respondents that year, found that AI adoption improved the things developers feel: documentation quality, code quality and code review speed. But it estimated that every 25% increase in AI adoption came with a 1.5% fall in delivery throughput and a 7.2% fall in delivery stability. The authors were surprised, and their explanation was blunt: improving the development process does not automatically improve delivery “without proper adherence to the basics of successful software delivery, like small batch sizes and robust testing mechanisms”.
+
+<Exhibit
+  n={2}
+  title="In 2024, AI made developers’ work look better while delivery got less stable"
+  sub="Estimated change in each outcome for every 25% increase in AI adoption, DORA 2024 (%)"
+  source="DORA, Accelerate State of DevOps Report 2024"
+  sourceUrl="https://services.google.com/fh/files/misc/2024_final_dora_report.pdf"
+  note="Model estimates from a survey, not measured deployments; the report gives 89% uncertainty intervals. The 2025 report found the throughput effect had turned positive, while instability still rose with AI adoption."
+  table={[["Outcome", "Estimated change per 25% more AI adoption"], ["Documentation quality", "+7.5%"], ["Code quality", "+3.4%"], ["Code review speed", "+3.1%"], ["Delivery throughput", "−1.5%"], ["Delivery stability", "−7.2%"]]}
+>
+  <Bars unit="%" max={8} data={[
+    { label: "Documentation quality", value: 7.5, display: "+7.5%" },
+    { label: "Code quality", value: 3.4, display: "+3.4%" },
+    { label: "Code review speed", value: 3.1, display: "+3.1%" },
+    { label: "Delivery throughput", value: -1.5, display: "−1.5%", neg: true },
+    { label: "Delivery stability", value: -7.2, display: "−7.2%", neg: true, hl: true },
+  ]} />
+</Exhibit>
+
+The 2025 report, *State of AI-assisted Software Development*, surveyed 4,867 people, 90% of whom use AI at work. This time AI adoption was linked to *higher* throughput, but “AI adoption does continue to have a negative relationship with software delivery stability”. The Google Cloud announcement named the cause in a sentence I would put on the wall of any AI team: “Without robust control systems, like strong automated testing, mature version control practices, and fast feedback loops, an increase in change volume leads to instability.” Among the seven capabilities DORA found amplify AI’s benefits are strong version control practices and working in small batches. Teams that committed often and used rollback freely got more out of AI.
+
+**The delivery path became an attack surface.** In eighteen months, three widely used projects were compromised *through their CI*: tj-actions/changed-files (March 2025), Nx (August 2025) and Aqua Security’s trivy-action (March 2026). GitHub’s 2026 security roadmap, published in March 2026, names all three and states the pattern plainly: “attackers are targeting CI/CD automation itself, not just the software it builds.”
+
+DORA’s benchmarks show what a good path delivers. In 2024 the elite cluster, 19% of respondents, deployed on demand with a lead time under a day, a 5% change fail rate and recovery in under an hour. Compared with low performers, the report puts that at 127 times faster lead time, 182 times more deployments per year, 8 times lower change failure rate and 2,293 times faster recovery from failed deployments.
+
+<Exhibit
+  n={3}
+  title="The best teams ship faster and break less: speed and stability move together"
+  sub="Software delivery performance clusters, DORA 2024"
+  source="DORA, Accelerate State of DevOps Report 2024 (p. 13)"
+  sourceUrl="https://services.google.com/fh/files/misc/2024_final_dora_report.pdf"
+  note="Cluster analysis of survey responses on the four original DORA metrics; shares have 89% uncertainty intervals (Elite 18–20%). Note that the medium cluster reports a lower change fail rate than the high cluster: DORA calls the faster teams “high”."
+>
+  <Compare
+    cols={["Elite", "High", "Medium", "Low"]}
+    hlCol={0}
+    rows={[
+      { k: "Change lead time", v: ["Under a day", "1 day to 1 week", "1 week to 1 month", "1 to 6 months"] },
+      { k: "Deployment frequency", v: ["On demand", "Daily to weekly", "Weekly to monthly", "Monthly to every 6 months"] },
+      { k: "Change fail rate", v: ["5%", "20%", "10%", "40%"] },
+      { k: "Failed deployment recovery", v: ["Under an hour", "Under a day", "Under a day", "1 week to 1 month"] },
+      { k: "Share of respondents", v: ["19%", "22%", "35%", "25%"] },
+    ]}
+  />
+</Exhibit>
+
+None of those numbers comes from heroics. They come from a path where small changes flow through automated checks, and any failure can be reverted in minutes. That path is what the rest of this article builds.
+
+## A framework: the path-to-production ladder
+
+I use a five-rung ladder. Each rung converts a habit into a gate, and each one maps to the DORA metrics it moves. You climb in order, because each rung relies on the one below: you cannot require a check that does not exist, and you cannot promote safely what you cannot gate.
+
+<Exhibit n={4} title="Five rungs from “it works on my machine” to production" sub="The path-to-production ladder: each rung turns a habit into an enforced gate" note="Author’s framework.">
+  <Flow steps={[
+    { title: "Push", text: "Everything lives in Git: code, prompts, eval sets, infrastructure, workflows. Small branches, pull requests, nothing edited in a console." },
+    { title: "Check", text: "Every pull request runs lint, unit tests and, for LLM apps, a small eval suite. Results are visible on the PR." },
+    { title: "Gate", text: "Checks become required. Rulesets block merges that fail, tokens default to read-only, third-party actions are pinned.", hl: true },
+    { title: "Promote", text: "Builds move through environments (staging, then production) with approvals, and authenticate to the cloud with OIDC instead of stored keys." },
+    { title: "Observe & recover", text: "Scheduled canaries watch production; every deploy is recorded; a revert redeploys the last good state in minutes." },
+  ]} />
+</Exhibit>
+
+The **Gate** rung is highlighted because it is the one most teams skip. Plenty of teams have CI that runs; far fewer have CI that *blocks*. A check that can be ignored is a suggestion, and suggestions lose to deadlines.
+
+<Exhibit n={5} title="Each rung uses specific Actions features and moves specific delivery metrics" sub="Mapping the ladder to GitHub features, DORA metrics and the failure each rung prevents" note="Author’s framework. DORA metric definitions from dora.dev." source="DORA, software delivery performance metrics" sourceUrl="https://dora.dev/guides/dora-metrics/">
+  <Compare
+    cols={["GitHub features", "DORA metric it moves", "Failure it prevents"]}
+    rows={[
+      { k: "Push", v: ["Branches, pull requests, CODEOWNERS", "Change lead time (small batches)", "Untracked changes nobody can diff or revert"] },
+      { k: "Check", v: ["Workflows on pull_request, matrix, cache, artifacts", "Change fail rate", "Regressions found by users instead of tests"] },
+      { k: "Gate", v: ["Rulesets, required checks, permissions, SHA pinning", "Change fail rate; deployment rework rate", "Unreviewed merges; poisoned dependencies"] },
+      { k: "Promote", v: ["Environments, required reviewers, OIDC, concurrency", "Deployment frequency; lead time", "Leaked cloud keys; half-finished deploys"] },
+      { k: "Observe & recover", v: ["schedule, workflow_dispatch, deployment history", "Failed deployment recovery time", "Silent degradation; slow, manual rollback"] },
+    ]}
+  />
+</Exhibit>
+
+Across all five rungs runs one principle: **harden the path itself.** The workflows, the actions they call and the tokens they hold are production infrastructure. An attacker who can change your pipeline does not need to change your code.
+
+## Deep dive 1: Push and Check, CI for an LLM app
+
+**Push.** Everything that changes behaviour goes in Git. For an LLM application that means more than code: the prompt templates, the model identifier, retrieval parameters, the evaluation set and the workflow files themselves. A prompt edited in a vendor console or a database row is a production change with no diff, no review and no revert. Work on short-lived branches and open a pull request early. DORA has tied small batches to better delivery for years, and its 2025 report found that AI’s positive effects depend on teams working in small batches.
+
+**Check.** A pull request should trigger a workflow that answers one question quickly: did this change break anything we know how to test? For a Python LLM app, that means three layers. Lint and type checks take seconds. Unit tests, with the model mocked, take a minute. And there is a small **eval gate**: a golden set of real inputs with known-good properties, run against the real model, which fails the build if the pass rate drops below a threshold.
+
+Here is a CI workflow that does all three. It uses a matrix for two Python versions, the built-in pip cache, a concurrency group that cancels superseded runs on the same pull request, and an artifact so reviewers can read the eval report.
+
+```yaml
+# .github/workflows/ci.yml
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:            # run again when a merge queue is used
+
+permissions:
+  contents: read          # read-only by default; jobs ask for more if needed
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: ruff check .
+      - run: pytest -q tests/unit        # model calls mocked here
+
+  eval:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Forked PRs get no secrets, so skip the paid eval there.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Golden-set eval gate
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          EVAL_MIN_PASS_RATE: "0.90"
+        run: python -m evals.run
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: eval-report
+          path: eval-report.json
+          retention-days: 14
+```
+
+The SHAs are the commits behind those release tags in October 2026. Do not copy SHAs from a blog post into production, this one included. Resolve them yourself from each action’s own repository, as GitHub’s guidance says, and let Dependabot keep them current (Deep dive 4).
+
+The eval gate itself can be very small. This one reads a JSONL golden set where each case lists phrases the answer must and must not contain, calls the app, writes a report and fails the job if the pass rate falls below the threshold.
+
+```python
+# evals/run.py: fail the build if the golden-set pass rate drops
+import json
+import os
+import sys
+from pathlib import Path
+
+from app.pipeline import answer  # your app's entry point
+
+MIN_PASS = float(os.environ.get("EVAL_MIN_PASS_RATE", "0.90"))
+
+
+def passes(case: dict, output: str) -> bool:
+    text = output.lower()
+    has_all = all(s.lower() in text for s in case.get("must_include", []))
+    has_bad = any(s.lower() in text for s in case.get("must_not_include", []))
+    return has_all and not has_bad
+
+
+def main() -> int:
+    lines = Path("evals/golden.jsonl").read_text(encoding="utf-8").splitlines()
+    cases = [json.loads(line) for line in lines if line.strip()]
+    results = []
+    for case in cases:
+        out = answer(case["input"])
+        results.append({"id": case["id"], "pass": passes(case, out), "output": out})
+    rate = sum(r["pass"] for r in results) / len(results)
+    report = {"pass_rate": rate, "n": len(results), "results": results}
+    Path("eval-report.json").write_text(json.dumps(report, indent=2))
+    print(f"pass rate {rate:.1%} (min {MIN_PASS:.0%}, n={len(results)})")
+    return 0 if rate >= MIN_PASS else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+```
+
+Substring checks are crude on purpose. They are cheap, deterministic and easy to review. You can swap `passes()` for schema validation, a citation check or an LLM judge later, but the shape of the gate stays the same: fixed cases, a score, a threshold and a non-zero exit code.
+
+A few details make this robust rather than flaky:
+
+- **Pin the model snapshot and set the parameters** (temperature, maximum tokens) in code, so the gate measures your change and not the vendor’s.
+- **Size the threshold for noise.** With 50 cases and a true pass rate of 90%, the standard error is about 4 percentage points, so run-to-run swings of ±8 points are plausible by chance alone. Run the suite several times on `main` and set the threshold below the low end of what you see.
+- **Keep the PR suite small and run the big one on a schedule.** Fifty well-chosen cases on every pull request; the full suite nightly (Deep dive 5).
+- **Never run paid evals on code from forks.** The `if:` above skips them, and GitHub withholds secrets from fork-triggered `pull_request` runs anyway.
+
+<Note kind="field">
+This gate is the pull-request-sized version of an idea I built out at platform scale: an LLMOps evaluation platform that scores outputs with an ensemble of evaluators and runs drift detection on production traffic. The same principle holds at both ends. An evaluation only protects you if something fails when the score drops.
+</Note>
+
+**Matrix, cache, artifacts, concurrency.** Four features do most of the work in CI. A **matrix** fans one job out across versions or platforms. It is useful, but every cell is billed, so test the combinations you actually ship. The **cache** (here, `setup-python`’s built-in pip cache) avoids re-downloading dependencies; each repository gets 10 GB of cache storage. **Artifacts** pass files between jobs and let humans download reports. **Concurrency** groups stop stale runs from wasting minutes: when you push twice to a pull request, the first run is cancelled.
+
+## Deep dive 2: Gate, making checks binding
+
+A workflow that runs is not yet a gate. It becomes one when the repository *refuses* to merge without it. On GitHub that is a **ruleset** (or the older branch protection rule) on `main` with these rules:
+
+- **Require a pull request before merging**, with at least one approval. Rulesets allow from 0 to 10 required approvals.
+- **Require status checks to pass**, naming the jobs (`test (3.12)`, `test (3.13)`, `eval`). This is the line that turns CI from advice into a gate.
+- **Block force pushes** and deletions, so history cannot be rewritten under you.
+- **Require deployments to succeed** in staging before merging, if your flow deploys pull requests.
+- Optionally, **require signed commits** and **linear history**.
+
+Rulesets improve on branch protection in ways that matter for teams. Several rulesets can apply to one branch, and the most restrictive rule wins. Anyone with read access can see the active rules. The bypass list is explicit: a named role, team or app, rather than “admins can do anything”.
+
+Add a `CODEOWNERS` file that names an owner for `.github/workflows/`. GitHub’s hardening guide recommends this specifically, because a workflow change is a change to what runs with your secrets. Treat it like a change to your IAM policy, not like a change to a README.
+
+**Least-privilege tokens.** Every workflow run receives a `GITHUB_TOKEN`, a credential scoped to the repository that expires when the job finishes. What it can do depends on the `permissions:` you set. GitHub’s guidance is to set the default to read-only for repository contents and grant more only to the jobs that need it. In YAML, a single top-level `permissions: contents: read` does it. When you specify any permission, every permission you do not mention is set to `none`.
+
+This sounds like housekeeping until you look at what actually leaked in the tj-actions incident (Deep dive 4). Endor Labs found that the vast majority of leaked secrets were `GITHUB_TOKEN`s. A read-only token that expires within minutes is close to worthless to an attacker. A token with `contents: write` on a workflow that never needed it is a foothold.
+
+**Script injection.** The other gate is in how you write `run:` steps. Never interpolate untrusted text, such as a pull request title, branch name or issue body, directly into a shell script with `${{ }}`. Pass it through an environment variable instead, which is GitHub’s “preferred approach”. Nx learned this the hard way, as the case examples show.
+
+<Exhibit n={6} title="The cheapest gates prevent the most expensive failures" sub="Path-to-production controls by cost to adopt and severity of the failure they prevent" note="Author’s framework; placement is a judgement, not a measurement.">
+  <Matrix
+    x="Cost to adopt"
+    y="Severity of failure prevented"
+    quads={[
+      { title: "Do this today", text: "Read-only default token, SHA-pinned third-party actions, required checks, OIDC instead of cloud keys, CODEOWNERS on workflows.", hl: true },
+      { title: "Plan and budget", text: "Eval suites with calibrated thresholds, staged environments with approvals, canary deploys, egress monitoring." },
+      { title: "Hygiene", text: "Caching, concurrency groups, lint, timeouts. Cheap and worth it, but they save minutes rather than incidents." },
+      { title: "Defer", text: "Bespoke self-hosted runner fleets and custom dashboards before the basics are in place." },
+    ]}
+  />
+</Exhibit>
+
+The top-left quadrant is the argument of this article in four lines of configuration. None of it needs a platform team or a budget, and every item would have reduced the damage in at least one of the incidents below.
+
+## Deep dive 3: Promote, environments, approvals and OIDC
+
+Continuous delivery on GitHub runs through **environments**. An environment (say `staging` or `production`) is a named target with its own secrets, variables and protection rules. A job that declares `environment: production` cannot start until every rule passes:
+
+- **Required reviewers**: up to six people or teams, any one of whom can approve. You can stop the person who triggered the run from approving their own deployment.
+- **Wait timer**: a delay of 1 to 43,200 minutes (30 days) before the job proceeds.
+- **Deployment branches and tags**: for example, only `main` may deploy to production.
+- **Environment secrets** are released only to jobs that reference the environment, and only after approval.
+
+Check your plan first. On GitHub Free, Pro and Team, required reviewers and wait timers are available only for public repositories. Private repositories need GitHub Enterprise for those two rules.
+
+**OIDC instead of stored cloud keys.** The classic way to deploy to a cloud is to create an access key, paste it into a GitHub secret and hope nobody prints it. OpenID Connect (OIDC) replaces that. The job asks GitHub for a signed identity token describing exactly what is running: the repository, the branch, the environment. Your cloud provider checks that token against a trust policy and issues a short-lived credential that, in GitHub’s words, is “only valid for a single job, and then automatically expires”. AWS, Azure, Google Cloud and HashiCorp Vault all support it.
+
+<Exhibit n={7} title="OIDC removes the long-lived cloud key that a compromised pipeline would steal" sub="Stored cloud secret vs. OIDC federation in a GitHub Actions deploy" source="GitHub Docs, OpenID Connect; Secure use reference" sourceUrl="https://docs.github.com/en/actions/concepts/security/openid-connect" note="Author’s comparison based on GitHub documentation.">
+  <Compare
+    cols={["Stored access key", "OIDC federation"]}
+    hlCol={1}
+    rows={[
+      { k: "What GitHub stores", v: ["A long-lived cloud credential", "Nothing; a trust policy lives in the cloud"] },
+      { k: "Lifetime", v: ["Until someone rotates it", "One job, then it expires"] },
+      { k: "Scope", v: ["Whatever the key’s user can do, from anywhere", "A role restricted by repo, branch or environment"] },
+      { k: "If a log or runner leaks it", v: ["Usable elsewhere until revoked", "Expired or useless outside that job"] },
+      { k: "Rotation work", v: ["Manual, often forgotten", "None"] },
+      { k: "Workflow needs", v: ["secrets.AWS_SECRET_ACCESS_KEY", "permissions: id-token: write"] },
+    ]}
+  />
+</Exhibit>
+
+The trust policy is where OIDC earns its keep. Bind the cloud role to the token’s `sub` (subject) claim. A job using the `production` environment presents a subject like `repo:acme/llm-app:environment:production`, so a workflow on a feature branch, or in a fork, cannot assume the production role. Since 15 July 2026, GitHub issues subject claims for new repositories, renames and transfers that also embed immutable owner and repository IDs. The change exists so that a recycled organisation or repository name cannot mint tokens your cloud still trusts. Check the claim your repository actually emits before writing the policy.
+
+Here is a deploy pipeline split into a **reusable workflow**, which holds the deploy logic once, and a caller that promotes the same build through staging and production.
+
+```yaml
+# .github/workflows/_deploy.yml (reusable: called, never triggered directly)
+name: deploy-env
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.environment }}   # protection rules apply here
+    permissions:
+      contents: read
+      id-token: write                        # lets the job request an OIDC token
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+    # v6.3.0 (comment moved up only to fit this page's width)
+    - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd
+      with:
+        role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}  # per-environment variable
+        aws-region: ${{ vars.AWS_REGION }}
+    - name: Deploy
+      env:
+        DEPLOY_ENV: ${{ inputs.environment }}   # pass via env, not inline
+      run: ./scripts/deploy.sh "$DEPLOY_ENV"
+    - name: Smoke test
+      env:
+        DEPLOY_ENV: ${{ inputs.environment }}
+      run: ./scripts/smoke.sh "$DEPLOY_ENV"
+```
+
+```yaml
+# .github/workflows/release.yml
+name: release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false   # never kill a deploy half-way
+
+jobs:
+  staging:
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      environment: staging
+    permissions:
+      contents: read
+      id-token: write
+
+  production:
+    needs: staging
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      environment: production   # waits here for a required reviewer
+    permissions:
+      contents: read
+      id-token: write
+```
+
+Three design choices are deliberate. The caller grants `id-token: write` only to the jobs that deploy, because a called workflow cannot receive more than its caller has. The concurrency group does **not** cancel in progress, because a half-finished deploy is worse than a slightly late one. And the environment name is passed to the shell through `env`, which keeps the script-injection habit even where the input is trusted.
+
+A long-lived secret may still be the right tool for an API that has no OIDC support, such as many LLM providers. Then scope it to an environment, so it is released only to approved jobs, and give it the smallest spend limit the provider allows.
+
+## Deep dive 4: Harden the path, the supply-chain lessons
+
+Every `uses:` line runs someone else’s code with your token and, often, your secrets. Most of the time that is fine. The tj-actions incident shows what happens when it isn’t.
+
+**What happened.** CISA’s alert covers every version of `tj-actions/changed-files` used between 12 March 2025 00:00 UTC and 15 March 12:00 UTC. The National Vulnerability Database records that tags `v1` through `v45.0.7` were modified to point at a single malicious commit, `0e58ed8`. StepSecurity detected it on 14 March when its runtime monitor flagged an unexpected network endpoint. The payload dumped the runner process’s memory and printed secrets, double-encoded in base64, into the workflow log. On a public repository, that log is public. The likely entry point was another compromised action, `reviewdog/action-setup@v1` (CVE-2025-30154), which exposed a bot’s personal access token with write access to the tj-actions repository. CVE-2025-30066 scored 8.6 (high), and CISA added it to its Known Exploited Vulnerabilities catalogue. The fix shipped in v46.0.1.
+
+**What saved some teams.** Wiz’s analysis was unambiguous: users who had pinned the action to a commit hash were not affected, unless they happened to update to the malicious hash during the attack window. A tag is a movable pointer. A full 40-character commit SHA is the content itself.
+
+<Exhibit
+  n={8}
+  title="Tens of thousands of repositories were exposed; 218 leaked secrets, mostly short-lived tokens"
+  sub="The tj-actions/changed-files incident, March 2025, from exposure to confirmed leaks (number of repositories)"
+  source="StepSecurity (14 Mar 2025); Endor Labs (19 Mar 2025)"
+  sourceUrl="https://www.endorlabs.com/learn/blast-radius-of-the-tj-actions-changed-files-supply-chain-attack"
+  note="Bars use different methods. 23,000 is StepSecurity’s estimate of repositories using the action. The other three come from Endor Labs’ GitHub code search, which covered default branches and direct references only, and a 24-hour window from 14 Mar 15:00 UTC. Endor found that the vast majority of leaked secrets were short-lived GITHUB_TOKENs."
+  table={[["Stage", "Repositories", "Source"], ["Using the action", "23,000+", "StepSecurity"], ["Referencing it in a default-branch workflow", "5,416", "Endor Labs"], ["Ran an affected workflow in the window", "614", "Endor Labs"], ["Leaked secrets in logs", "218", "Endor Labs"]]}
+>
+  <Bars max={23000} data={[
+    { label: "Using the action", sub: "StepSecurity estimate", value: 23000, display: "23,000+" },
+    { label: "Referenced in a workflow", sub: "default branches", value: 5416, display: "5,416" },
+    { label: "Ran in the window", sub: "24 hours, 14–15 Mar", value: 614, display: "614" },
+    { label: "Leaked secrets", sub: "printed to logs", value: 218, display: "218", hl: true },
+  ]} />
+</Exhibit>
+
+The funnel teaches two lessons. First, exposure is set by **pinning**: a workflow that ran a SHA-pinned version during the window fetched the code it had always fetched. Second, damage is set by **privilege**. Most of what leaked was the `GITHUB_TOKEN`, which expires with the job, but Endor Labs also found a few dozen DockerHub, npm and AWS credentials. Those are exactly the long-lived secrets that OIDC and environment scoping remove.
+
+**It kept happening.** In August 2025, Nx merged a workflow that used the `pull_request_target` trigger and interpolated the pull request title into a bash step. `pull_request_target` runs in the context of the base repository, with its token and secrets, even for pull requests from forks. The workflow was reverted on `master` the next day, but outdated branches still contained it. An attacker pushed a commit that altered the publishing workflow to send the npm token to an external webhook, then opened a pull request with a crafted title against an old branch; the injected command used the workflow’s token to trigger publishing. Malicious Nx versions with a credential-stealing install script reached npm on 26 August. In March 2026, attackers using credentials left over from an earlier, incompletely rotated breach force-pushed 76 of the 77 version tags of `aquasecurity/trivy-action` and all seven of `setup-trivy` to malicious commits (CVE-2026-33634). The payload ran *before* the real security scan, so pipelines looked normal.
+
+GitHub has responded with a series of platform controls, most of them free.
+
+<Exhibit n={9} title="Each attack on the path has been followed by a new platform gate" sub="Major CI supply-chain incidents and GitHub’s responses, 2025–2026" source="CISA; Nx; Aqua Security; GitHub Changelog and Blog" sourceUrl="https://github.blog/news-insights/product-news/whats-coming-to-our-github-actions-2026-security-roadmap/" note="Dates from the cited advisories and changelogs. Lockfiles had a public-preview label on GitHub’s roadmap from 3 Sep 2026; the GitHub docs describe the feature as public preview.">
+  <Timeline items={[
+    { date: "14 MAR 2025", title: "tj-actions/changed-files tags rewritten", text: "Secrets dumped into build logs of repositories that referenced the action by tag.", state: "done" },
+    { date: "15 AUG 2025", title: "SHA-pinning enforcement in Actions policy", text: "Admins can require full commit SHAs; unpinned workflows fail. Blocklists added.", state: "done" },
+    { date: "24–26 AUG 2025", title: "Nx compromised via pull_request_target", text: "PR-title injection steals the npm token; malicious versions published.", state: "done" },
+    { date: "28 OCT 2025", title: "Immutable releases generally available", text: "Release assets and tags cannot be changed or deleted once published.", state: "done" },
+    { date: "8 DEC 2025", title: "pull_request_target uses the default branch", text: "Stale workflows on other branches no longer run for this trigger.", state: "done" },
+    { date: "19 MAR 2026", title: "trivy-action: 76 of 77 tags force-pushed", text: "Credential theft runs before the real scan.", state: "done" },
+    { date: "15 JUL 2026", title: "OIDC subject claims with immutable IDs", text: "Enforced for new repositories, renames and transfers.", state: "done" },
+    { date: "SEP 2026", title: "Lockfiles in preview; execution protections GA", text: "actions.lock pins transitive dependencies; rules control who and what can trigger workflows.", state: "hl" },
+    { date: "2 NOV 2026", title: "pull_request_target off by default (public repos)", text: "Default rule moves from evaluate mode to enforcement for affected public repositories." },
+  ]} />
+</Exhibit>
+
+Taken together, these give a clear order of operations for any team:
+
+1. **Pin every third-party action to a full commit SHA**, with the version in a trailing comment so humans can read it. GitHub’s secure-use guidance says to pin to a commit SHA, and to pin to a tag “only if you trust the creator”, because “a tag can be moved or deleted if a bad actor gains access to the repository”. Organisation admins can now *enforce* SHA pinning, so an unpinned workflow fails rather than relying on reviewers to notice.
+2. **Adopt the lockfile when you can.** GitHub’s docs now call a workflow dependency lockfile (`.github/workflows/actions.lock`, generated by the `gh actions-lock` extension) “the strongest protection available”, superseding SHA pinning for repositories that adopt it. It also records *transitive* dependencies, the actions your actions call, which a SHA in your own file cannot reach. As of October 2026 it is in public preview, so trial it on a non-critical repository first.
+3. **Keep pins fresh with Dependabot.** A pin freezes vulnerabilities as well as attacks. Dependabot’s `github-actions` ecosystem opens pull requests when actions release new versions, and security updates when an action you use has a published vulnerability. A `cooldown` lets new versions age for a few days before you adopt them, so attacks that are caught quickly never reach you.
+4. **Avoid `pull_request_target`** unless you need it, and never check out or run pull request code under it. Use `pull_request`, which gives fork runs no secrets and a read-only token. For public repositories, GitHub’s new default rule will disable the trigger on 2 November 2026 unless an event policy explicitly allows it.
+5. **Scan the workflows themselves.** CodeQL analysis of GitHub Actions workflows has been generally available since April 2025 and flags injection patterns like the Nx one.
+
+```yaml
+# .github/dependabot.yml: keep SHA-pinned actions up to date
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"           # finds workflows in .github/workflows
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7        # let new releases age before adopting them
+    groups:
+      actions:
+        patterns: ["*"]      # one PR per week, not one per action
+```
+
+## Deep dive 5: Observe and recover, schedules, reruns and cost
+
+**Scheduled workflows are your cheapest monitor.** A `schedule` trigger runs a workflow on a cron expression, on the latest commit of the default branch. For an LLM app, the most valuable scheduled job is a **canary**: the full eval suite run against production every night. It catches the problems no pull request can, such as a vendor-side model change, an expired key or a stale retrieval index. Four facts from GitHub’s documentation shape how you write it. The shortest interval is every five minutes. Runs “can be delayed during periods of high loads”, and high-load times include the start of every hour, so pick an odd minute. In a public repository, scheduled workflows are disabled automatically after 60 days without repository activity. And since March 2026 you can give a schedule an IANA time zone instead of working in UTC.
+
+```yaml
+# .github/workflows/nightly-canary.yml
+name: nightly-canary
+
+on:
+  schedule:
+    - cron: "17 2 * * *"          # 02:17, away from the top of the hour
+      timezone: "Asia/Manila"
+  workflow_dispatch:              # run on demand after a vendor incident
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-canary
+  cancel-in-progress: false
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write               # only to open an issue on failure
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Full eval suite against production
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          TARGET_URL: ${{ vars.PROD_URL }}
+          EVAL_MIN_PASS_RATE: "0.90"
+        run: python -m evals.run
+      - name: Open an issue if the canary fails
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          gh issue create \
+            --title "Nightly canary failed $(date -u +%F)" \
+            --body "Run: $run_url"
+```
+
+**Recovery is a revert.** If every production change went through the path, then undoing one is the same path in reverse: revert the commit, let the required checks pass, and let `release.yml` promote it. Every deployment to an environment is recorded with its commit and time, which also gives you most of what you need to compute DORA’s throughput metrics without buying a tool. DORA’s 2025 report found that teams that used their version control system’s rollback features more often got more of AI’s benefit to team performance. The authors read it as a safety net that lets teams experiment without fear.
+
+**What it costs (October 2026).** For most AI and data projects, the honest answer is very little. GitHub’s billing documentation says standard GitHub-hosted runners are free for public repositories, and self-hosted runners are free. Private repositories get a monthly allowance (2,000 minutes on GitHub Free, 3,000 on Pro and Team, 50,000 on Enterprise Cloud) and then pay per minute. GitHub cut hosted-runner prices by up to 39% on 1 January 2026. It had also announced a $0.002-per-minute platform charge on self-hosted runner usage from 1 March 2026, then postponed it “to take time to re-evaluate our approach”. GitHub’s billing documentation still listed self-hosted runners as free when I checked on 14 October 2026. One newer cost line to watch: since 1 June 2026, Copilot code review consumes Actions minutes in private repositories.
+
+<Exhibit
+  n={10}
+  title="A macOS minute costs about ten times a Linux minute, and a matrix multiplies whichever you choose"
+  sub="Per-minute price of standard GitHub-hosted runners beyond the included allowance, private repositories (US$, October 2026)"
+  source="GitHub Docs, GitHub Actions billing (accessed 14 Oct 2026)"
+  sourceUrl="https://docs.github.com/en/billing/concepts/product-billing/github-actions"
+  note="Public repositories and self-hosted runners are free. Included minutes per month: GitHub Free 2,000; Pro 3,000; Team 3,000; Enterprise Cloud 50,000. Larger runners are always billed."
+  table={[["Runner", "US$ per minute"], ["Linux 1-core (x64)", "0.002"], ["Linux 2-core (arm64)", "0.005"], ["Linux 2-core (x64)", "0.006"], ["Windows 2-core", "0.010"], ["macOS 3- or 4-core", "0.062"]]}
+>
+  <Bars prefix="$" max={0.07} data={[
+    { label: "Linux 1-core", value: 0.002, display: "$0.002" },
+    { label: "Linux 2-core arm64", value: 0.005, display: "$0.005" },
+    { label: "Linux 2-core x64", value: 0.006, display: "$0.006", hl: true },
+    { label: "Windows 2-core", value: 0.010, display: "$0.010" },
+    { label: "macOS", value: 0.062, display: "$0.062" },
+  ]} />
+</Exhibit>
+
+The arithmetic is reassuring. A 10-minute CI run on a two-cell Linux matrix uses 20 minutes, so a private repository on GitHub Free covers about 100 such runs a month before paying. Past the allowance, the same run costs about $0.12. The cost to watch in an LLM project is not the runner but the **API calls your eval gate makes**. Keep the PR suite small, pin a cheaper model for smoke checks where that is valid, and set a hard spend limit on the CI key.
+
+## Case examples
+
+**This website (a small path, fully gated).** The site you are reading is deployed by a single GitHub Actions workflow. It is a small example, but it shows the ladder at the scale most side projects and many internal tools actually run at.
+
+<Note kind="field">
+This portfolio is an Astro static site on GitHub Pages, deployed by a GitHub Actions workflow that I designed and built with Claude Code. The workflow runs on every push to `main`, on manual dispatch, and on a daily schedule (`cron: '0 22 * * *'`, which is 06:00 in Manila). The daily rebuild is how future-dated posts go live on their publish date without anyone pressing a button. Permissions are least-privilege by default: the workflow grants `contents: read`, and only the deploy job gets `pages: write` and `id-token: write`, the OIDC scope the Pages deployment uses to prove where the build came from. Every action is pinned to a full commit SHA with the version in a comment, starting with the one third-party action, `withastro/action`, because a tag can be moved and a SHA cannot. A concurrency group means only one Pages deployment runs at a time, and the deploy job targets the `github-pages` environment.
+</Note>
+
+Reviewing the file for this article showed the trade-offs this article describes. The first version pinned only the third-party action and still referenced the first-party `actions/checkout` and `actions/deploy-pages` by major tag, which GitHub’s guidance accepts only for creators you trust; I have since pinned both to commit SHAs. The pinned `withastro/action` SHA resolves to `v4.2.1`, and the action’s repository has since published v5 and v6 tags: that is the cost of pinning without an update bot such as Dependabot to propose bumps. And the schedule is written in UTC with a comment, where the March 2026 time-zone support would now let it say `timezone: "Asia/Manila"` directly. None of these was urgent for a static site. All of them were cheap to fix, which is the point.
+
+**tj-actions/changed-files (pinning as the whole defence).** Most organisations that used the action did nothing wrong in the usual sense. They referenced a popular, maintained action by version tag, as countless tutorials do. The ones protected were the ones whose workflows did not trust the tag. Those who were exposed had to work out which runs used the action during the window, decode their logs and rotate everything that might have appeared there.
+
+**Nx (a gate that was reverted but not removed).** The vulnerable workflow was live on `master` for less than a day. It stayed exploitable because old branches still carried it, and `pull_request_target` at the time could run a workflow from a non-default branch. GitHub changed that behaviour from 8 December 2025. Nx’s remediation is a checklist in itself: it moved npm publishing to trusted publishing, which removes the long-lived token; required maintainer approval for workflows triggered by outside contributors; enabled CodeQL; and rebased old branches to remove the workflow.
+
+**trivy-action (incomplete rotation).** The March 2026 attack reused credentials from a breach disclosed on 1 March, after a rotation that NVD’s record describes as “not atomic”. Recovery is a gate too. If you rotate secrets one at a time, the attacker keeps the ones you have not reached yet. OIDC shrinks the set of things to rotate in the first place.
+
+## Counterpoints
+
+<Note kind="counter" label="Objection 1: “SHA pinning creates toil and freezes us on old versions.”">
+Pinning trades a security risk for a maintenance one. Forty-character hashes are unreadable, every update is a pull request, and a pinned action quietly falls behind, including on security fixes. This site’s own pin is two major versions behind.
+</Note>
+
+<Note kind="response">
+The toil is real, and it is the job of a bot. Dependabot opens grouped pull requests for action updates and security updates for vulnerable versions, and a cooldown lets new releases age before you adopt them. The trailing version comment keeps the pin readable. The alternative is not “no toil”. It is the multi-day secret audit and rotation that tag users faced in March 2025 and March 2026. Lockfiles, now in preview, should remove most of the remaining friction and cover transitive dependencies too. An old pin is a known risk that you can schedule. A moved tag is an unknown one that you find out about from a CVE.
+</Note>
+
+<Note kind="counter" label="Objection 2: “Gates slow us down, and speed is what matters.”">
+Required reviews, required checks and environment approvals add waiting time to every change. Small teams and early-stage AI products win by iterating fast, and DORA itself measures speed.
+</Note>
+
+<Note kind="response">
+DORA’s data points the other way: in every cluster, throughput and stability move together, and the elite cluster combines on-demand deployment with a 5% change fail rate. What slows teams down is *manual* gates, and large batches waiting behind them. Automated checks take minutes, run in parallel and never go on holiday. Keep human approval for the production environment only, keep changes small, and the path gets faster as it gets safer. DORA’s 2025 finding that AI increases instability without strong testing and version control practices is an argument for more automation in the path, not less.
+</Note>
+
+<Note kind="counter" label="Objection 3: “Evals in CI are flaky, slow and expensive.”">
+LLM outputs are non-deterministic. A pass-rate gate will fail randomly, developers will learn to press “re-run”, and every pull request spends real money on API calls.
+</Note>
+
+<Note kind="response">
+Flaky gates come from uncalibrated thresholds, not from evaluation itself. Pin the model snapshot, fix the parameters, measure the run-to-run spread on `main`, and set the threshold below it. With 50 cases, the spread is roughly ±8 points, so a 90% gate on a system that usually scores 97% is stable. Keep the pull-request suite small and cheap and move the expensive suite to the nightly canary. A gate that sometimes needs a re-run is still far cheaper than a prompt regression found by a customer.
+</Note>
+
+<Note kind="counter" label="Objection 4: “This ties us to GitHub.”">
+Rulesets, environments, OIDC subject claims and lockfiles are GitHub features. Building the path around them makes moving to another platform more expensive.
+</Note>
+
+<Note kind="response">
+The ladder is platform-neutral. GitLab, Azure DevOps and others all have required pipelines, protected environments and OIDC federation, under different names. Lock-in sits in the YAML, so keep it thin: put build, test, eval and deploy logic in scripts in the repository (`make test`, `python -m evals.run`, `./scripts/deploy.sh`), and let the workflow decide only *when* they run and *with what permissions*. Then a migration rewrites the wiring, not the logic.
+</Note>
+
+## Implications by stakeholder
+
+<Exhibit n={11} title="Everyone touches the path, so each role owns part of the gate" sub="What each stakeholder should do differently" note="Author’s framework.">
+  <Compare
+    cols={["Hiring managers", "Engineering leads", "Practitioners", "Security & risk"]}
+    rows={[
+      { k: "Mindset", v: ["A repo’s workflows show how a candidate ships", "The pipeline is production infrastructure", "If it isn’t in Git, it didn’t happen", "CI is part of the attack surface"] },
+      { k: "Ask for", v: ["A walk-through of a real workflow file and its permissions", "Required checks and a ruleset on every main branch", "An eval gate for every prompt or model change", "SHA-pinning enforcement and OIDC for cloud access"] },
+      { k: "Invest in", v: ["Take-home tasks that include CI, not just code", "Reusable workflows so teams don’t copy-paste YAML", "A golden set that grows with every incident", "Lockfile trials and workflow scanning"] },
+      { k: "Red flag", v: ["“We deploy from my laptop”", "Admins bypassing every rule", "Prompts edited in a console", "Long-lived cloud keys in repo secrets"] },
+    ]}
+  />
+</Exhibit>
+
+For **hiring managers and recruiters**, the workflow folder is one of the most honest artefacts in a portfolio. It shows whether a candidate thinks about permissions, reproducibility and failure, and it cannot be faked in an interview. For **engineering leads**, the main move is organisational: put rulesets and SHA-pinning enforcement at the organisation level so new repositories start gated, rather than relying on each team to remember. For **security teams**, the 2025–2026 incidents mean treating `.github/workflows` like infrastructure code: owned, reviewed, scanned and monitored.
+
+## What to do next: a gate-first plan
+
+Start with the top-left quadrant of Exhibit 6. The order below puts the cheapest, highest-leverage gates first, so a team that stops after the first step is already far safer.
+
+<Exhibit n={12} title="Most of the protection lands in the first afternoon" sub="Recommended sequence for an AI or data project moving from prototype to production" note="Author’s framework.">
+  <Timeline items={[
+    { date: "AFTERNOON 1", title: "Close the cheap gaps", text: "Set top-level permissions to contents: read. Pin every third-party action to a full SHA with a version comment. Add CODEOWNERS for .github/workflows. Replace any pull_request_target you don’t need with pull_request.", state: "hl" },
+    { date: "WEEK 1", title: "Make CI binding", text: "CI on every pull request: lint, unit tests, a 30–50 case eval gate. Add a ruleset on main requiring a PR, one approval and the named checks. Block force pushes. Add dependabot.yml for github-actions with a cooldown." },
+    { date: "MONTH 1", title: "Promote safely", text: "Create staging and production environments. Move cloud access to OIDC with subject-bound roles and delete stored keys. Put deploy logic in a reusable workflow; require a reviewer for production where your plan allows." },
+    { date: "QUARTER 1", title: "Observe and harden", text: "Nightly canary with the full eval suite and an issue on failure. Compute deployment frequency, lead time and change fail rate from deployment history. Trial the actions.lock lockfile; enable SHA-pinning enforcement at organisation level." },
+  ]} />
+</Exhibit>
+
+You will know it is working when three things are true. A failing eval blocks a merge at least once, and the team agrees it should have. A deploy to production happens on a normal afternoon without anyone holding their breath. And when the next compromised action is announced, the first question, “are we exposed?”, takes minutes to answer because every reference is pinned and every credential is short-lived.
+
+## Limitations and methodology
+
+- **Survey evidence.** DORA’s findings come from surveys (nearly 3,000 respondents in 2024 and 4,867 in 2025) and statistical models, not from measured deployment logs. The AI effects in Exhibit 2 are estimates with uncertainty intervals, and DORA’s samples skew towards teams already interested in delivery practice.
+- **Incident counts.** The tj-actions figures come from different methods. StepSecurity’s 23,000 counts repositories using the action; Endor Labs’ counts cover default branches and direct references only. Exhibit 8 mixes the two, and the note says so. Confirmed leaks may undercount private repositories, whose logs researchers could not see.
+- **Moving targets.** GitHub features and prices change often. Lockfiles were in public preview, the self-hosted runner charge was postponed rather than cancelled, and the `pull_request_target` default enforcement was scheduled for 2 November 2026 at the time of writing (14 October 2026). Check the linked changelogs before relying on any of them.
+- **Code samples.** The workflows are illustrative and assume a repository layout (`app/`, `evals/`, `scripts/`) that you will need to adapt. Commit SHAs were resolved from each action’s repository in October 2026; resolve your own. Action input names can change between major versions.
+- **Frameworks and judgement.** The ladder (Exhibits 4–5), the cost–severity matrix (Exhibit 6) and the plan (Exhibit 12) are my synthesis, not empirical findings. The field note describes this site’s own workflow file as committed; the observations about it are from reading that file.
+
+## Closing
+
+Nobody can see “production” by looking at a server. What you can inspect is the path: which checks a change had to pass, who had to approve it, which credentials it could reach, and how fast it could be undone. Git records the path, and GitHub Actions enforces it. The most important parts of that enforcement cost almost nothing: a `permissions:` line, a 40-character hash and a required check.
+
+Good engineers have always done these things by habit. The point of a gate is that it still works on the day nobody does.
