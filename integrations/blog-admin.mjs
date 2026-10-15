@@ -36,7 +36,7 @@ const STATE = path.join(ROOT, 'admin', '.state.json');
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SESSION_MS = 8 * 60 * 60 * 1000;
 const COOKIE = 'mc_admin';
-const MOTIFS = ['paths', 'deploy', 'civic', 'shield', 'brush', 'triad', 'chip', 'stack', 'loop', 'drift', 'fork', 'pipeline', 'budget', 'sketch', 'podium', 'dialogue', 'generative'];
+const MOTIFS = ['paths', 'deploy', 'civic', 'shield', 'brush', 'triad', 'chip', 'stack', 'loop', 'drift', 'fork', 'pipeline', 'budget', 'sketch', 'podium', 'dialogue', 'duet', 'generative'];
 /** Cover motifs must be unique per post, except 'generative', which draws a different picture for every slug. */
 const SHARED_MOTIF = 'generative';
 
@@ -116,8 +116,9 @@ function statusOf(folder, fm, body) {
   if (folder === 'drafts') return 'local-draft';
   if (fm.draft) return 'draft';
   if (reviewFlags(fm, body)) return 'needs-review';
+  // Same rule as src/lib/posts.ts: a post goes live at 00:00 Manila time (UTC+8) on its date.
   const d = new Date(fm.date);
-  return d.getTime() > Date.now() ? 'scheduled' : 'live';
+  return d.getTime() - 8 * 3600_000 > Date.now() ? 'scheduled' : 'live';
 }
 
 async function findPost(slug) {

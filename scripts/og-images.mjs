@@ -43,7 +43,7 @@ export async function generateOgImages({ baseUrl = 'http://localhost:4321', slug
         await document.fonts.ready;
         document.querySelector('astro-dev-toolbar')?.remove(); // dev-server overlay, not part of the card
       });
-      const shot = await page.screenshot({ clip: { x: 0, y: 0, width: 1200, height: 630 } });
+      const shot = await page.screenshot({ clip: { x: 0, y: 0, width: 1200, height: 630 }, animations: 'disabled', timeout: 120_000 });
       // Palette PNG keeps text crisp at roughly a third of the size (social crawlers fetch these a lot).
       const { default: sharp } = await import('sharp');
       await sharp(shot).png({ palette: true, quality: 92, effort: 10, compressionLevel: 9 }).toFile(ogImagePath(slug));

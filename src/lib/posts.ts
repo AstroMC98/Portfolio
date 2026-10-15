@@ -8,7 +8,16 @@ export type Post = CollectionEntry<'blog'>;
  * (the deploy workflow rebuilds daily). In `astro dev` everything is visible.
  */
 export function isLive(p: Post, now = new Date()) {
-  return !isLocalDraft(p) && !p.data.draft && !needsReview(p) && p.data.date.getTime() <= now.getTime();
+  return !isLocalDraft(p) && !p.data.draft && !needsReview(p) && publishTime(p.data.date) <= now.getTime();
+}
+
+/**
+ * A post dated YYYY-MM-DD goes live at 00:00 Manila time (UTC+8) that day, so the 06:00-Manila
+ * daily rebuild publishes it on its own date rather than a day late.
+ */
+export const PUBLISH_UTC_OFFSET_H = 8;
+export function publishTime(date: Date) {
+  return date.getTime() - PUBLISH_UTC_OFFSET_H * 3600_000;
 }
 
 /** Posts in src/content/drafts/ are local-only (git-ignored) and never publish. */

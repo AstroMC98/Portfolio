@@ -1,0 +1,34 @@
+---
+/**
+ * Captioned image with a rights line — for images you have the right to publish
+ * (your own, licensed, or official press stills). Put files in public/images/blog/<slug>/.
+ *
+ *   <Figure src="/images/blog/my-post/still.jpg" alt="…" caption="…" credit="© Studio" />
+ */
+interface Props {
+  src: string;
+  alt: string;
+  caption?: string;
+  /** Rights / source line. Required in spirit: always say where an image came from. */
+  credit?: string;
+  width?: number;
+  height?: number;
+}
+const { src, alt, caption, credit, width, height } = Astro.props;
+---
+<figure class="fig">
+  <img src={src} alt={alt} loading="lazy" decoding="async" width={width} height={height} />
+  {(caption || credit) && (
+    <figcaption>
+      {caption && <span>{caption}</span>}
+      {credit && <span class="fig__credit mono">{credit}</span>}
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .fig { margin: 2.2em 0; }
+  .fig img { display: block; width: 100%; height: auto; border-radius: 16px; border: 1px solid var(--line); }
+  figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; margin-top: 10px; font-size: 0.86rem; color: var(--text-2); }
+  .fig__credit { font-size: 11px; letter-spacing: 0.04em; color: var(--muted); }
+</style>

@@ -40,7 +40,7 @@ Before publishing: `grep -rn "TODO(confirm)" src/` should return nothing.
 
 Posts are MDX files in `src/content/blog/` (schema in `src/content.config.ts`). Each post can use the exhibit components in `src/components/blog/` — `Exhibit`, `Bars`, `Columns`, `Lines`, `Slope`, `Waffle`, `Stats`, `Matrix`, `Flow`, `Compare`, `Timeline`, `Note` — and gets generative cover art from its `motif`.
 
-- **Scheduling:** a post is public when it is in `blog/`, `draft` is false, it has no review flags, and `date` is today or earlier at build time. The deploy workflow rebuilds daily, so future-dated posts publish themselves.
+- **Scheduling:** a post is public when it is in `blog/`, `draft` is false, it has no review flags, and its `date` has arrived in Manila time (a post goes live at 00:00 UTC+8 on its date). The deploy workflow rebuilds daily at 06:00 Manila, so future-dated posts publish themselves on their date.
 - **Local drafts:** `src/content/drafts/` is git-ignored. Posts there show up in `npm run dev` but are never committed or published.
 - **Previewing unpublished posts:** `npm run dev` shows everything, or build with `SHOW_SCHEDULED=true npm run build`.
 - **Review flags:** first-person passages marked `<Note kind="field" review>` and a post-level `review:` field render "TO CONFIRM" badges and block publishing. Resolve them before publishing.

@@ -1,0 +1,139 @@
+---
+dek: "A 2019 anime guessed that machines would one day make most of our music, and it was right; it was also right that the things machines can't make (a real person behind the song, a live show, and someone who takes responsibility) would become what people value most."
+takeaways:
+  - "AI now makes music at enormous scale: one streaming service, Deezer, receives nearly 90,000 fully AI-made tracks a day, yet those tracks get only 1–3% of its listening."
+  - "Most people can't hear the difference (97% failed a blind test), but 80% want AI music labelled, and people tend to enjoy the same song less once they're told a machine made it."
+  - "What AI can't copy is the story behind a song, the live show, and a person who agreed to it, gets paid for it and answers for it. That's why today's fights are about permission, labels, voices and who gets heard."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Columns from '../../components/blog/Columns.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Note from '../../components/blog/Note.astro';
+import VideoEmbed from '../../components/blog/VideoEmbed.astro';
+
+<p class="lede">Imagine a bakery machine that can bake a perfect loaf in a second, millions of loaves a day. Bread gets very cheap. What becomes valuable is everything the machine can't make: the baker you know by name, the café where you sit with friends, and being sure about what went into the bread. A 2019 anime called <em>Carole & Tuesday</em> told that story about music, years before AI music apps existed. In 2026 it reads less like science fiction and more like the news.</p>
+
+Here is the argument in plain words: **the show was right that AI would make decent, catchy music in huge amounts, and right that this would make other things scarce: a real person behind the song, a live show, trust, and someone who takes responsibility. Today's big fights (about permission, labels, copied voices and who gets heard) are the ones the show kept in the background.**
+
+<VideoEmbed id="PhQh-Yrx2IQ" title="Carole & Tuesday — official trailer" caption="Official trailer." credit="Sentai Filmworks · © Bones / Carole & Tuesday Production Committee" />
+
+## The show in one minute
+
+*Carole & Tuesday* is a 24-episode series from the animation studio Bones and director Shinichirō Watanabe, best known for *Cowboy Bebop*. It is set on Mars about fifty years after people started moving there. In that world, artificial intelligence produces most culture, and most people just consume it.
+
+Two teenagers don't fit. Carole is an orphan who came to Mars as a refugee from Earth; she plays keyboard on the street between part-time jobs. Tuesday is a politician's daughter who runs away from a comfortable home with her guitar. They meet by chance on a bridge and start writing songs together.
+
+Their rival is Angela, a former child actress who becomes a pop star with help from a producer called Tao, who uses AI to shape her songs, right down to every syllable she sings. A famous DJ laughs at the idea of music that isn't made by AI. So the show sets up a simple contest: polished machine-made hits against two kids with a keyboard, a guitar and something to say.
+
+The show also practised what it preached. Its music was made by real, named musicians, and its episodes are named after real songs, from "True Colors" to "Dancing Queen".
+
+## Jargon decoder
+
+- **Generative AI:** software that creates new things (text, images, music) after learning patterns from huge amounts of existing material.
+- **AI music generator:** an app, such as Suno, where you type a description and get a finished song in seconds.
+- **Fully AI-generated:** the machine made all or most of the creative parts, like the main vocal.
+- **AI-assisted:** humans sang and played the main parts; AI helped with some pieces.
+- **Training data:** the existing songs an AI learned from. Who gave permission for that is a big legal question.
+- **Streaming royalties:** money paid to musicians each time their song is played. It comes from a shared pot, so fake plays take money from everyone else.
+- **Stream fraud:** using bots or fake accounts to play songs and collect royalties.
+- **Copyright:** the legal right to own and control a creative work. In the US, a work needs a human author to qualify.
+- **Voice clone:** an AI copy of a real singer's voice.
+
+## What AI music can already copy
+
+Think of a song as five layers. The first two are the **sound** (how it sounds: the voice, the mix, the polish) and the **song** (the tune, the chords, the words). AI is now very good at both.
+
+How good? In a test run for the streaming service Deezer by the polling firm Ipsos, 9,000 people across eight countries listened to three tracks, two made by AI and one by humans, and tried to spot the AI ones. **97% couldn't.** A handful of AI acts have also reached Billboard's charts.
+
+And there is a lot of it. Deezer counts how many fully AI-made tracks are delivered to it each day:
+
+<Exhibit
+  n={1}
+  title="AI songs arriving at Deezer every day went from 10,000 to nearly 90,000 in under two years"
+  sub="Fully AI-generated tracks delivered to Deezer per day, thousands"
+  source="TechCrunch (20 Apr 2026); Deezer (13 Oct 2026)"
+  sourceUrl="https://newsroom-deezer.com/2026/10/deezer-ai-music-toggle/"
+  note="Approximate figures from Deezer announcements. By October 2026 these tracks were more than half of everything delivered to Deezer on its busiest days."
+  table={[["Date", "AI tracks per day"], ["January 2025", "about 10,000"], ["November 2025", "about 50,000"], ["October 2026", "nearly 90,000"]]}
+>
+  <Columns unit="K" data={[
+    { label: "Jan 2025", value: 10, display: "10K" },
+    { label: "Nov 2025", value: 50, display: "50K" },
+    { label: "Oct 2026", value: 90, display: "90K", hl: true },
+  ]} />
+</Exhibit>
+
+The apps behind this are big businesses. Suno, the best-known one, was valued at $5.4 billion in June 2026, and its boss said more than 100 million people had used it.
+
+So the show called it: machines really can make competent, catchy music, in amounts no human industry could match. But here's the twist the show didn't see coming. People mostly aren't listening.
+
+<Exhibit
+  n={2}
+  title="Half the songs arriving on busy days, almost none of the listening"
+  sub="Fully AI-generated music on Deezer, % of each measure"
+  source="Deezer, 13 Oct 2026"
+  sourceUrl="https://newsroom-deezer.com/2026/10/deezer-ai-music-toggle/"
+  note="The bars measure different things: share of new tracks arriving on peak days, and share of all plays on the service."
+  table={[["Measure", "Share"], ["New tracks arriving, peak days", "more than 50%"], ["All plays on Deezer", "1–3%"]]}
+>
+  <Bars unit="%" data={[
+    { label: "Share of new tracks", value: 50, display: ">50%", hl: true },
+    { label: "Share of all plays", value: 3, display: "1–3%" },
+  ]} />
+</Exhibit>
+
+Worse, Deezer found that up to 85% of the plays these AI tracks did get in 2025 were fake, from bots trying to collect royalties. So a lot of the flood isn't art at all. It's an attempt to skim money from a shared pot.
+
+## What it can't copy: the story, the stage and the stake
+
+The other three layers are where AI hits a wall.
+
+<Exhibit
+  n={3}
+  title="AI can copy how music sounds; it can't copy who is behind it"
+  sub="Author's framework: five layers of a piece of music"
+  note="Framework by the author, simplified from the in-depth version."
+>
+  <Compare
+    cols={["Can AI copy it?", "What that means"]}
+    rows={[
+      { k: "Sound", v: ["Yes", "97% of people in a blind test couldn't tell"] },
+      { k: "Song", v: ["Mostly", "AI acts have reached Billboard's charts"] },
+      { k: "Story", v: ["It can fake one", "People enjoy the same music less once told a machine made it"] },
+      { k: "Stage", v: ["No", "Live shows drew record crowds in 2025"] },
+      { k: "Stake", v: ["No", "The law wants a human author and someone responsible"] },
+    ]}
+  />
+</Exhibit>
+
+**Story** is the life you believe is behind a song. Research shows it changes what people hear. In one study, 120 people watched piano performances where the sound was identical, but some were told a pianist played and others that an AI-driven piano did. They rated the "human" versions as better, and even described differences in rhythm and tempo that weren't there. That's also why most people (80% in the Deezer survey) want AI music clearly labelled.
+
+Stories can be faked, but fakes are fragile. In 2025 a "band" called The Velvet Sundown passed a million monthly listeners on Spotify, then described itself as a synthetic project, and the conversation shifted from the songs to whether listeners had been misled. Compare Xania Monet, an AI-voiced singer whose creator, a human songwriter, writes about 90% of the lyrics herself. That act signed a multimillion-dollar record deal. A real person was behind it.
+
+**Stage** means being in a room together. You can stream an AI song a billion times, but it can't play a concert. Live Nation, the world's biggest concert promoter, drew a record 159 million fans in 2025. In the show, Carole and Tuesday never win on fancy production. Their breakthroughs come when they play for people.
+
+**Stake** means someone agreed to it, gets paid, gets credit and can be held responsible. Machines can't do any of that. In the US, the Copyright Office says typing a prompt doesn't make you the author, and in March 2026 the Supreme Court declined to hear a case challenging the rule that a human author is needed.
+
+## The fights happening now
+
+If AI makes sound cheap, people start fighting over the scarce parts. That is exactly what's happening.
+
+- **Permission.** In 2024 the three biggest record companies sued Suno and a rival app, Udio, for training on their recordings without permission. Warner has since made deals with both, and Universal with Udio. But Universal and Sony sued Suno again in September 2026, and a court in Munich ruled against Suno in July 2026. Artists' groups are now asking their own labels to get their consent before putting their music into AI deals.
+- **Labels.** Music industry groups launched "AI-Generated" and "AI-Assisted" labels in July 2026. Spotify started marking artist profiles that are invented AI personas and stopped recommending them by default. Australia's official charts no longer count fully AI-made tracks. Bandcamp, a store where fans buy directly from artists, banned music made mostly by AI.
+- **Voices.** Tennessee's ELVIS Act protects a person's voice from being copied by AI without permission. A national US version, the NO FAKES Act, passed a key Senate committee in June 2026.
+- **Who gets heard.** Deezer keeps AI tracks out of its recommendations and is adding a switch to hide them from search.
+
+<Note kind="insight">
+Notice where every rule draws the line: not at "no AI allowed", but at whether a human made the main creative choices and stands behind the result.
+</Note>
+
+## What the show got right, and what it missed
+
+It got the big picture right: machines can make the hits, and what's left that matters is the people. The show's second half turns political in a way that makes this even clearer, but we'll leave that for you to watch.
+
+It missed three things. It imagined AI music as a tool for a few powerful producers, not an app used by millions. It imagined polished AI hits, not a flood of low-effort tracks and fake plays. And on the show's Mars, everyone knew which music was made by machines. On Earth, almost nobody can tell, which is why labels have become the main battleground.
+
+## If you remember one thing
+
+AI has made the *sound* of music cheap. That makes the parts it can't make, a real person, a live room and someone who takes responsibility, worth more than ever. *Carole & Tuesday* saw it coming: the miracle was never the song itself. It was who was singing it.

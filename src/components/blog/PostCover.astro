@@ -43,6 +43,17 @@ const wobble = (x: number, y: number, w: number, h: number) => {
 };
 const sketchBoxes = [[150, 150, 330, 70], [150, 250, 150, 230], [320, 250, 160, 100], [320, 380, 160, 100]];
 const sketchPaths = sketchBoxes.flatMap(([x, y, w, h]) => [wobble(x, y, w, h), wobble(x, y, w, h)]);
+// duet: two hand-played voices that wind around each other, over a perfectly periodic machine spectrum
+const voice = (phase: number, freq: number, wob: number) =>
+  range(121).map((k) => {
+    const x = 110 + k * 8;
+    const amp = 62 + 38 * Math.sin(x * 0.0042 + phase) + (rnd() - 0.5) * wob;
+    const y = 330 + amp * Math.sin(x * freq + phase);
+    return `${k ? 'L' : 'M'}${x} ${y.toFixed(1)}`;
+  }).join(' ');
+const duetA = voice(0, 0.0105, 6);
+const duetB = voice(Math.PI * 0.85, 0.0098, 6);
+const spectrum = range(40).map((i) => ({ x: 112 + i * 24.5, h: [26, 52, 34, 78, 34, 52][i % 6] }));
 // generative: a seeded network, so every slug gets a different picture (the default for new posts)
 const gNodes = range(22).map(() => ({ x: 130 + rnd() * 940, y: 110 + rnd() * 420 }));
 const near = (i: number) => gNodes.map((n, j) => ({ j, d: (n.x - gNodes[i].x) ** 2 + (n.y - gNodes[i].y) ** 2 })).filter((o) => o.j !== i).sort((a, b) => a.d - b.d);
@@ -268,6 +279,19 @@ while (gPath.length < 6) {
       <path d="M800 260 l26 22 l-26 22" stroke={M} stroke-width="5" stroke-linecap="round" />
       <path d="M846 304 H 900" stroke={M} stroke-width="5" stroke-linecap="round" />
       {range(3).map((i) => <path d={`M800 ${360 + i * 36} H ${1050 - i * 80}`} stroke={D} stroke-width="8" stroke-linecap="round" />)}
+    </g>
+  )}
+
+  {motif === 'duet' && (
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="1010" cy="150" r="78" stroke={D} stroke-width="3" fill="rgb(61 245 167 / 0.04)" />
+      <circle cx="985" cy="128" r="14" stroke={D} stroke-width="2" />
+      <circle cx="1040" cy="176" r="9" stroke={D} stroke-width="2" />
+      <circle cx="1002" cy="190" r="6" stroke={D} stroke-width="2" />
+      {spectrum.map((b) => <rect x={b.x} y={600 - b.h} width="14" height={b.h} rx="3" fill={D} />)}
+      <path d={duetB} stroke={T} stroke-width="3" opacity="0.9" />
+      <path d={duetA} stroke={M} stroke-width="5" />
+      <circle cx="110" cy="330" r="9" fill={M} stroke="none" />
     </g>
   )}
 

@@ -21,7 +21,8 @@ function postDates() {
   return dates;
 }
 const lastmod = postDates();
-const today = new Date().toISOString().slice(0, 10);
+// "Today" in Manila (UTC+8), matching when posts go live (src/lib/posts.ts).
+const today = new Date(Date.now() + 8 * 3600_000).toISOString().slice(0, 10);
 // The home page and blog index change whenever the newest live post does.
 const newest = Object.values(lastmod).filter((d) => d <= today).sort().pop();
 
