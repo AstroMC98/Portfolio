@@ -1,0 +1,268 @@
+<!doctype html>
+<!--
+  Source for public/resume.pdf. Edit here, then run `npm run resume`.
+  Facts only from the user's own résumés (references/, git-ignored). Keep it to two A4 pages.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Marc Castro — Résumé</title>
+<meta name="author" content="Marc Castro">
+<meta name="description" content="Lead AI Engineer & Tech Consultant — production LLM, RAG and agentic systems.">
+<style>
+  @font-face {
+    font-family: 'Archivo';
+    src: url('../node_modules/@fontsource-variable/archivo/files/archivo-latin-wght-normal.woff2') format('woff2');
+    font-weight: 100 900;
+  }
+  @font-face {
+    font-family: 'Plex Mono';
+    src: url('../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2') format('woff2');
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: 'Plex Mono';
+    src: url('../node_modules/@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2') format('woff2');
+    font-weight: 500;
+  }
+
+  /* Site palette, darkened for paper: --signal #3df5a7 fails contrast on white, so the accent is a deep green. */
+  :root {
+    --ink: #0a0d0c;
+    --text: #1d2420;
+    --muted: #5b6660;
+    --line: #d5dcd8;
+    --accent: #0b7a52;
+    --accent-soft: #e8f4ee;
+  }
+
+  @page { size: A4; margin: 13mm 14mm 14mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: 'Archivo', 'Segoe UI', Arial, sans-serif;
+    font-size: 9.1pt;
+    line-height: 1.35;
+    color: var(--text);
+    background: #fff;
+  }
+  a { color: inherit; text-decoration: none; }
+  .mono { font-family: 'Plex Mono', Consolas, monospace; }
+
+  /* Header */
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 7pt; margin-bottom: 9pt; }
+  h1 { font-size: 25pt; font-weight: 800; letter-spacing: -0.02em; line-height: 1; color: var(--ink); font-stretch: 90%; }
+  h1 span { color: var(--accent); }
+  .role { margin-top: 4pt; font-size: 10.5pt; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink); }
+  .role em { font-style: normal; font-weight: 500; color: var(--muted); text-transform: none; letter-spacing: 0; }
+  .contact { margin-top: 5pt; font-family: 'Plex Mono', monospace; font-size: 7.6pt; color: var(--muted); display: flex; flex-wrap: wrap; gap: 2pt 12pt; }
+  .contact a { color: var(--text); }
+
+  /* Sections */
+  section { margin-top: 9pt; }
+  h2 {
+    font-family: 'Plex Mono', monospace; font-weight: 500; font-size: 7.8pt;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent);
+    display: flex; align-items: center; gap: 8pt; margin-bottom: 5pt;
+  }
+  h2::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  p.summary { font-size: 9.5pt; line-height: 1.45; }
+
+  .skills li { margin-top: 1.5pt; }
+
+  /* Roles */
+  .job { break-inside: avoid; margin-bottom: 7pt; }
+  .job:last-child { margin-bottom: 0; }
+  .job-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10pt; }
+  .job-title { font-size: 9.9pt; font-weight: 700; color: var(--ink); }
+  .job-title .org { font-weight: 500; color: var(--text); }
+  .dates { font-family: 'Plex Mono', monospace; font-size: 7.6pt; color: var(--muted); white-space: nowrap; }
+  .context { font-size: 8.3pt; color: var(--muted); font-style: italic; margin: 0.5pt 0 2pt; }
+  ul { list-style: none; }
+  li { position: relative; padding-left: 10pt; margin-top: 2pt; }
+  li::before { content: ''; position: absolute; left: 1pt; top: 0.58em; width: 4pt; height: 1.3pt; background: var(--accent); }
+  b { font-weight: 700; color: var(--ink); }
+
+  .compact .job { margin-bottom: 4pt; }
+
+  /* Talks table */
+  table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+  td { padding: 2.2pt 0; vertical-align: top; border-bottom: 1px solid var(--line); }
+  tr:last-child td { border-bottom: 0; }
+  td.when { width: 74pt; font-family: 'Plex Mono', monospace; font-size: 7.5pt; color: var(--muted); padding-top: 3pt; }
+  td.who { width: 46%; font-weight: 600; color: var(--ink); padding-right: 8pt; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16pt; }
+  .page-break { break-before: page; }
+  .avoid { break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Marc <span>Castro</span></h1>
+  <div class="role">Lead AI Engineer &amp; Tech Consultant <em>· production LLM, RAG &amp; agentic systems</em></div>
+  <div class="contact">
+    <span>Olongapo, Philippines · Remote (UTC+8) · Open to relocation: Singapore, Australia, EU</span>
+    <a href="mailto:mcastro.dsci@gmail.com">MCastro.DSci@gmail.com</a>
+    <span>+63 919 902 5869</span>
+    <a href="https://portfolio.marccastro.solutions">portfolio.marccastro.solutions</a>
+    <a href="https://linkedin.com/in/nipmcastro">linkedin.com/in/nipmcastro</a>
+    <a href="https://github.com/AstroMC98">github.com/AstroMC98</a>
+  </div>
+</header>
+
+<section>
+  <h2>Summary</h2>
+  <p class="summary">Forward-deployed AI engineer who ships production LLM systems inside client environments, not demos. Six years across insurance, genomics, contact centres, education and government. Leads end-to-end delivery of RAG platforms, agentic pipelines and document intelligence for a UK consultancy's enterprise clients, from scoping and architecture through audits, handover and training. An applied-physics background shows in the work: every pipeline ships with verification, tracing and a cost model.</p>
+</section>
+
+<section>
+  <h2>Core skills</h2>
+  <!-- Inline labels, not a two-column grid: ATS parsers read a grid as all labels, then all values. -->
+  <ul class="skills">
+    <li><b>LLM systems:</b> RAG (semantic, vector, hybrid), HyDE-style query expansion, Cohere rerankers, vision models for image-heavy documents, structured output with Pydantic, knowledge graphs</li>
+    <li><b>Agents:</b> multi-agent pipelines (planner, extractor, builder, verifier), MCP servers, Claude Code skills and plugins, n8n workflows</li>
+    <li><b>Engineering:</b> Python, FastAPI, AsyncIO, WebSockets, Pub/Sub messaging, PostgreSQL, CosmosDB, ChromaDB, Docker</li>
+    <li><b>Cloud &amp; LLMOps:</b> Azure (AI Search, AI Foundry, Container Apps, Entra ID), GCP (Vertex AI, Cloud Run, Pub/Sub), Databricks, LiteLLM cost controls, drift monitoring</li>
+    <li><b>Delivery:</b> discovery and scoping, production-readiness audits, per-run cost models, handovers, training non-technical teams</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Experience</h2>
+
+  <div class="job">
+    <div class="job-head">
+      <div class="job-title">Lead AI Engineer &amp; Tech Consultant · <span class="org">Intelligent AI Solutions (UK, remote)</span></div>
+      <div class="dates">Sep 2024 – Present</div>
+    </div>
+    <div class="context">UK consultancy building custom enterprise AI across insurance, media, real estate and professional services.</div>
+    <ul>
+      <li>Built a <b>4-phase agentic document pipeline</b> (layout analysis, adaptive extraction, HTML assembly, verification) on Vertex AI and Pub/Sub that turns complex insurance PDFs into semantic HTML at <b>10–30× throughput</b> through three levels of async parallelism, cutting turnaround from hours to minutes.</li>
+      <li>Architected a <b>production RAG chat platform</b> on Azure Container Apps with switchable semantic, vector and hybrid retrieval, vision support for image-heavy documents, Entra ID role-based access and per-user monthly credit limits to cap spend.</li>
+      <li>Built a <b>media monitoring pipeline</b> that analyses large article volumes for bias, with broadcast diarization, speaker attribution and a five-prompt LLM analysis pass, costed per run against Gemini Flash-Lite pricing.</li>
+      <li>Owned delivery of an <b>insurance certificate processing platform</b> (Azure + Vertex AI): fixed a compliance-critical extraction defect, resolved Workload Identity Federation access across client tenants, and ran the handover.</li>
+      <li><b>Audited client AI systems</b> for production readiness, including a .NET/Semantic Kernel RAG stack and an n8n support chatbot. Surfaced gaps in identity propagation, circuit breaking and tracing, plus injection exposure and an exposed secret, each with a scoped remediation plan.</li>
+      <li>Planned LLM cost management under Canadian data-residency rules for an insurance-sector client, and led internal research on retrieval, fine-tuning and LLM serving that feeds reusable components into client builds.</li>
+    </ul>
+  </div>
+
+  <div class="job">
+    <div class="job-head">
+      <div class="job-title">Co-founder &amp; AI Lead · <span class="org">Project Emily</span></div>
+      <div class="dates">Concurrent</div>
+    </div>
+    <div class="context">Data intelligence SaaS for SMEs, built on a semantic knowledge graph.</div>
+    <ul>
+      <li>Designed a three-layer AI operating system for non-technical business users (ingestion, graph construction, intelligence and retrieval), with the graph as a thin navigational index whose nodes hold locators, not payload.</li>
+      <li>Built "Hey Emily", a browser voice agent with wake-word detection and a FastAPI WebSocket backend; wrote the technical whitepaper and a 68-ticket phased build backlog.</li>
+    </ul>
+  </div>
+
+  <div class="job">
+    <div class="job-head">
+      <div class="job-title">Global Data Science Manager · <span class="org">TDCX AI (Singapore)</span></div>
+      <div class="dates">Aug 2023 – Sep 2024</div>
+    </div>
+    <div class="context">Newly launched AI consulting arm of Singapore-based TDCX.</div>
+    <ul>
+      <li>Built an LLM web app that generates realistic customer conversations for agent onboarding, cutting <b>time to proficiency by at least 20%</b>.</li>
+      <li>Built a workforce-management forecasting model with a simulation layer, packaged in an interface operations teams used directly.</li>
+    </ul>
+  </div>
+
+  <div class="job">
+    <div class="job-head">
+      <div class="job-title">Data Scientist · <span class="org">AIA Digital+</span></div>
+      <div class="dates">Aug 2022 – Aug 2023</div>
+    </div>
+    <div class="context">Technology arm of AIA, the largest listed life insurance group in Asia-Pacific.</div>
+    <ul>
+      <li>Built an end-to-end next-best-action pipeline for AIA Indonesia, cutting the <b>FTE needed for NBA model development by up to 95%</b>.</li>
+      <li>Built a fraud detection solution to automate claim approvals, projected to cut processing time by at least 25%.</li>
+    </ul>
+  </div>
+
+  <div class="job">
+    <div class="job-head">
+      <div class="job-title">Senior Research Associate, Analytics &amp; Visualization · <span class="org">Philippine Genome Center</span></div>
+      <div class="dates">Sep 2020 – Mar 2021</div>
+    </div>
+    <ul>
+      <li>Built data pipelines and analytical modules that shortened SARS-CoV-2 genomic surveillance reporting; co-authored papers on emerging variants.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="compact">
+  <h2>Concurrent roles</h2>
+  <div class="job">
+    <div class="job-head">
+      <div class="job-title">AI Automation Instructor &amp; Mentor · <span class="org">CIIT &amp; Eskwelabs</span></div>
+      <div class="dates">Nov 2023 – Present</div>
+    </div>
+    <ul><li>Teach AI, no-code AI and data science to government agencies, corporate executives and mixed professional cohorts through workshops, bootcamps and hackathons.</li></ul>
+  </div>
+  <div class="job">
+    <div class="job-head">
+      <div class="job-title">Senior Data Science Consultant · <span class="org">PSHS Knowledge Innovation Division</span></div>
+      <div class="dates">Sep 2024 – Dec 2025</div>
+    </div>
+    <ul><li>Led data science on student performance management and data-driven curriculum enhancement for the Philippine Science High School system.</li></ul>
+  </div>
+</section>
+
+<section class="avoid">
+  <h2>Selected projects</h2>
+  <ul>
+    <li><b>Customer service agent copilot:</b> FastAPI on Cloud Run with Pub/Sub, a Cohere reranker and a graph database; reads live conversations and returns structured JSON to flag journey stage, map resolution paths, score calls and forecast resolution. Cut average handle time and lifted customer satisfaction.</li>
+    <li><b>Automated media analysis:</b> scheduled Papermill notebooks on Databricks and Vertex AI with PostgreSQL storage and drift monitoring, replacing daily manual reporting across multiple analyst teams.</li>
+    <li><b>AI enablement curriculum:</b> a 5-module, 5–6 hour programme for commercial real estate firms covering AI fluency and confidentiality, Claude Cowork workflows (lease abstraction, rent rolls, offering memoranda, comps), Claude Code for non-developers, and governance.</li>
+    <li><b>Developer tooling:</b> Claude Code skills for multi-agent development planning and resumable execution, plus a 10-skill SaaS development plugin.</li>
+  </ul>
+</section>
+
+<section class="avoid">
+  <h2>Trainings &amp; talks</h2>
+  <table>
+    <tr><td class="when">Jun 2025 – now</td><td class="who">Ayala Group companies</td><td>Generative AI and low code for corporate teams</td></tr>
+    <tr><td class="when">Aug, Nov 2025</td><td class="who">DICT ICT Literacy &amp; Competency Development Bureau</td><td>AI technology government trainings</td></tr>
+    <tr><td class="when">Aug 2025</td><td class="who">Carousell Singapore (IT, marketing, HR)</td><td>n8n automation for e-commerce</td></tr>
+    <tr><td class="when">Mar 2025</td><td class="who">Asian Institute of Management</td><td>Breaking into tech consulting within 5 years</td></tr>
+    <tr><td class="when">Oct 2024</td><td class="who">DOH 20th National Health Research Forum for Action</td><td>BANT.AI: fraud detection with unified health data</td></tr>
+    <tr><td class="when">Jun 2023</td><td class="who">FEU Tech ACM</td><td>Breaking bias in AI</td></tr>
+    <tr><td class="when">Mar 2023</td><td class="who">UST Computer Science, HORAIZON</td><td>The art of data storytelling and visualisation</td></tr>
+  </table>
+</section>
+
+<section class="avoid">
+  <h2>Recognition</h2>
+  <ul>
+    <li><b>Champion, DOH-DAP Hack4Health 2024</b> (100+ teams): all-in-one health fraud detection platform built in three days, later presented as BANT.AI.</li>
+    <li><b>Champion, ICSC Hack-A-Street 2025:</b> gravity-model tool that sites bike racks the way retailers site franchise stores, built in two days.</li>
+    <li><b>2nd place, UN Big Data Hackathon 2023, Youth Track</b> (122 teams worldwide); also Best Youth Team in Asia.</li>
+    <li><b>3rd place, USHER Hackathon 2022:</b> ML pipeline that reads early-warning signals of building damage.</li>
+  </ul>
+</section>
+
+<div class="two-col">
+  <section class="avoid">
+    <h2>Publications</h2>
+    <ul>
+      <li>Detection and genome sequencing of SARS-CoV-2 B.1.1.7 in the Philippines. <span class="mono">doi:10.1128/MRA.00219-21</span></li>
+      <li>Emergent SARS-CoV-2 variant with multiple spike mutations, Central Visayas. <span class="mono">doi:10.1101/2021.03.03.21252812</span></li>
+      <li>A directed minimum connected dominating set for protein-protein interaction networks. <span class="mono">ISBN 9780367814656</span></li>
+    </ul>
+  </section>
+  <section class="avoid">
+    <h2>Education</h2>
+    <ul>
+      <li><b>MS Data Science</b>, Asian Institute of Management, 2022</li>
+      <li><b>BS Applied Physics (Instrumentation)</b>, University of the Philippines Diliman, 2020</li>
+    </ul>
+  </section>
+</div>
+
+</body>
+</html>

@@ -8,7 +8,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "admin": "astro dev --open /admin",
-    "og": "node scripts/og-images.mjs"
+    "og": "node scripts/og-images.mjs",
+    "resume": "node scripts/resume.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^8.0.3",
