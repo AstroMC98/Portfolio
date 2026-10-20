@@ -90,7 +90,7 @@ function vizAnimations() {
   gsap.from('[data-draw]', { drawSVG: '0%', duration: 1.6, ease: 'power2.inOut', scrollTrigger: { trigger: '.ramp', start: 'top 85%', once: true } });
   gsap.from('.ramp__dot', { scale: 0, transformOrigin: '50% 50%', delay: 1.4, scrollTrigger: { trigger: '.ramp', start: 'top 85%', once: true } });
 
-  // 122 teams — field fills, one stays lit
+  // 123 teams — field fills, one stays lit
   gsap.from('.field__dot', { opacity: 0, scale: 0.2, stagger: { each: 0.006, from: 'random' }, duration: 0.4, scrollTrigger: { trigger: '.field', start: 'top 85%', once: true } });
 
   // 25% — bars grow

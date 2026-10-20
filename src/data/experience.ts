@@ -137,8 +137,8 @@ export const ROLES: Role[] = [
 /** Point events plotted on the career timeline. */
 export const MILESTONES = [
   { at: 2021.2, label: 'B.1.1.7 genome paper', kind: 'paper' },
+  { at: 2022.85, label: 'UN Big Data · 2nd of 123', kind: 'award' },
   { at: 2022.9, label: 'USHER Hackathon · 3rd', kind: 'award' },
-  { at: 2023.7, label: 'UN Big Data · 2nd of 122', kind: 'award' },
   { at: 2024.8, label: 'Hack4Health · 1st', kind: 'award' },
   { at: 2025.5, label: 'Hack-A-Street · 1st', kind: 'award' },
 ] as const;

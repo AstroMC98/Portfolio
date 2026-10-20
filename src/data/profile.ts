@@ -13,7 +13,7 @@ export const PROFILE = {
   linkedinLabel: 'linkedin.com/in/nipmcastro',
   calendly: 'https://calendly.com/mcastro-dsci/30min',
   resume: '/resume.pdf',
-  years: '7+',
+  years: '6+',
   projects: '30+',
   focus: ['Enterprise RAG', 'Agentic workflows', 'Document intelligence', 'LLMOps'],
   topStack: ['Python', 'TypeScript · React', 'FastAPI', 'Azure OpenAI', 'Claude', 'Hybrid RAG', 'Multi-agent', 'MLflow · DVC', 'Docker'],

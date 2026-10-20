@@ -1,8 +1,8 @@
 ---
 // Each tile pairs a verified headline metric with a purpose-drawn mini visualisation.
 const people = Array.from({ length: 20 }, (_, i) => i);
-const dots = Array.from({ length: 122 }, (_, i) => i);
-const LIT = 57; // the one lit dot in the 122-team field
+const dots = Array.from({ length: 123 }, (_, i) => i);
+const LIT = 57; // the one lit dot in the 123-team field
 const lanes = Array.from({ length: 10 }, (_, i) => i);
 
 // Donut: 40% of circumference
@@ -90,14 +90,14 @@ const C = 2 * Math.PI * R;
         <p class="tile__src mono">TDCX AI · global BPO</p>
       </article>
 
-      <!-- E · 122 teams -->
+      <!-- E · 123 teams -->
       <article class="tile tile--e panel" data-reveal>
         <div class="tile__top">
-          <p class="tile__num numeral">2<sup>nd</sup><span class="tile__of">/ <span data-count="122">122</span></span></p>
+          <p class="tile__num numeral">2<sup>nd</sup><span class="tile__of">/ <span data-count="123">123</span></span></p>
           <p class="tile__label">teams at the UN Big Data Hackathon — Best Youth Team, Asia</p>
           <p class="tile__src mono">International · 2023</p>
         </div>
-        <div class="field" role="img" aria-label="122 competing teams, one highlighted">
+        <div class="field" role="img" aria-label="123 competing teams, one highlighted">
           {dots.map((i) => <span class:list={['field__dot', { 'field__dot--lit': i === LIT }]}></span>)}
         </div>
       </article>

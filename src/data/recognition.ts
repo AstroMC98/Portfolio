@@ -1,7 +1,7 @@
 export const HACKATHONS = [
   { place: '1st', name: 'ICSC Hack-A-Street', year: 2025, scope: 'National', field: '13 teams', what: 'Gravity model for retail site selection', badge: 'Champion' },
   { place: '1st', name: 'DOH-DAP Hack4Health', year: 2024, scope: 'National', field: '100+ teams', what: 'Fraud-detection platform for unified health data', badge: 'Champion' },
-  { place: '2nd', name: 'UN Big Data Hackathon — Youth', year: 2023, scope: 'International', field: '122 teams', what: 'Best Youth Team, Asia', badge: 'Intl. finalist' },
+  { place: '2nd', name: 'UN Big Data Hackathon — Youth', year: 2022, scope: 'International', field: '123 teams', what: 'Best Youth Team, Asia', badge: 'Intl. finalist' },
   { place: '3rd', name: 'USHER Hackathon', year: 2022, scope: 'National', field: '', what: 'ML pipeline for building-damage early warning', badge: '3rd place' },
 ];
 
@@ -29,7 +29,7 @@ export const PUBLICATIONS = [
 export const SPEAKING = [
   { group: 'Government', title: 'AI Technology Government Trainings', org: 'Department of ICT · ICT Literacy and Competency Development Bureau', date: 'Aug & Nov 2025' },
   { group: 'Government', title: 'BANT.AI: Revolutionising Fraud Detection with Unified Health Data', org: 'Department of Health · 20th National Health Research Forum for Action', date: 'Oct 2024' },
-  { group: 'Corporate', title: 'Generative AI & Low Code for Corporate Teams', org: 'Ayala Group of Companies', date: 'Jun – Sep 2025' },
+  { group: 'Corporate', title: 'Generative AI & Low Code for Corporate Teams', org: 'Ayala Group of Companies', date: 'Jun 2025 – present' },
   { group: 'Corporate', title: 'n8n: Automation Tools for E-Commerce', org: 'Carousell Singapore · IT, Marketing & HR', date: 'Aug 2025' },
   { group: 'University', title: 'Breaking into Tech Consulting Within 5 Years', org: 'Asian Institute of Management · Career Services', date: 'Mar 2025' },
   { group: 'University', title: 'Breaking Bias in AI', org: 'FEU Institute of Technology · FEU Tech ACM', date: 'Jun 2023' },
