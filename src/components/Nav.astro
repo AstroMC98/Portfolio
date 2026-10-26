@@ -5,6 +5,7 @@ import Logo from './Logo.astro';
 const links = [
   { href: '/#work', label: 'Work' },
   { href: '/#studio', label: 'Studio' },
+  { href: '/#civic', label: 'Civic' },
   { href: '/#approach', label: 'Approach' },
   { href: '/#experience', label: 'Experience' },
   { href: '/#stack', label: 'Stack' },
@@ -103,6 +104,11 @@ const links = [
   @media (max-width: 1180px) {
     .nav__status-text { display: none; }
     .nav__status { padding-inline: 12px; }
+  }
+  /* Eight links: tighten them before the hamburger takes over, so the logo lockup stays on one line */
+  @media (min-width: 961px) and (max-width: 1100px) {
+    .nav__links ul { gap: 0; }
+    .nav__links a[data-navlink] { padding-inline: 9px; font-size: 0.86rem; }
   }
   @media (max-width: 960px) {
     .nav__toggle { display: grid; place-items: center; }

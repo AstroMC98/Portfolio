@@ -1,0 +1,160 @@
+---
+/**
+ * Civic tech — BetterLimay (live) and BetterBalanga (in progress), both in the Better LGU directory.
+ * Facts come from the BetterLimay-Prod README and ARCHITECTURE.md, betterlimay.org and lgu.bettergov.ph.
+ * When BetterBalanga launches, flip its `status` and give it a link.
+ */
+const SITE_URL = 'https://www.betterlimay.org';
+const REPO_URL = 'https://github.com/AstroMC98/BetterLimay-Prod';
+const DIRECTORY_URL = 'https://lgu.bettergov.ph/';
+
+const onSite = [
+  ['Services', 'steps, requirements, fees and processing times from the Citizen’s Charter'],
+  ['Government', 'the 2025 elected officials and all 12 barangays with their officials and population'],
+  ['Transparency', 'COA-audited 2024 financial statements, plus procurement and infrastructure records'],
+  ['Statistics', 'census figures, DTI competitiveness rankings 2014–2024 and a UP NOAH flood hazard map'],
+];
+
+const principles = [
+  {
+    k: 'Provenance',
+    t: 'Every fact names its source',
+    b: 'Each record carries an exact public URL or a document cited precisely enough to request. A Python pipeline builds the data from a source register, and a validator checks it against JSON Schema in CI. Nothing is published without a source.',
+  },
+  {
+    k: 'Privacy, in code',
+    t: 'Rules the pipeline enforces and tests',
+    b: 'Barangay officials appear with a middle initial only. Personal mobile numbers and SK members’ phone numbers are never published, only official office lines.',
+  },
+  {
+    k: 'Quality gates',
+    t: 'Every pull request has to pass',
+    b: 'Lint, types, unit tests, Playwright end-to-end tests and axe accessibility checks. Lighthouse CI hard-gates accessibility, SEO and the script budget. Strict CSP and HSTS headers, with eval allowed only in the editor.',
+  },
+  {
+    k: 'Built to hand over',
+    t: 'Forkable, and editable by non-developers',
+    b: 'Another town can rebrand the portal through config and data alone. Volunteers publish news through Decap CMS: saving a post opens a pull request, and merging deploys it. Cost to the people of Limay: zero pesos.',
+  },
+];
+
+const stack = ['React 19', 'Vite', 'TypeScript', 'Fuse.js', 'Leaflet · OSM', 'Recharts', 'Python pipeline', 'Vercel', 'Decap CMS', 'Playwright + axe', 'Lighthouse CI'];
+---
+<section class="section civic" id="civic" aria-labelledby="civic-title">
+  <span class="coord">§ · civic tech</span>
+  <div class="wrap">
+    <header class="section-head" data-reveal>
+      <p class="eyebrow">Civic tech · Better LGU</p>
+      <h2 id="civic-title">Volunteer civic tech: <em>local government, sourced and searchable.</em></h2>
+      <p>
+        I build and maintain independent, open-source community portals in the <a class="civic__link" href={DIRECTORY_URL} target="_blank" rel="noopener">Better LGU</a> network.
+        Each one puts a town’s services, officials and public records in one place, with the source of every figure in view.
+      </p>
+    </header>
+
+    <article class="portal panel" data-reveal>
+      <div class="portal__copy">
+        <div class="portal__meta">
+          <span class="chip chip--signal"><span class="status-dot" aria-hidden="true"></span>Live</span>
+          <span class="chip">Limay, Bataan</span>
+          <span class="chip">Open source · MIT</span>
+        </div>
+        <h3 class="portal__title">BetterLimay</h3>
+        <p class="portal__sub mono">Community portal for the Municipality of Limay · builder &amp; maintainer</p>
+        <p class="portal__desc">
+          A clearer way to find Limay government information, in English and Filipino. It isn’t the official LGU site and says so on every page:
+          an independent, citizen-built guide that anyone can check against the original record.
+        </p>
+        <ul class="portal__list">
+          {onSite.map(([h, d]) => <li><b>{h}:</b> {d}</li>)}
+        </ul>
+        <div class="portal__cta">
+          <a class="btn btn--primary" href={SITE_URL} target="_blank" rel="noopener">Visit betterlimay.org <span class="arrow" aria-hidden="true">↗</span></a>
+          <a class="btn" href={REPO_URL} target="_blank" rel="noopener">Source on GitHub <span class="arrow" aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+
+      <figure class="portal__fig">
+        <div class="browser">
+          <div class="browser__bar" aria-hidden="true"><span></span><span></span><span></span><em class="mono">betterlimay.org</em></div>
+          <img src="/images/civic/betterlimay-home.webp" alt="BetterLimay home page: “A clearer way to find Limay government information”, with a portal search box and popular services." width="1440" height="900" loading="lazy" />
+        </div>
+        <img class="portal__phone" src="/images/civic/betterlimay-mobile.webp" alt="BetterLimay on a phone, with the emergency-hotline bar and portal search." width="390" height="844" loading="lazy" />
+      </figure>
+    </article>
+
+    <div class="principles">
+      {principles.map((x) => (
+        <div class="principle" data-reveal>
+          <p class="principle__k mono">{x.k}</p>
+          <h4 class="principle__t">{x.t}</h4>
+          <p class="principle__b">{x.b}</p>
+        </div>
+      ))}
+    </div>
+    <p class="civic__stack">{stack.map((s) => <span class="chip">{s}</span>)}</p>
+
+    <ul class="also" data-reveal>
+      <li>
+        <span class="chip chip--amber"><span class="status-dot status-dot--amber" aria-hidden="true"></span>In progress</span>
+        <p><b>BetterBalanga</b>: the same approach for the City of Balanga, Bataan, listed in the directory as work in progress.</p>
+      </li>
+      <li>
+        <span class="chip">Directory</span>
+        <p><b>Better LGU directory</b>: contributor to the national list of community portals; maintainer of the Limay and Balanga entries.</p>
+      </li>
+      <li>
+        <span class="chip">Also</span>
+        <p><b>Public-sector AI</b>: Hack4Health champion with a health-fraud platform, DICT AI trainings, and a field note on <a class="civic__link" href="/blog/ai-for-public-service/">augmenting caseworkers, not automating verdicts</a>.</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<style>
+  .civic__link { color: var(--text); border-bottom: 1px solid var(--signal); }
+  .civic__link:hover { color: var(--signal); }
+
+  .portal { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(24px, 4vw, 56px); align-items: center; padding: clamp(24px, 3.5vw, 44px); }
+  .portal__copy { display: grid; gap: 16px; justify-items: start; }
+  .portal__meta { display: flex; flex-wrap: wrap; gap: 8px; }
+  .portal__title { font-family: var(--font-display); font-stretch: 72%; font-weight: 800; font-size: clamp(2rem, 1.4rem + 2vw, 3rem); line-height: 1; }
+  .portal__sub { font-size: 12px; letter-spacing: 0.04em; color: var(--muted); margin-top: -6px; }
+  .portal__desc { color: var(--text-2); font-size: var(--fs-md); }
+  .portal__list { display: grid; gap: 8px; color: var(--text-2); }
+  .portal__list li { position: relative; padding-left: 20px; }
+  .portal__list li::before { content: ''; position: absolute; left: 2px; top: 0.62em; width: 8px; height: 8px; border-radius: 2px; background: var(--signal); }
+  .portal__list b { color: var(--text); font-weight: 650; }
+  .portal__cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+
+  .portal__fig { position: relative; padding-bottom: 28px; padding-right: 8%; }
+  .browser { border: 1px solid var(--line-2); border-radius: var(--radius); overflow: hidden; background: var(--ink-3); }
+  .browser__bar { display: flex; align-items: center; gap: 6px; height: 30px; padding-inline: 12px; border-bottom: 1px solid var(--line-2); }
+  .browser__bar span { width: 9px; height: 9px; border-radius: 50%; background: var(--line-2); }
+  .browser__bar em { margin-left: 10px; font-style: normal; font-size: 11px; color: var(--muted); }
+  .browser img { display: block; width: 100%; height: auto; }
+  .portal__phone { position: absolute; right: 0; bottom: 0; width: 26%; height: auto; border-radius: 14px; border: 4px solid var(--ink-3); outline: 1px solid var(--line-2); box-shadow: 0 20px 50px -10px rgb(0 0 0 / 0.6); }
+
+  .principles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: clamp(28px, 3.5vw, 44px); }
+  .principle { border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; background: var(--ink-2); display: grid; gap: 8px; align-content: start; }
+  .principle__k { font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--signal); }
+  .principle__t { font-family: var(--font-display); font-stretch: 80%; font-weight: 750; font-size: 1.2rem; line-height: 1.15; }
+  .principle__b { color: var(--text-2); font-size: var(--fs-sm); line-height: 1.55; }
+  .civic__stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+
+  .also { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: clamp(28px, 3.5vw, 44px); padding-top: clamp(24px, 3vw, 36px); border-top: 1px dashed var(--line-2); }
+  .also li { display: grid; gap: 10px; align-content: start; justify-items: start; }
+  .also p { color: var(--text-2); font-size: var(--fs-sm); line-height: 1.55; }
+  .also b { color: var(--text); font-weight: 650; }
+
+  @media (max-width: 1100px) {
+    .principles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 900px) {
+    .portal { grid-template-columns: 1fr; }
+    .also { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .principles { grid-template-columns: 1fr; }
+  }
+</style>
