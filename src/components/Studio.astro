@@ -1,0 +1,194 @@
+---
+/**
+ * Studio — Fantasy Jam (fantasyjam.io) and its first game, InventoryDoku.
+ * Facts come from the InventoryDoku repo README, its Play store listing and fantasyjam.io.
+ * When the game leaves closed beta, swap BETA_URL for the Play Store link and update `status`.
+ */
+const STUDIO_URL = 'https://fantasyjam.io';
+const BETA_URL = 'https://fantasyjam.io/inventorydoku/test';
+const TRAILER_ID = '6tXnxw591IM';
+const status = 'Closed beta · Google Play';
+
+const shots = [
+  { file: 'rack', alt: 'A 6×6 rack mid-solve, with rule chips such as “Per shelf & bay” and “Can’t touch” above the board.', cap: 'Every item has one right place' },
+  { file: 'campaign', alt: 'The home screen: an isometric warehouse with Campaign, Night Shift, Training and Employee of the Year.', cap: '60 levels, one rule at a time' },
+  { file: 'hints', alt: 'A hint panel titled “Last slot left” walking through three numbered reasoning steps.', cap: 'Hints that teach' },
+  { file: 'night-shift', alt: 'A Night Shift stage on a U-shaped rack with a gap in the middle.', cap: 'Endless racks in every shape' },
+  { file: 'hell', alt: 'A Hell-difficulty 9×9 rack with five rules.', cap: 'Hell mode, up to 10×10' },
+  { file: 'skins', alt: 'A light pink rack skin with animal item icons.', cap: 'Skins, icons, sounds' },
+];
+
+const features = [
+  ['60 campaign levels', 'each teaching at most one new rule, followed by practice racks before the next'],
+  ['Night Shift', 'endless generated racks in L, T and U shapes, a daily delivery and shareable stage codes'],
+  ['Hints that teach', 'a question first, then the reasoning step by step, with the pattern named'],
+  ['Free in beta', 'no ads and nothing to buy while it’s in testing'],
+];
+
+const build = [
+  {
+    k: 'Generated, then gated',
+    t: 'Every level has exactly one solution',
+    b: 'Levels are written as specs and generated, never hand-edited. The generator removes clues while a deduction stepper can still solve the board. A release gate then re-proves uniqueness with an independent search, grades difficulty and checks that every rule matters.',
+  },
+  {
+    k: 'Deterministic on device',
+    t: 'Same seed, same rack, on every phone',
+    b: 'Night Shift builds stages on the phone, in time slices on the JS thread. Golden hashes prove Hermes and V8 produce identical racks. A 12-symbol share code rebuilds any stage and catches typos and swapped neighbours.',
+  },
+  {
+    k: 'Cheat-resistant leaderboard',
+    t: 'The server times the run, not the app',
+    b: 'Vercel Functions, Upstash Redis and Clerk. Ranked runs start from a signed, single-use token. In Employee of the Year, the server keeps the seed and hands out racks one at a time, so none can be built ahead.',
+  },
+  {
+    k: 'Launch, in code',
+    t: 'Beta, trailer and ads from the real game',
+    b: 'A closed-beta sign-up with an access-code admin and branded emails. Video ads recorded from live gameplay by a scripted finger that follows the hint engine. A two-minute trailer drawn frame by frame, with music and sound effects synthesized in code.',
+  },
+];
+
+const stack = ['Expo SDK 57', 'React Native', 'TypeScript', 'zustand', 'Vercel Functions', 'Upstash Redis', 'Clerk', 'AdMob', 'RevenueCat', 'Vitest'];
+---
+<section class="section studio" id="studio" aria-labelledby="studio-title">
+  <span class="coord">§ · studio</span>
+  <div class="wrap">
+    <header class="section-head" data-reveal>
+      <p class="eyebrow">Studio · Fantasy Jam</p>
+      <h2 id="studio-title">After hours, <em>I make puzzle games.</em></h2>
+      <p>
+        <a class="studio__link" href={STUDIO_URL} target="_blank" rel="noopener">Fantasy Jam</a> is my indie game studio. Its first
+        game, InventoryDoku, is in closed beta on Google Play, and I’m looking for Android testers.
+      </p>
+    </header>
+
+    <article class="game panel" data-reveal>
+      <div class="game__copy">
+        <div class="game__id">
+          <img src="/images/studio/inventorydoku-icon.webp" alt="" width="64" height="64" loading="lazy" />
+          <div>
+            <h3 class="game__title">InventoryDoku</h3>
+            <p class="game__tag">Every item has a place.</p>
+          </div>
+        </div>
+        <span class="chip chip--amber"><span class="status-dot status-dot--amber" aria-hidden="true"></span>{status}</span>
+        <p class="game__desc">
+          A Sudoku-style logic puzzle about shelving a night-shift warehouse delivery. Every rack has exactly one solution, and you can
+          always reach it by logic alone. No guessing.
+        </p>
+        <ul class="game__feats">
+          {features.map(([h, d]) => <li><b>{h}:</b> {d}</li>)}
+        </ul>
+        <div class="game__cta">
+          <a class="btn btn--amber" href={BETA_URL} target="_blank" rel="noopener">Join the closed beta <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="btn" href={STUDIO_URL} target="_blank" rel="noopener">fantasyjam.io <span class="arrow" aria-hidden="true">↗</span></a>
+        </div>
+        <p class="game__fine mono">Android · free · access code emailed when a place opens</p>
+      </div>
+
+      <figure class="trailer">
+        <button class="trailer__btn" type="button" data-trailer={TRAILER_ID} aria-label="Play the InventoryDoku trailer (loads YouTube)">
+          <img src="/images/studio/inventorydoku-trailer.webp" alt="" width="1280" height="720" loading="lazy" />
+          <span class="trailer__play" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M8 5v14l11-7z" fill="currentColor" /></svg></span>
+        </button>
+        <figcaption class="mono">Official trailer · 2:00</figcaption>
+      </figure>
+    </article>
+
+    <ul class="shots" aria-label="InventoryDoku screenshots">
+      {shots.map((s) => (
+        <li data-reveal>
+          <img src={`/images/studio/inventorydoku-${s.file}.webp`} alt={s.alt} width="540" height="960" loading="lazy" />
+        </li>
+      ))}
+    </ul>
+
+    <div class="build">
+      <p class="eyebrow build__eyebrow">Under the hood</p>
+      <div class="build__grid">
+        {build.map((x) => (
+          <div class="build__card" data-reveal>
+            <p class="build__k mono">{x.k}</p>
+            <h4 class="build__t">{x.t}</h4>
+            <p class="build__b">{x.b}</p>
+          </div>
+        ))}
+      </div>
+      <p class="build__stack">{stack.map((s) => <span class="chip">{s}</span>)}</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Click-to-load: no YouTube requests until someone asks for the video.
+  document.querySelectorAll<HTMLButtonElement>('[data-trailer]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const frame = document.createElement('iframe');
+      frame.src = `https://www.youtube-nocookie.com/embed/${btn.dataset.trailer}?autoplay=1&rel=0`;
+      frame.title = 'InventoryDoku official trailer';
+      frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      frame.allowFullscreen = true;
+      btn.replaceWith(frame);
+    }, { once: true });
+  });
+</script>
+
+<style>
+  .studio .section-head h2 em { color: var(--amber); }
+  .studio .eyebrow { color: var(--amber); }
+  .studio__link { color: var(--text); border-bottom: 1px solid var(--amber); }
+  .studio__link:hover { color: var(--amber); }
+
+  /* Caution tape, borrowed from the game's own art */
+  .game { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(24px, 4vw, 56px); align-items: center; padding: clamp(24px, 3.5vw, 44px); padding-top: clamp(34px, 4vw, 54px); }
+  .game::before { content: ''; position: absolute; inset: 0 0 auto; height: 8px; background: repeating-linear-gradient(-45deg, var(--amber) 0 12px, #111 12px 24px); opacity: 0.9; }
+  .game__copy { display: grid; gap: 18px; justify-items: start; }
+  .game__id { display: flex; align-items: center; gap: 16px; }
+  .game__id img { border-radius: 16px; border: 1px solid var(--line-2); }
+  .game__title { font-family: var(--font-display); font-stretch: 72%; font-weight: 800; font-size: clamp(2rem, 1.4rem + 2vw, 3rem); line-height: 1; }
+  .game__tag { color: var(--amber); font-weight: 600; margin-top: 4px; }
+  .game__desc { color: var(--text-2); font-size: var(--fs-md); }
+  .game__feats { display: grid; gap: 8px; color: var(--text-2); }
+  .game__feats li { position: relative; padding-left: 20px; }
+  .game__feats li::before { content: ''; position: absolute; left: 2px; top: 0.62em; width: 8px; height: 8px; border-radius: 2px; background: var(--amber); }
+  .game__feats b { color: var(--text); font-weight: 650; }
+  .game__cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  .btn--amber { background: var(--amber); color: var(--ink); border-color: var(--amber); font-weight: 600; }
+  .btn--amber:hover { border-color: var(--amber); box-shadow: 0 10px 40px -8px rgb(255 181 71 / 0.45); }
+  .game__fine { font-size: 11px; letter-spacing: 0.06em; color: var(--muted); }
+
+  .trailer { display: grid; gap: 10px; }
+  .trailer__btn, .trailer :global(iframe) { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line-2); background: #000; }
+  .trailer__btn img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s var(--ease-out), filter 0.3s; }
+  .trailer__btn:hover img { transform: scale(1.03); filter: brightness(1.08); }
+  .trailer__play { position: absolute; inset: 0; margin: auto; width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: var(--amber); color: var(--ink); box-shadow: 0 10px 40px -6px rgb(255 181 71 / 0.6); transition: transform 0.3s var(--ease-out); }
+  .trailer__btn:hover .trailer__play { transform: scale(1.08); }
+  .trailer__btn:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .trailer figcaption { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+  .shots { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; margin-top: 20px; }
+  .shots img { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line-2); }
+
+  .build { margin-top: clamp(40px, 5vw, 64px); }
+  .build__eyebrow { margin-bottom: 20px; }
+  .build__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+  .build__card { border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; background: var(--ink-2); display: grid; gap: 8px; align-content: start; }
+  .build__k { font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--amber); }
+  .build__t { font-family: var(--font-display); font-stretch: 80%; font-weight: 750; font-size: 1.2rem; line-height: 1.15; }
+  .build__b { color: var(--text-2); font-size: var(--fs-sm); line-height: 1.55; }
+  .build__stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+
+  @media (max-width: 1100px) {
+    .build__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 900px) {
+    .game { grid-template-columns: 1fr; }
+    /* Phone-sized shots scroll sideways instead of shrinking to stamps */
+    .shots { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); }
+    .shots li { flex: 0 0 42%; scroll-snap-align: start; }
+  }
+  @media (max-width: 560px) {
+    .build__grid { grid-template-columns: 1fr; }
+    .shots li { flex-basis: 62%; }
+  }
+</style>
