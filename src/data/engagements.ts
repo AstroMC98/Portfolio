@@ -38,16 +38,16 @@ export interface Engagement {
 }
 
 export const ENGAGEMENTS: Record<string, Engagement> = {
-  'd2lt-enhanced': {
+  'document-intelligence': {
     // sector: '', employer: '', when: '', duration: '', team: '', scale: '', timeToProd: '',
     // ask: '', realProblem: '', scopedTo: '', walkthroughUrl: '', incidents: [],
   },
-  daiso: {},
-  'wfgpt-prod': {},
+  'local-rag': {},
+  'enterprise-rag-chat': {},
   'llmops-platform': {},
-  'elevenow-agents': {},
-  'elevenow-rag': {},
-  'cfmm-papermill': {},
+  'agent-copilot': {},
+  'hybrid-rag': {},
+  'media-analysis': {},
   'stem-monitoring': {},
   'triage-demo': {},
 };

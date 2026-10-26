@@ -60,7 +60,7 @@ Each snippet entry in `projects.js`:
 ```js
 {
   label: "Rate Limiter",
-  file: "d2lt-enhanced/rate_limiter.py",
+  file: "document-intelligence/rate_limiter.py",
   type: "code",         // "code" | "process"
 
   challenge: {
@@ -120,19 +120,19 @@ Each snippet entry in `projects.js`:
 
 | Project | Snippet | Steps |
 |---------|---------|-------|
-| d2lt-enhanced | Rate Limiter | 4 |
-| d2lt-enhanced | Async Pipeline | 3 |
-| daiso | RAG Engine | 3 |
-| wfgpt-prod | Chat Approach | 3 |
-| wfgpt-prod | RBAC Middleware | 3 |
-| wfgpt-prod | Approach Registry | 3 |
+| document-intelligence | Rate Limiter | 4 |
+| document-intelligence | Async Pipeline | 3 |
+| local-rag | RAG Engine | 3 |
+| enterprise-rag-chat | Chat Approach | 3 |
+| enterprise-rag-chat | RBAC Middleware | 3 |
+| enterprise-rag-chat | Approach Registry | 3 |
 | llmops-platform | Ensemble Scorer | 3 |
 | llmops-platform | Drift Detector | 3 |
-| elevenow-agents | Journey Tracker | 3 |
-| elevenow-agents | Scorecard Generator | 3 |
-| elevenow-rag | Hybrid RAG | 3 |
-| elevenow-rag | Session Manager | 3 |
-| cfmm-papermill | Pipeline Runner | 3 |
+| agent-copilot | Journey Tracker | 3 |
+| agent-copilot | Scorecard Generator | 3 |
+| hybrid-rag | Hybrid RAG | 3 |
+| hybrid-rag | Session Manager | 3 |
+| media-analysis | Pipeline Runner | 3 |
 | stem-monitoring | Skill Gap Analysis | 3 |
 | triage-demo | Triage Classifier | 3 |
 

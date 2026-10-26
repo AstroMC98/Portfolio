@@ -2,7 +2,7 @@
 Pluggable approach registry — swappable retrieval strategies at runtime.
 
 WHAT IT DEMONSTRATES:
-  The architectural pattern that lets WFGPT support multiple retrieval
+  The architectural pattern that lets the platform support multiple retrieval
   strategies (semantic, vector, hybrid, vision-augmented) as interchangeable
   modules, selected per-request via config without touching application logic.
   Approach classes are registered by name at startup and resolved at request

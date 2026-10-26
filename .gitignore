@@ -3,15 +3,10 @@
 # Leading / anchors each rule to the repo root only,
 # preventing case-insensitive Windows matches inside subdirs.
 # ============================================================
-/D2LT-Enhanced-main/
-/DAIso/
-/WFGPT-Prod-main/
-/LLMOps_Platform-main/
-/Elevenow-Agents-master/
-/Elevenow-RAG-master/
-/CFMM-Papermill-Daily-main/
-/STEM-Monitoring-and-Analytics-main/
-/Triage-Demonstration-main/
+# Exact folder names live in .git/info/exclude (local only). These catch
+# downloaded repo archives at the root as a safety net.
+/*-main/
+/*-master/
 
 # Environment and secrets
 *.env

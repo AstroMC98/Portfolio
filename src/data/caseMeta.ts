@@ -42,7 +42,7 @@ export interface CaseMeta {
 }
 
 export const CASE_META: Record<string, CaseMeta> = {
-  'd2lt-enhanced': {
+  'document-intelligence': {
     featured: true,
     tags: ['Agents'],
     kpiVerified: true,
@@ -64,7 +64,7 @@ export const CASE_META: Record<string, CaseMeta> = {
       live: [['arch', 's1'], ['arch', 's3'], ['s2', 'build'], ['build', 'ver'], ['in', 'arch']],
     },
   },
-  'wfgpt-prod': {
+  'enterprise-rag-chat': {
     featured: true,
     tags: ['RAG'],
     kpiVerified: false, // TODO(confirm): "Time-to-answer reduced by ~45%" is draft copy
@@ -109,7 +109,7 @@ export const CASE_META: Record<string, CaseMeta> = {
       live: [['cfg', 'eng'], ['eng', 'j2'], ['j1', 'ens'], ['ens', 'drift']],
     },
   },
-  'elevenow-rag': {
+  'hybrid-rag': {
     featured: true,
     tags: ['RAG'],
     kpiVerified: true,
@@ -131,7 +131,7 @@ export const CASE_META: Record<string, CaseMeta> = {
       live: [['q', 'skip'], ['skip', 'hist'], ['hist', 'ans'], ['vec', 'rr']],
     },
   },
-  daiso: {
+  'local-rag': {
     featured: false,
     tags: ['RAG', 'LLMOps'],
     kpiVerified: true,
@@ -153,7 +153,7 @@ export const CASE_META: Record<string, CaseMeta> = {
       live: [['user', 'api'], ['api', 'db'], ['api', 'llm'], ['dvc', 'db']],
     },
   },
-  'elevenow-agents': {
+  'agent-copilot': {
     featured: false,
     tags: ['Agents'],
     kpiVerified: false, // TODO(confirm): "Average handle time reduced by ~18%" is draft copy
@@ -176,7 +176,7 @@ export const CASE_META: Record<string, CaseMeta> = {
       live: [['tx', 'api'], ['api', 'cl'], ['cl', 'e2'], ['e3', 'ag']],
     },
   },
-  'cfmm-papermill': {
+  'media-analysis': {
     featured: false,
     tags: ['Analytics'],
     kpiVerified: true,

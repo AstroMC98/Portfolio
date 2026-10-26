@@ -32,7 +32,7 @@ export interface Project {
 
 export const PROJECTS: Project[] = [
   {
-    id: "d2lt-enhanced",
+    id: "document-intelligence",
     title: "Document Intelligence Pipeline",
     subtitle: "Vision-LLM · 4-Phase Async Architecture",
     status: "Production",
@@ -61,7 +61,7 @@ export const PROJECTS: Project[] = [
       {
         label: "Reliability Under Burst Traffic",
         executiveNote: "This component controls how many document-processing requests run simultaneously — preventing system overload during peak periods and ensuring consistent throughput without manual throttling.",
-        file: "d2lt-enhanced/rate_limiter.py",
+        file: "document-intelligence/rate_limiter.py",
         type: "code",
         process: {
           title: "Token Bucket — Sliding Window",
@@ -158,7 +158,7 @@ export const PROJECTS: Project[] = [
       {
         label: "Throughput Architecture",
         executiveNote: "Instead of processing documents one at a time, this design parallelizes work so multiple documents flow through the pipeline simultaneously — multiplying throughput without proportional cost increases.",
-        file: "d2lt-enhanced/async_pipeline.py",
+        file: "document-intelligence/async_pipeline.py",
         type: "code",
         process: {
           title: "Fan-Out Pipeline — 3-Level Concurrency",
@@ -272,7 +272,7 @@ export const PROJECTS: Project[] = [
     },
   },
   {
-    id: "daiso",
+    id: "local-rag",
     title: "Privacy-First Local RAG",
     subtitle: "Offline LLM Inference · Full MLOps Stack",
     status: "Production",
@@ -303,7 +303,7 @@ export const PROJECTS: Project[] = [
       {
         label: "Semantic Knowledge Foundation",
         executiveNote: "This is the knowledge retrieval engine — it finds the most relevant information from private documents using conceptual understanding rather than keyword matching, enabling accurate AI responses without sending data to external servers.",
-        file: "daiso/rag_engine.py",
+        file: "local-rag/rag_engine.py",
         type: "code",
         process: {
           title: "Fully Local RAG — Zero Egress",
@@ -391,7 +391,7 @@ export const PROJECTS: Project[] = [
       }
     ],
     details: {
-      overview: "DAIso is a fully offline RAG application designed for air-gapped or regulated environments. Ollama runs a local Gemma 2 inference server with optional CUDA or Metal GPU acceleration, completely eliminating outbound API calls. Documents are ingested, chunked, and stored in a local ChromaDB vector store via a FastAPI backend, with DVC tracking each ingestion run for reproducibility. MLflow logs experiment results and Evidently AI monitors for embedding and query distribution drift over time.",
+      overview: "A fully offline RAG application designed for air-gapped or regulated environments. Ollama runs a local Gemma 2 inference server with optional CUDA or Metal GPU acceleration, completely eliminating outbound API calls. Documents are ingested, chunked, and stored in a local ChromaDB vector store via a FastAPI backend, with DVC tracking each ingestion run for reproducibility. MLflow logs experiment results and Evidently AI monitors for embedding and query distribution drift over time.",
       architecture: [
         { name: "Ollama / Gemma 2 Inference", desc: "Local LLM server with CUDA/Metal support — all inference stays on the host machine with no external API calls." },
         { name: "ChromaDB Vector Store", desc: "Persistent local vector database storing document embeddings for semantic retrieval." },
@@ -417,7 +417,7 @@ export const PROJECTS: Project[] = [
     },
   },
   {
-    id: "wfgpt-prod",
+    id: "enterprise-rag-chat",
     title: "Enterprise RAG Chat Platform",
     subtitle: "Azure OpenAI · Multi-Strategy Retrieval · RBAC",
     status: "Production",
@@ -449,7 +449,7 @@ export const PROJECTS: Project[] = [
       {
         label: "Retrieval Quality Pipeline",
         executiveNote: "This manages how the AI finds and ranks relevant internal knowledge before answering — ensuring responses draw from authoritative sources rather than generating plausible-sounding but incorrect answers.",
-        file: "wfgpt-prod/chat_approach.py",
+        file: "enterprise-rag-chat/chat_approach.py",
         type: "code",
         process: {
           title: "Three-Step RAG Chat Pipeline",
@@ -536,7 +536,7 @@ export const PROJECTS: Project[] = [
       },
       {
         label: "Governance and Spend Controls",
-        file: "wfgpt-prod/rbac_middleware.py",
+        file: "enterprise-rag-chat/rbac_middleware.py",
         type: "code",
         process: {
           title: "Decorator-Based Credit Enforcement",
@@ -622,7 +622,7 @@ export const PROJECTS: Project[] = [
       },
       {
         label: "Scalable Retrieval Strategy Design",
-        file: "wfgpt-prod/approach_registry.py",
+        file: "enterprise-rag-chat/approach_registry.py",
         type: "code",
         challenge: {
           eyebrow: "Software Architecture \xB7 Plugin Pattern",
@@ -697,7 +697,7 @@ export const PROJECTS: Project[] = [
       },
     ],
     details: {
-      overview: "WFGPT is a production enterprise RAG chat platform deployed on Azure Container Apps. It implements a pluggable 'approach' pattern where retrieval strategies (semantic, vector, hybrid) are interchangeable modules registered at startup. Azure AI Search handles multi-strategy retrieval while an async Quart backend orchestrates query rewriting, retrieval, and GPT-4o answer generation via tool calling. GPT-4V extends the system to image-heavy documents. Azure AD integration enforces RBAC, and per-user credit limits are enforced via an async decorator that blocks requests when monthly quotas are exceeded.",
+      overview: "A production enterprise RAG chat platform deployed on Azure Container Apps. It implements a pluggable 'approach' pattern where retrieval strategies (semantic, vector, hybrid) are interchangeable modules registered at startup. Azure AI Search handles multi-strategy retrieval while an async Quart backend orchestrates query rewriting, retrieval, and GPT-4o answer generation via tool calling. GPT-4V extends the system to image-heavy documents. Azure AD integration enforces RBAC, and per-user credit limits are enforced via an async decorator that blocks requests when monthly quotas are exceeded.",
       architecture: [
         { name: "Pluggable Approach Pattern", desc: "Each retrieval strategy (semantic, vector, hybrid) is a self-contained module registered by name — swapped via config without touching core logic." },
         { name: "Azure AI Search", desc: "Handles multi-strategy document retrieval with semantic ranker, vector, and hybrid modes selectable per request." },
@@ -1026,7 +1026,7 @@ export const PROJECTS: Project[] = [
     },
   },
   {
-    id: "elevenow-agents",
+    id: "agent-copilot",
     title: "Customer Service Agent Copilot",
     subtitle: "7-Endpoint Conversation API · GPT-4o-mini",
     status: "Production",
@@ -1053,7 +1053,7 @@ export const PROJECTS: Project[] = [
       {
         label: "Reliable Real-Time Guidance",
         executiveNote: "This tracks where each customer conversation is in real time — so the AI copilot always surfaces the right guidance at the right moment, even when messages arrive out of order or connections are briefly interrupted.",
-        file: "elevenow-agents/journey_tracker.py",
+        file: "agent-copilot/journey_tracker.py",
         type: "code",
         challenge: {
           eyebrow: "Production APIs \xB7 Reliability",
@@ -1130,7 +1130,7 @@ export const PROJECTS: Project[] = [
       {
         label: "Actionable Coaching Scorecards",
         executiveNote: "This generates structured coaching reports for each customer interaction — translating raw conversation data into specific, measurable feedback that supervisors can act on without listening to full call recordings.",
-        file: "elevenow-agents/scorecard_generator.py",
+        file: "agent-copilot/scorecard_generator.py",
         type: "code",
         challenge: {
           eyebrow: "Contact Centre AI \xB7 Quality Assurance",
@@ -1231,7 +1231,7 @@ export const PROJECTS: Project[] = [
     },
   },
   {
-    id: "elevenow-rag",
+    id: "hybrid-rag",
     title: "Hybrid RAG with Conversation Intelligence",
     subtitle: "Two-Stage Retrieval · Cohere Reranking · RAG Skip Logic",
     status: "Production",
@@ -1259,7 +1259,7 @@ export const PROJECTS: Project[] = [
       {
         label: "Cost-Aware Retrieval Strategy",
         executiveNote: "This decides when to run a full knowledge search versus using recent conversation context — avoiding unnecessary retrieval on follow-up questions, which cuts operational costs while keeping response quality high.",
-        file: "elevenow-rag/hybrid_rag.py",
+        file: "hybrid-rag/hybrid_rag.py",
         type: "code",
         process: {
           title: "Cost-Aware Conversational RAG",
@@ -1347,7 +1347,7 @@ export const PROJECTS: Project[] = [
       {
         label: "Secure Session and Context Management",
         executiveNote: "This maintains the memory of each customer conversation securely — giving the AI context from earlier in the session without retaining sensitive details beyond their useful lifespan.",
-        file: "elevenow-rag/session_manager.py",
+        file: "hybrid-rag/session_manager.py",
         type: "code",
         challenge: {
           eyebrow: "Backend Patterns \xB7 Session Management",
@@ -1449,7 +1449,7 @@ export const PROJECTS: Project[] = [
     },
   },
   {
-    id: "cfmm-papermill",
+    id: "media-analysis",
     title: "Automated Media Analysis Pipeline",
     subtitle: "Parameterised Notebook Execution · Parallel Orchestration",
     status: "Production",
@@ -1476,7 +1476,7 @@ export const PROJECTS: Project[] = [
       {
         label: "Automated Daily Reporting Engine",
         executiveNote: "This is the automated report factory — it runs the full analysis pipeline across all media categories on a schedule, producing consistent, reproducible reports without any manual intervention from analysts.",
-        file: "cfmm-papermill/pipeline_runner.py",
+        file: "media-analysis/pipeline_runner.py",
         type: "code",
         process: {
           title: "Papermill — Parameterised Notebook Execution",
