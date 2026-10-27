@@ -36,7 +36,7 @@ const STATE = path.join(ROOT, 'admin', '.state.json');
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SESSION_MS = 8 * 60 * 60 * 1000;
 const COOKIE = 'mc_admin';
-const MOTIFS = ['paths', 'deploy', 'civic', 'shield', 'brush', 'triad', 'chip', 'stack', 'loop', 'drift', 'fork', 'pipeline', 'budget', 'sketch', 'podium', 'dialogue', 'duet', 'generative'];
+const MOTIFS = ['paths', 'deploy', 'civic', 'shield', 'brush', 'triad', 'chip', 'stack', 'loop', 'drift', 'fork', 'pipeline', 'budget', 'sketch', 'podium', 'dialogue', 'duet', 'recipe', 'generative'];
 /** Cover motifs must be unique per post, except 'generative', which draws a different picture for every slug. */
 const SHARED_MOTIF = 'generative';
 

@@ -1,0 +1,517 @@
+---
+title: "The FDE Cookbook: Nine Recipes for Mixing Humans, AI and Deterministic Code"
+seoTitle: "The FDE Cookbook: Humans, AI and Code"
+dek: "Most of a forward deployed engineer's job is not prompting a model. It is deciding, step by step, which parts of a client's workflow get plain code, which get a model, and which get a person — and wiring the three together so the result survives a Monday morning. A step-by-step recipe book for engineers who want to do this work."
+date: 2026-10-27
+kicker: Forward Deployed
+motif: recipe
+tags: [Forward Deployed, Careers, Engineering]
+thesis: "Default to deterministic code, spend AI only where judgement on messy input pays for itself, and put humans exactly where an error is expensive or the model is unsure — then move steps between the three as evidence comes in."
+takeaways:
+  - "The core FDE skill is allocation: for every step in a client's workflow, decide whether it is code, a model or a person. Most production 'AI systems' are mostly deterministic code with a few model calls in the right places."
+  - "Start with rules and metrics, add a model only where rules become unmaintainable or the input is unstructured, and reach for an agent last. Google, Anthropic and OpenAI all give the same advice."
+  - "Build the eval set before the prompt: 20–50 tasks from real failures, error analysis on at least 100 traces, one domain expert as the final judge. Consistency matters: 75% per try means only about 42% of users get three good answers in a row."
+  - "Wrap every model in code that owns control flow, permissions and writes. Rate each tool low, medium or high risk, and make high-risk actions wait for a human approval."
+  - "Route by confidence and keep a random audit sample of the cases you auto-accept. A human checkpoint is not free: across 106 experiments, human–AI teams did worse on average than the better of the two alone, mostly on decision tasks."
+  - "Start with low autonomy and ratchet it up with evidence. Hand over a runbook for the dials — thresholds, audit rate, escalation rules — so the client can keep tuning the mix after you leave."
+sources:
+  - label: "a16z — Trading Margin for Moat: Why the Forward Deployed Engineer Is the Hottest Job in Startups (4 Jun 2025)"
+    url: "https://a16z.com/services-led-growth/"
+  - label: "The Pragmatic Engineer — What are Forward Deployed Engineers, and why are they so in demand? (12 Aug 2025)"
+    url: "https://newsletter.pragmaticengineer.com/p/forward-deployed-engineers"
+  - label: "Bloomberry — I analyzed 1,000 Forward Deployed Engineer jobs (18 Nov 2025, updated Jan 2026)"
+    url: "https://bloomberry.com/blog/i-analyzed-1000-forward-deployed-engineer-jobs/"
+  - label: "Fortune — MIT report: 95% of generative AI pilots at companies are failing (18 Aug 2025)"
+    url: "https://fortune.com/2025/08/18/mit-report-95-percent-generative-ai-pilots-at-companies-failing-cfo"
+  - label: "Google — Rules of Machine Learning, Martin Zinkevich"
+    url: "https://developers.google.com/machine-learning/guides/rules-of-ml"
+  - label: "Anthropic — Building effective agents (19 Dec 2024)"
+    url: "https://www.anthropic.com/engineering/building-effective-agents"
+  - label: "OpenAI — A practical guide to building agents (2025)"
+    url: "https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf"
+  - label: "OpenAI — AI in the Enterprise: lessons from seven frontier companies (2025)"
+    url: "https://cdn.openai.com/business-guides-and-resources/ai-in-the-enterprise.pdf"
+  - label: "Hamel Husain — Your AI Product Needs Evals (29 Mar 2024)"
+    url: "https://hamel.dev/blog/posts/evals/"
+  - label: "Hamel Husain — A Field Guide to Rapidly Improving AI Products (24 Mar 2025)"
+    url: "https://hamel.dev/blog/posts/field-guide/"
+  - label: "Hamel Husain & Shreya Shankar — AI Evals: frequently asked questions (updated 2026)"
+    url: "https://hamel.dev/blog/posts/evals-faq/"
+  - label: "Anthropic — Demystifying evals for AI agents (9 Jan 2026)"
+    url: "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents"
+  - label: "HumanLayer — 12-Factor Agents, Dex Horthy (2025)"
+    url: "https://github.com/humanlayer/12-factor-agents"
+  - label: "Sierra — Defense in depth in the age of agents (13 Aug 2026)"
+    url: "https://sierra.ai/blog/defense-in-depth-in-the-age-of-agents"
+  - label: "Decagon — From SOPs to Agent Operating Procedures (26 Nov 2025)"
+    url: "https://decagon.ai/blog/from-sops-to-agent-operating-procedures"
+  - label: "Chip Huyen — Building A Generative AI Platform (25 Jul 2024)"
+    url: "https://huyenchip.com/2024/07/25/genai-platform.html"
+  - label: "Eugene Yan — Patterns for Building LLM-based Systems & Products (2023)"
+    url: "https://eugeneyan.com/writing/llm-patterns/"
+  - label: "AWS — Amazon Augmented AI human loop activation conditions with Amazon Textract (documentation)"
+    url: "https://docs.aws.amazon.com/sagemaker/latest/dg/a2i-json-humantaskactivationconditions-textract-example.html"
+  - label: "El-Yaniv & Wiener — On the Foundations of Noise-free Selective Classification (JMLR, 2010)"
+    url: "https://jmlr.csail.mit.edu/beta/papers/v11/el-yaniv10a.html"
+  - label: "Vaccaro, Almaatouq & Malone — When combinations of humans and AI are useful (Nature Human Behaviour, 2024)"
+    url: "https://www.nature.com/articles/s41562-024-02024-1"
+  - label: "Goddard, Roudsari & Wyatt — Automation bias: a systematic review (JAMIA, 2012)"
+    url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC3240751/"
+  - label: "Bainbridge — Ironies of Automation (Automatica, 1983)"
+    url: "https://doi.org/10.1016/0005-1098(83)90046-8"
+  - label: "Microsoft Research — Guidelines for Human-AI Interaction (2019)"
+    url: "https://www.microsoft.com/en-us/research/blog/guidelines-for-human-ai-interaction-design/"
+  - label: "Google PAIR — People + AI Guidebook: User Needs + Defining Success"
+    url: "https://pair.withgoogle.com/chapter/user-needs/"
+  - label: "NIST — AI Risk Management Framework 1.0 (Jan 2023)"
+    url: "https://doi.org/10.6028/NIST.AI.100-1"
+  - label: "EU AI Act — Article 14: Human Oversight"
+    url: "https://artificialintelligenceact.eu/article/14/"
+  - label: "Feng, McDonald & Zhang — Levels of Autonomy for AI Agents (Knight First Amendment Institute, 2025)"
+    url: "https://knightcolumbia.org/content/levels-of-autonomy-for-ai-agents-1"
+  - label: "Narayanan & Kapoor — AI as Normal Technology (Knight First Amendment Institute, 15 Apr 2025)"
+    url: "https://knightcolumbia.org/content/ai-as-normal-technology"
+  - label: "McCarthy Tétrault — Moffatt v. Air Canada, 2024 BCCRT 149: misrepresentation by an AI chatbot (19 Feb 2024)"
+    url: "https://www.mccarthy.ca/en/insights/blogs/techlex/moffatt-v-air-canada-misrepresentation-ai-chatbot"
+  - label: "Entrepreneur — Klarna CEO reverses course by hiring more humans, not AI (May 2025, quoting Bloomberg)"
+    url: "https://www.entrepreneur.com/business-news/klarna-ceo-reverses-course-by-hiring-more-humans-not-ai/491396"
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Stats from '../../components/blog/Stats.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Timeline from '../../components/blog/Timeline.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Aspiring forward deployed engineers tend to ask which model to learn, which framework, which certificate. Those questions matter less than they seem. The decision that shapes a client engagement most is not about models at all. It is this: for this step of this workflow, should the answer come from plain code, from a model, or from a person?</p>
+
+My argument is this: **default to deterministic code, spend AI only where judgement on messy input pays for itself, and put humans exactly where an error is expensive or the model is unsure — then move steps between the three as evidence comes in.** Get that allocation right and a modest model looks brilliant. Get it wrong and the best model in the world produces a demo that never survives its first month in production.
+
+This article is written as a cookbook. It opens with why the mix is the job, then lays out the three ingredients and a master recipe for choosing between them. Nine recipes follow, in the order you would use them on an engagement: from shadowing the workflow on day one to handing over the dials when you leave. Each recipe says when to use it, what goes in, the method, how you know it is done, and the mistakes I see most. A worked example puts all nine on one document workflow. It closes with the strongest objections, a 90-day plan for engineers who want the job, and the limits of the evidence.
+
+If you want the bigger picture first — what the role is, why everyone is hiring and how companies should organise it — start with [The Forward Deployed Engineer](/blog/the-forward-deployed-engineer/). This is the companion piece: what you actually do once you are in the room.
+
+## Context: why the mix is the job
+
+The demand side is not in doubt. An analysis of about 1,000 FDE job postings by Bloomberry found postings up 1,165% year on year in January–October 2025. Sixty per cent of the roles were builders rather than pre-sales, two-thirds asked for Python, and none carried a sales quota. a16z's case for the role is that enterprises buying AI "are like your grandma getting an iPhone: they want to use it, but they need you to set it up."
+
+The supply of working deployments is the problem. MIT NANDA's 2025 report, widely quoted as finding that about 95% of generative AI pilots deliver no measurable profit impact, blamed integration and a "learning gap" rather than model quality. The figure is disputed — the sample is small and the definition of success is narrow — but practitioners recognise the pattern. Pilots rarely fail because the model is too weak. They fail because nobody decided which parts of the process the model should touch, which it should never touch, and who checks its work.
+
+<Exhibit
+  n={1}
+  title="Employers want builders, and the usual failure is integration, not the model"
+  sub="Selected indicators on FDE demand and enterprise AI outcomes"
+  source="Bloomberry (vendor dataset, Nov 2025); MIT NANDA via Fortune (Aug 2025); Vaccaro et al., Nature Human Behaviour (2024)"
+  sourceUrl="https://bloomberry.com/blog/i-analyzed-1000-forward-deployed-engineer-jobs/"
+  note="The 95% figure is one widely quoted and disputed estimate: a small sample and a six-month profit-impact definition of success. The posting data is a vendor analysis, not an official statistic."
+>
+  <Stats items={[
+    { value: '+1,165%', label: 'year-on-year growth in FDE job postings, Jan–Oct 2025', source: 'BLOOMBERRY · 2025' },
+    { value: '60%', label: 'of FDE postings are hands-on builder roles; 0% carry a sales quota', source: 'BLOOMBERRY · 2025' },
+    { value: '~95%', label: 'of enterprise gen-AI pilots reported no measurable P&L impact (disputed)', source: 'MIT NANDA · 2025' },
+    { value: 'g = −0.23', label: 'average effect of human–AI teams versus the better of the two alone', source: 'NATURE HUM. BEHAV. · 2024' },
+  ]} />
+</Exhibit>
+
+That last number deserves a pause, and Recipe 7 returns to it. "Just add a human" is not a safety plan. Across 106 experiments, people and AI working together did *worse* on average than whichever of the two was better on its own. The mix has to be designed, step by step, not assumed.
+
+Two public cases show what an undesigned mix costs. In *Moffatt v. Air Canada* (2024), a tribunal rejected the airline's argument that its chatbot was responsible for its own statements — "a remarkable submission" — and held that "it should be obvious to Air Canada that it is responsible for all the information on its website." And in 2025 Klarna's chief executive said the company would put human agents back into customer service, explaining that cost "seems to have been a too predominant evaluation factor … what you end up having is lower quality." Neither failure was about model capability. Both were about where the model was allowed to act alone.
+
+## The pantry: three ingredients
+
+Every step in a client workflow is cooked with one of three ingredients, or a combination. They are good at different things, and their failures look different.
+
+<Exhibit
+  n={2}
+  title="Each ingredient is cheap where the others are expensive"
+  sub="Author's framework: properties of the three ways to handle a workflow step"
+  note="Framework by the author, drawing on Anthropic, OpenAI and Google guidance cited in this article."
+>
+  <Compare
+    cols={['Deterministic code', 'Model (LLM or ML)', 'Human']}
+    rows={[
+      { k: 'Best at', v: ['Rules you can write down: validation, routing, maths, permissions, writes', 'Messy input: free text, scans, intent, summaries, drafts', 'Judgement, accountability, empathy, the genuinely new case'] },
+      { k: 'Cost per step', v: ['Near zero once built', 'Cents, and it scales with tokens', 'Minutes of a paid person’s time'] },
+      { k: 'Speed', v: ['Milliseconds', 'Seconds', 'Minutes to days'] },
+      { k: 'Same input, same output?', v: ['Always', 'Not guaranteed', 'Varies by person and by day'] },
+      { k: 'Auditability', v: ['Read the code', 'Logs and evals; reasons are reconstructed', 'Reason codes, if you ask for them'] },
+      { k: 'How it fails', v: ['Loudly, on cases nobody wrote a rule for', 'Quietly and plausibly — a confident wrong answer', 'Fatigue, rubber-stamping, inconsistency'] },
+    ]}
+  />
+</Exhibit>
+
+The table explains a pattern you will see in every serious production system. Dex Horthy's *12-Factor Agents*, written after talking to many teams building agents, observed that most things marketed as AI agents "are not all that agentic. A lot of them are mostly deterministic code, with LLM steps sprinkled in at just the right points." That is not a disappointment. It is the design. Code is cheap, fast and predictable, so it should do everything it can. Models are expensive and variable, so they should do only what code cannot. People are the most expensive and the slowest, so they should spend their time only where their judgement changes the outcome.
+
+## The master recipe: choosing the ingredient for each step
+
+The master recipe is a short sequence of questions, asked once for every step of the workflow you are automating. I use it in discovery workshops and again at every design review.
+
+<Exhibit
+  n={3}
+  title="Ask four questions of every step, in this order"
+  sub="Author's framework: the allocation decision for one workflow step"
+  note="Framework by the author. The order matters: each question is only reached if the one before it fails."
+>
+  <Flow steps={[
+    { title: 'Can you write the rule?', text: 'If a person could follow a written procedure with no judgement, it is code. Validation, lookups, arithmetic, routing, permissions.' },
+    { title: 'Is the input messy?', text: 'Free text, scans, voice, intent, tone. A model reads it — and code checks what the model returns.', hl: true },
+    { title: 'What does a wrong answer cost?', text: 'Price the error: money, legal exposure, customer harm, whether it can be undone.' },
+    { title: 'How sure is the model?', text: 'Combine cost and confidence to pick a lane: automatic, sampled audit, human approval, or human-owned.', hl: true },
+  ]} />
+</Exhibit>
+
+The first two questions decide between code and a model. The last two decide how much human attention the step needs. They come together in a simple grid.
+
+<Exhibit
+  n={4}
+  title="Cost of an error and model confidence decide how much human attention a step gets"
+  sub="Author's framework: four lanes for model-handled steps"
+  note="Framework by the author. Confidence means calibrated confidence, checked against your eval set — not the model's own say-so."
+>
+  <Matrix
+    x="Model confidence (calibrated)"
+    y="Cost of an error"
+    quads={[
+      { title: 'Human-owned', text: 'Expensive errors, unsure model. A person decides; the model drafts or assists.' },
+      { title: 'Human approves', text: 'Expensive errors, confident model. The model proposes; a person approves before anything irreversible happens.', hl: true },
+      { title: 'Queue for review', text: 'Cheap errors, unsure model. Route to a review queue, or retry with more context.' },
+      { title: 'Straight through', text: 'Cheap errors, confident model. Automatic — plus a small random audit sample.', hl: true },
+    ]}
+  />
+</Exhibit>
+
+Two of the lanes are highlighted because that is where most of the value sits. Straight-through processing is where the cost savings come from. Human approval of confident proposals is where most high-stakes automation should start. The statistics behind sizing review queues and audit samples — error rates, Little's law, how many cases a reviewer can really handle — are in [Stats, HITL and Classic ML on LLMs](/blog/stats-hitl-classic-ml-on-llms/). This article focuses on the practical method.
+
+The nine recipes below are that method, in the order an engagement uses them.
+
+## Recipe 1: Shadow the workflow before you design anything
+
+**When to cook it:** the first one or two weeks of any engagement, before anyone opens an editor.
+
+**Ingredients:** a person who does the work today, a real week of their cases, a spreadsheet, and permission to watch.
+
+**Method.**
+1. Sit with the people who do the work and watch them do it — not a process diagram, the actual work. Ask them to talk as they go.
+2. Write every step as a row: what comes in, what decision is made, what goes out, which system it touches.
+3. For each row, record four numbers: how many times a week it happens, how long it takes, what a mistake costs, and whether a mistake can be undone.
+4. Tag each row with a first guess — code, model or human — using the master recipe. Mark the guesses you are least sure of.
+5. Find the one number the client already tracks that this workflow moves: turnaround time, backlog, cost per case, error rate. That is your success metric.
+
+**Done when:** you can walk the client through their own process, step by step, and they correct you on fewer than one step in ten.
+
+**Common mistakes.** Automating the documented process instead of the real one; the workarounds are where the requirements live. Skipping the error-cost column, which makes every later decision a guess. And falling in love with the hardest step. OpenAI's guide to identifying AI use cases sorts candidates by impact against effort; the high-volume, boring, low-risk step is often the right place to start.
+
+<Note kind="field">
+On an insurance certificate platform, one of the fixes that mattered most was a compliance-critical extraction defect: entity fields were capturing names instead of full address blocks. "Extract the entity" and "give compliance the full address block" are two different requirements. Watching how the output is actually used is how you catch the second one before launch rather than after.
+</Note>
+
+## Recipe 2: Rules first, model second, agent last
+
+**When to cook it:** at the start of design, and every time someone proposes "an agent" for a step.
+
+**Ingredients:** the step table from Recipe 1, a metric, and the discipline to ship something boring.
+
+**Method.**
+1. Write a deterministic baseline for every step that has a rule, even a rough one. Measure it against the metric.
+2. Bring in a model only where the rules become unmaintainable or the input is unstructured. Martin Zinkevich's *Rules of Machine Learning* for Google begin with exactly this: "Don't be afraid to launch a product without machine learning," then "Choose machine learning over a complex heuristic."
+3. Prefer a fixed workflow over an agent. Anthropic separates workflows, "where LLMs and tools are orchestrated through predefined code paths," from agents, where models "dynamically direct their own processes and tool usage," and recommends "finding the simplest solution possible, and only increasing complexity when needed."
+4. Only build an agent when the path through the task genuinely cannot be known in advance. OpenAI's agent guide lists three signs: complex judgement, rules that have become unmaintainable, and heavy reliance on unstructured data. "Otherwise, a deterministic solution may suffice."
+5. Keep the baseline running. It is the bar the model has to beat, and your fallback when the model is down.
+
+**Done when:** every model call in the design has a one-line answer to "why can't code do this?"
+
+**Common mistakes.** Using a model for arithmetic, date logic or lookups — things code does perfectly for free. Building a multi-agent system before a single prompt works. And throwing the rules away once the model arrives: Zinkevich's Rule #7 is to turn heuristics into features or handle them outside the model, not delete them.
+
+## Recipe 3: Build the eval set before the prompt
+
+**When to cook it:** before you write the first serious prompt, and continuously after.
+
+**Ingredients:** real cases from Recipe 1, a simple viewer for looking at outputs, one domain expert, and a spreadsheet of pass/fail labels.
+
+**Method.**
+1. Collect 20–50 test cases drawn from real work and real failures. Anthropic's guidance on agent evals calls this "a great start." Include the ugly cases: the scanned fax, the angry customer, the form filled in wrongly.
+2. Run the system and look at the outputs yourself. Hamel Husain calls error analysis "the single most valuable activity in AI development." Label each trace pass or fail, with a sentence of critique.
+3. Keep reading. Husain and Shreya Shankar recommend reviewing at least 100 traces and continuing until new traces stop revealing new kinds of failure.
+4. Appoint one domain expert as the final authority on what "good" means. Committees produce vague standards; one accountable person produces a usable one.
+5. Choose the grader for each check. Anthropic describes three: code-based graders (cheap and exact, but brittle), model-based graders (flexible, but they must be calibrated against human labels), and human graders (the gold standard, but slow). Use code wherever the check can be written as a rule.
+6. Measure consistency, not just accuracy, for anything customer-facing.
+
+<Exhibit
+  n={5}
+  title="A model that is right three times in four gives most users a bad experience"
+  sub="Probability that every one of k attempts succeeds, at a 75% per-attempt success rate (pass^k)"
+  source="Anthropic, Demystifying evals for AI agents (Jan 2026); author's calculation for k = 5"
+  sourceUrl="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents"
+  note="pass^k = (per-attempt success)^k. Anthropic gives the k = 3 example; k = 5 is the same formula."
+  table={[['Attempts in a row', 'Probability all succeed'], ['1', '75%'], ['3', '42%'], ['5', '24%']]}
+>
+  <Bars unit="%" max={100} data={[
+    { label: 'One attempt', value: 75, display: '75%' },
+    { label: 'Three in a row', value: 42, display: '42%', hl: true },
+    { label: 'Five in a row', value: 24, display: '24%' },
+  ]} />
+</Exhibit>
+
+**Done when:** you can change a prompt and know within minutes whether it got better or worse.
+
+**Common mistakes.** Quoting a benchmark score instead of building a test set from the client's own cases. Using off-the-shelf metrics that, in Husain and Shankar's words, "create false confidence." And treating a pass rate below 100% as automatically unacceptable. Sometimes 92% plus a human review lane is the right product decision. The eval set is what lets you make that decision deliberately.
+
+## Recipe 4: Deterministic shell, model core
+
+**When to cook it:** whenever a model's output will be used by anything other than a human reader.
+
+**Ingredients:** a schema for every model output, a validation library (Pydantic, JSON Schema, Zod), retries with limits, and a fallback path.
+
+**Method.**
+1. Let code own the control flow. *12-Factor Agents* calls this "own your control flow": the loop, the state, the order of steps and the decision to stop belong to your code, not the model.
+2. Ask the model for structured output and validate it against a schema. A schema guarantees shape, not truth, so add business-rule checks on the values too: totals must add up, dates must be in range, policy numbers must exist.
+3. Keep every write in code. The model proposes; code checks permissions, applies the change and logs it. Decagon describes the same split for customer service: the model interprets messy input, and "the code-based logic ensures that critical actions are executed correctly every time."
+4. Bypass the model entirely where wording is regulated. Disclosures, legal notices and price quotes come from templates, not generation.
+5. Put deterministic guards in front of the model as well as behind it. Sierra calls these "non-model checks that can't be talked out of doing their job" — for example, keeping account-changing tools unavailable "until the customer has been authenticated."
+
+**Done when:** you can unplug the model and the system fails safely, with a clear error and no half-written records.
+
+**Common mistakes.** Parsing free text with regular expressions when structured output was available. Letting the model call a database directly. And trusting a valid schema as proof of a correct answer.
+
+<Note kind="field">
+On a document-processing pipeline I built for complex insurance PDFs, the model calls sit inside four fixed phases — layout analysis, extraction, assembly and a dedicated verification stage — with concurrency limits and a rate limiter written in plain code around the calls. The verifier exists because a well-formed answer and a right answer are different things.
+</Note>
+
+## Recipe 5: Risk-tier every tool
+
+**When to cook it:** as soon as the model can do anything besides read.
+
+**Ingredients:** a list of every tool, API and write the system can perform, and a column for risk.
+
+**Method.**
+1. Rate each tool low, medium or high. OpenAI's agent guide suggests basing the rating on "read-only vs. write access, reversibility, required account permissions, and financial impact."
+2. Let low-risk tools run automatically, with logging.
+3. Put medium-risk tools behind limits: amounts, rates, scopes, time windows — all enforced in code.
+4. Make high-risk tools wait for a person. *12-Factor Agents* puts the pause "between the moment of tool selection and the moment of tool invocation": the model chooses the action, a person approves it, and code carries it out.
+5. Apply the strictest rule to data changes. Chip Huyen's example is blunt: "no SQL queries that can insert, delete, or update data can be executed without human approval."
+
+<Exhibit
+  n={6}
+  title="Gate tools by what they can break, not by how clever the model is"
+  sub="Author's framework: tool risk tiers and their controls, after OpenAI's low/medium/high guidance"
+  source="OpenAI, A practical guide to building agents (2025); HumanLayer, 12-Factor Agents"
+  sourceUrl="https://cdn.openai.com/business-guides-and-resources/a-practical-guide-to-building-agents.pdf"
+  note="Tier names follow OpenAI's guide; the examples and controls are the author's."
+>
+  <Compare
+    cols={['Low', 'Medium', 'High']}
+    hlCol={2}
+    rows={[
+      { k: 'Typical tools', v: ['Search, read a record, summarise, classify', 'Draft an email, update a non-financial field, create a ticket', 'Payments, refunds, deletions, contract changes, messages sent as the company'] },
+      { k: 'Reversible?', v: ['Nothing to reverse', 'Yes, with effort', 'Often not'] },
+      { k: 'Control', v: ['Run automatically; log it', 'Run within code-enforced limits; sample for audit', 'Model proposes, person approves, code executes'] },
+      { k: 'Evidence to loosen', v: ['n/a', 'Clean audit samples over weeks', 'Long clean record and an explicit sign-off from the client'] },
+    ]}
+  />
+</Exhibit>
+
+**Done when:** every tool has a tier, an owner and a control, and you can show the client the list.
+
+**Common mistakes.** Giving the model one powerful general-purpose tool ("run SQL", "call any API") instead of narrow ones. Rating risk by how often something goes wrong rather than by how bad it is when it does.
+
+<Note kind="field">
+In the production-readiness audits I have done of other teams' AI systems, the serious findings were about the shell around the model, not the model: SQL injection exposure, a secret stored in plain text, retrieval that ranked by priority instead of relevance. Recipes 4 and 5 are where those bugs either get prevented or get shipped.
+</Note>
+
+## Recipe 6: Confidence gates with an audit sample
+
+**When to cook it:** once the eval set tells you how often the model is right, and at what confidence.
+
+**Ingredients:** a confidence signal you have checked against your eval set, a review queue, and a random sampler.
+
+**Method.**
+1. Get a confidence signal per decision: a classifier score, field-level extraction confidence, agreement between two independent passes, or a calibrated judge. Check it on your eval set — is the model really right 95% of the time when it says it is 95% sure?
+2. Set a threshold per field or decision type, not one for the whole system. Selective-classification research calls this the risk–coverage trade-off: raise the threshold and fewer cases go through automatically, but fewer of those are wrong.
+3. Send everything below the threshold, and anything missing a required field, to a human queue.
+4. Randomly sample a fixed share of the cases that passed automatically and send those to review too. AWS's reference design for document review shows exactly this pattern: route on low confidence or missing keys, and send a random 5% of results to people regardless.
+5. Track two numbers every week: the straight-through rate (the share of cases with no human touch) and the error rate found in the audit sample.
+
+<Exhibit
+  n={7}
+  title="Route by confidence, and audit a random slice of the cases you trust"
+  sub="Confidence-gate pattern for a model-handled step"
+  source="AWS, Amazon Augmented AI activation conditions (documentation); El-Yaniv & Wiener (JMLR, 2010)"
+  sourceUrl="https://docs.aws.amazon.com/sagemaker/latest/dg/a2i-json-humantaskactivationconditions-textract-example.html"
+  note="AWS's Augmented AI service is closed to new customers; it is cited here as a well-documented reference design, not a product recommendation. Thresholds must come from your own eval set."
+>
+  <Flow steps={[
+    { title: 'Model + code checks', text: 'Structured output, schema and business-rule validation, a confidence score per field.' },
+    { title: 'Below threshold or missing field?', text: 'Send to the review queue with the model’s draft attached.' },
+    { title: 'Above threshold', text: 'Accept automatically — this is the straight-through lane.', hl: true },
+    { title: 'Random audit sample', text: 'A fixed share of accepted cases also goes to review, to catch confident mistakes and drift.', hl: true },
+    { title: 'Corrections feed back', text: 'Every human fix becomes an eval case and a data point for the next threshold review.' },
+  ]} />
+</Exhibit>
+
+**Done when:** you can say, with numbers, what share of cases goes straight through and how often those cases turn out to be wrong.
+
+**Common mistakes.** Trusting raw model probabilities without checking calibration. Auditing only the low-confidence cases, which hides the confident errors that do the real damage. And setting a threshold once and never revisiting it.
+
+## Recipe 7: Design the human checkpoint so it actually helps
+
+**When to cook it:** whenever a person reviews, approves or takes over from the system.
+
+**Ingredients:** a review screen built for the reviewer, reason codes, and a clear rule for when the system asks for help.
+
+**Method.**
+1. Put people where they beat the model, not where they will rubber-stamp it. In Vaccaro, Almaatouq and Malone's 2024 meta-analysis, human–AI teams lost performance on decision tasks and tended to gain on tasks that involved creating content. Teams also improved when the human was better than the AI alone, and got worse when the AI was better.
+2. Design against automation bias. A 2012 systematic review by Goddard and colleagues found that decision support improves results overall, but people often fail to catch the new errors it introduces. Show the evidence behind each proposal, not just the answer.
+3. Make correction fast. Microsoft's guidelines for human–AI interaction include "Support efficient correction," "Make clear why the system did what it did" and "Scope services when in doubt." If fixing a field takes longer than typing it from scratch, reviewers will stop fixing.
+4. Make escalation a structured event, not a stuck conversation. OpenAI's guide names two triggers: exceeding failure thresholds (for example, failing to understand the customer after several tries) and high-risk actions. *12-Factor Agents* recommends contacting humans through a tool call with an urgency and a response format, so the system can pause and resume cleanly.
+5. Keep reviewers' skills alive. Lisanne Bainbridge's "Ironies of Automation" (1983) warned that people left only to monitor lose the skills they need for the rare moments they must step in. Rotate reviewers onto the hard cases, not only the queue.
+
+<Exhibit
+  n={8}
+  title="Human–AI teams lost ground on decisions and tended to gain on creative work"
+  sub="Pooled effect of human–AI combinations versus the better of humans or AI alone (Hedges' g)"
+  source="Vaccaro, Almaatouq & Malone, Nature Human Behaviour (2024); 106 experiments, 370 effect sizes"
+  sourceUrl="https://pmc.ncbi.nlm.nih.gov/articles/PMC11659167/"
+  note="Negative values mean the combination did worse than the better of the two alone. The creation-task effect is positive but not statistically significant by itself; the difference between decision and creation tasks is."
+  table={[['Task type', 'Hedges’ g', '95% CI'], ['All tasks', '−0.23', '−0.39 to −0.07'], ['Decision tasks', '−0.27', '−0.44 to −0.10'], ['Creation tasks', '+0.19', 'not significant alone']]}
+>
+  <Bars data={[
+    { label: 'All tasks', value: -0.23, display: '−0.23', neg: true },
+    { label: 'Decision tasks', value: -0.27, display: '−0.27', neg: true, hl: true },
+    { label: 'Creation tasks', value: 0.19, display: '+0.19' },
+  ]} />
+</Exhibit>
+
+**Done when:** reviewers can explain why they overrode a proposal, the override rate is tracked, and the queue does not grow faster than people can clear it.
+
+**Common mistakes.** Adding a human "for safety" to a step where the model is already better than people, which adds cost and can lower quality. Hiding the model's reasoning so the reviewer has nothing to check. Measuring reviewers only on speed.
+
+<Note kind="field">
+On an evaluation platform I built, reviewer corrections did not just fix single answers. They re-weighted the automated judges, so the system learned which judge to trust from the people who knew the domain. The human checkpoint was also the training signal.
+</Note>
+
+## Recipe 8: Harden and go live
+
+**When to cook it:** the two weeks before launch, and the first week after.
+
+**Ingredients:** tracing, cost caps, rate limits, a kill switch, a rollback plan, and the client's incident process.
+
+**Method.**
+1. Trace every request end to end: inputs, model calls, tool calls, decisions, who approved what. You cannot debug what you did not log.
+2. Cap cost and rate in code: per user, per tenant, per day. A loop or an abusive user should hit a ceiling, not an invoice.
+3. Build a stop button. The EU AI Act's human-oversight article requires that people overseeing high-risk systems can "disregard, override or reverse the output" and stop the system through "a 'stop' button or a similar procedure." Even outside the Act's scope, it is good engineering.
+4. Treat everything the system says to customers as the company speaking — because legally it is. That is the lesson of *Moffatt v. Air Canada*.
+5. Agree the incident path with the client before launch: who gets paged, who can switch the model off, and what the fallback is (usually the Recipe 2 baseline plus the human queue).
+6. Stay for the first week after go-live. That week brings the rate limits, permission errors, odd file formats and first complaints that no test environment shows you.
+
+**Done when:** you have rehearsed turning the model off, and the business kept running.
+
+**Common mistakes.** Declaring victory at the demo. Launching without a fallback. Leaving no way to tell, after an incident, which version of the prompt and model produced which answer.
+
+## Recipe 9: Hand over and ratchet autonomy with evidence
+
+**When to cook it:** from week one — you design the handover from the start — and formally in the last weeks of the engagement.
+
+**Ingredients:** the dials (thresholds, audit rate, tool tiers, escalation rules), a runbook, and a named owner on the client side.
+
+**Method.**
+1. Start with low autonomy. Feng, McDonald and Zhang describe five levels of autonomy defined by the user's role — operator, collaborator, consultant, approver and observer — and argue that autonomy should be "a deliberate design decision, separate from its capability." New deployments usually start at approver or below.
+2. Raise autonomy one step at a time, and only on evidence: clean audit samples, stable eval scores, a falling override rate. OpenAI's guide keeps high-risk actions under human oversight "until confidence in the agent's reliability grows."
+3. Write the runbook around the dials, not just the code: what each threshold does, how to read the weekly numbers, when to tighten and when to loosen.
+4. Expect steps to move over time. A step that starts with humans often moves to the model once the eval set is large enough, and a model step often becomes code once the pattern is clear enough to write as a rule.
+5. Leave oversight in place, but not necessarily a human in every loop. Arvind Narayanan and Sayash Kapoor point out that "human-in-the-loop control is not synonymous with human oversight of AI" — audits, monitoring and sampling are oversight too.
+
+<Exhibit
+  n={9}
+  title="Autonomy is something you earn over the engagement, not something you ship on day one"
+  sub="Author's illustration of an autonomy ratchet, using the five user roles from Feng, McDonald & Zhang"
+  source="Feng, McDonald & Zhang, Levels of Autonomy for AI Agents (Knight First Amendment Institute, 2025)"
+  sourceUrl="https://knightcolumbia.org/content/levels-of-autonomy-for-ai-agents-1"
+  note="The level names come from the paper; the timeline and gates are the author's illustration of a typical engagement."
+>
+  <Timeline items={[
+    { date: 'Weeks 1–2', title: 'Operator', text: 'People do the work; the system drafts beside them. You collect eval cases.', state: 'done' },
+    { date: 'Weeks 3–6', title: 'Collaborator', text: 'The model fills fields; people edit everything. You measure edit rates.', state: 'done' },
+    { date: 'Go-live', title: 'Approver', text: 'The model proposes, people approve. High-risk tools always stay here.', state: 'hl' },
+    { date: 'After weeks of clean audits', title: 'Consultant', text: 'Straight through above the threshold; people handle the queue and the audit sample.' },
+    { date: 'Rarely, low-risk steps only', title: 'Observer', text: 'Fully automatic, with monitoring, sampling and a stop button.' },
+  ]} />
+</Exhibit>
+
+**Done when:** the client changes a threshold without calling you, and nothing breaks.
+
+**Common mistakes.** Handing over code without the operating knowledge. Becoming a permanent part of the client's operations team. And never feeding what you learned back to your own product team — the subject of [Backward Deployed Engineering](/blog/backward-deployed-engineering/).
+
+## Worked example: one document workflow, three ingredients
+
+Here is how the nine recipes come together on a common enterprise job: processing insurance documents that arrive by email. The details are generic, but the shape matches the work I do.
+
+<Exhibit
+  n={10}
+  title="One workflow, three ingredients: most steps are code, a few are model, and people sit where errors are expensive"
+  sub="Author's illustration: a document-intake workflow with each step tagged"
+  note="Illustration by the author. Real allocations depend on the client's volumes, error costs and eval results."
+>
+  <Flow steps={[
+    { title: 'Code: intake', text: 'Fetch email, store attachments, detect file type, check for duplicates, assign a case ID.' },
+    { title: 'Model: read', text: 'Classify the document and extract fields as structured output, with a confidence score per field.', hl: true },
+    { title: 'Code: check', text: 'Validate against the schema and business rules: totals, dates, policy numbers looked up in the system of record.' },
+    { title: 'Code: route', text: 'Above threshold goes straight through; below threshold or failed checks go to the queue; 5% of passes are sampled.' },
+    { title: 'Human: review', text: 'Reviewers fix fields on a screen that shows the source page next to each value, with reason codes.', hl: true },
+    { title: 'Human + code: act', text: 'Payments and coverage changes need approval; code writes the change and logs who approved it.' },
+  ]} />
+</Exhibit>
+
+Count the ingredients. Of the six steps, three are pure code, one is a model, one is a person, and one is a person approving what code then does. The model sits at the one point where the input is genuinely messy: reading documents in many layouts. People sit at the two points where judgement and accountability matter: fixing what the model was unsure of, and approving actions with financial consequences. Everything else is deterministic, which is why the system is cheap to run, easy to audit and safe to switch off.
+
+Over the engagement, the dials move. Early on, the threshold is high and most cases go to review; every correction becomes an eval case. As the eval set grows and audit samples come back clean, the threshold drops for the fields the model handles well, and the straight-through rate rises. Some document types turn out to follow such a fixed format that a template parser beats the model, and that step moves back to code. That is the cookbook working as intended: not a fixed design, but a mix that keeps improving with evidence.
+
+## Counterpoints
+
+<Note kind="counter" label="Objection 1: Models are improving so fast that this caution will look silly in a year">
+Every few months a new model handles a task that used to need a person. Designing elaborate code shells and review queues means building scaffolding that the next model release will make obsolete. Why not just wait, and let a more capable agent do the whole job?
+</Note>
+
+<Note kind="response">
+Better models move steps between lanes; they do not remove the lanes. A stronger model raises confidence and lowers error rates, so more cases go straight through and the threshold drops — the framework absorbs the improvement. What does not change is the cost of an error or who is accountable for it: Air Canada was liable for its chatbot regardless of how capable it was. And a deterministic shell is cheap insurance. If the next model is good enough, you widen the straight-through lane. If it regresses on the client's cases, which happens, your evals catch it before customers do.
+</Note>
+
+<Note kind="counter" label="Objection 2: All this structure is slow — clients want results in weeks">
+Shadowing, rules-first baselines, eval sets, risk tiers and audit samples sound like an enterprise process. A small team with a good model can build a working agent in days. The cookbook approach will lose to a competitor who just ships.
+</Note>
+
+<Note kind="response">
+The first version can ship fast because most of the recipes are small. An eval set of 30 real cases takes a day. A risk tier is a column in a spreadsheet. A confidence gate is an if-statement. The slow path is the one that skips them: the demo that impresses in week two and then spends months in a pilot nobody trusts. The teams that get to production quickly are the ones that knew, from the first week, which steps the model would never touch alone.
+</Note>
+
+## Your first 90 days as an FDE
+
+For engineers who want the job, the best preparation is to cook these recipes on a real problem. You do not need a client; you need a workflow that someone actually runs.
+
+- **Days 1–30: shadow and baseline.** Pick a real, boring workflow at your current job or in your community: invoices, support tickets, intake forms, reports. Do Recipe 1 properly — the step table with volumes and error costs. Ship a rules-only baseline for the steps that have rules, and measure it.
+- **Days 31–60: add one model, with evals.** Add a model to the single step where the input is messy. Build an eval set of 30–50 real cases first and read at least 100 outputs. Wrap the model in a schema and validation. Add a confidence gate and a small review queue, even if the reviewer is you.
+- **Days 61–90: harden and hand over.** Add tracing, a cost cap, a stop button and a written runbook for the dials. Hand it to the person who runs the workflow, and track the straight-through rate, the audit error rate and the override rate for a month.
+
+Then write it up on one page: the workflow, which steps you gave to code, to the model and to people, and why — with the numbers. That document shows the core FDE skill better than any certificate. [Career Paths in AI](/blog/career-paths-in-ai/) has more on turning work like this into proof of ability.
+
+<Note kind="field">
+I have taught AI and automation to government teams, corporate groups and bootcamp cohorts since 2023. The lesson I most want people to leave with is not about prompts. It is that most steps in a workflow do not need a model at all — and that finding the few that do is the real skill.
+</Note>
+
+## Limitations and methodology
+
+- **Guidance from vendors is guidance from vendors.** Several sources — OpenAI, Anthropic, Sierra, Decagon, AWS — sell the models or platforms they write about. I cite them for patterns and definitions, not for performance claims, and the advice converges across competitors.
+- **Contested numbers are labelled.** The MIT NANDA 95% figure rests on a small sample and a narrow definition of success. The FDE posting growth comes from a vendor's analysis of job ads. I use both for direction, not precision.
+- **The human–AI meta-analysis is mostly lab studies.** Vaccaro and colleagues pooled experiments published between 2020 and 2023, many with non-expert participants and earlier models. The direction of the finding — that human–AI teams are not automatically better — is the point, not the exact effect size.
+- **Reference designs are dated.** AWS's Augmented AI is closed to new customers, and some of Anthropic's tooling advice has been updated since publication. The patterns outlive the products.
+- **Regulation is moving.** EU AI Act timelines for high-risk systems were revised in 2026. Check current obligations for your client's sector and jurisdiction rather than relying on this article.
+- **My frameworks are mine.** The master recipe, the four-lane grid, the tool-tier controls, the autonomy timeline and the worked example come from my own delivery work. They are tools for thinking, not validated instruments.
+
+## Taste as you go
+
+A recipe book is not a substitute for tasting the food. The thresholds in this article, the number of eval cases, the audit sample size — all of them are starting points, to be adjusted against the client's real cases and real costs. What does not change is the habit behind them: for every step, ask whether code can do it, whether a model is really needed, and where a person's judgement is worth what it costs. Then measure, and move the step when the evidence says so.
+
+<Note kind="insight">
+The best FDEs are not the people who know the most about models. They are the people who know exactly which steps should never touch one — and can prove it with numbers.
+</Note>

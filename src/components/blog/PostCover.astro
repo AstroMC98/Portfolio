@@ -73,6 +73,15 @@ const aiTiles = range(17 * 5).map((i) => {
   const fromCentre = Math.abs(x + 26 - DUET_APEX[0]) / 600; // tiles thin out where the duet breaks through
   return { x, y, o: Math.max(0, Math.min(0.75, fromCentre * 1.7 - 0.12)) };
 }).filter((t) => t.o > 0.05);
+// recipe: a recipe card's numbered steps (seeded line lengths) fed by three ingredient bowls — code, AI, human
+const recipeSteps = range(5).map((i) => ({ y: 238 + i * 54, len: 190 + rnd() * 150, hl: i === 2 }));
+const RECIPE_MIX = [628, 346];
+const recipeBowls = [
+  // Kept left of x≈1015 so the share-card crop (scripts/og-images.mjs) shows all three bowls
+  { x: 810, y: 214, kind: 'code' },
+  { x: 935, y: 352, kind: 'ai' },
+  { x: 810, y: 490, kind: 'human' },
+];
 // generative: a seeded network, so every slug gets a different picture (the default for new posts)
 const gNodes = range(22).map(() => ({ x: 130 + rnd() * 940, y: 110 + rnd() * 420 }));
 const near = (i: number) => gNodes.map((n, j) => ({ j, d: (n.x - gNodes[i].x) ** 2 + (n.y - gNodes[i].y) ** 2 })).filter((o) => o.j !== i).sort((a, b) => a.d - b.d);
@@ -337,6 +346,36 @@ while (gPath.length < 6) {
       <path d={duetA} stroke={M} stroke-width="5" />
       <circle cx={DUET_APEX[0]} cy={DUET_APEX[1]} r="11" fill={M} stroke="none" />
       <circle cx={DUET_APEX[0]} cy={DUET_APEX[1]} r="24" stroke={M} stroke-width="2" opacity="0.4" />
+    </g>
+  )}
+
+  {motif === 'recipe' && (
+    <g fill="none" stroke-linecap="round">
+      <rect x="150" y="140" width="500" height="410" rx="18" stroke={T} stroke-width="3" />
+      <path d="M150 200 H 650" stroke={T} stroke-width="3" />
+      <text x="182" y="181" fill="#55665e" font-family="IBM Plex Mono" font-size="20" letter-spacing="3">RECIPE · SERVES 1 CLIENT</text>
+      {recipeSteps.map((s, i) => (
+        <g>
+          <circle cx="200" cy={s.y} r="17" stroke={s.hl ? M : D} stroke-width="3" fill={s.hl ? 'rgb(61 245 167 / 0.1)' : 'none'} />
+          <text x="200" y={s.y + 6} text-anchor="middle" fill={s.hl ? M : '#55665e'} font-family="IBM Plex Mono" font-size="17">{i + 1}</text>
+          <path d={`M240 ${s.y} H ${240 + s.len}`} stroke={s.hl ? M : D} stroke-width={s.hl ? 6 : 4} />
+        </g>
+      ))}
+      {recipeBowls.map((b) => (
+        <g>
+          <path d={`M${b.x - 74} ${b.y + 34} C ${b.x - 160} ${b.y + 34}, ${RECIPE_MIX[0] + 120} ${RECIPE_MIX[1]}, ${RECIPE_MIX[0]} ${RECIPE_MIX[1]}`} stroke={M} stroke-width="3" stroke-dasharray="2 12" />
+          <path d={`M${b.x - 74} ${b.y + 4} H ${b.x + 74} A 74 56 0 0 1 ${b.x - 74} ${b.y + 4} Z`} stroke={T} stroke-width="3" fill="#0d1311" />
+          {b.kind === 'code' && <text x={b.x} y={b.y - 14} text-anchor="middle" fill={T} font-family="IBM Plex Mono" font-size="46">{'{ }'}</text>}
+          {b.kind === 'ai' && <path d={`M${b.x} ${b.y - 66} Q ${b.x + 6} ${b.y - 30} ${b.x + 34} ${b.y - 26} Q ${b.x + 6} ${b.y - 22} ${b.x} ${b.y + 12} Q ${b.x - 6} ${b.y - 22} ${b.x - 34} ${b.y - 26} Q ${b.x - 6} ${b.y - 30} ${b.x} ${b.y - 66} Z`} fill={M} stroke="none" />}
+          {b.kind === 'human' && (
+            <g stroke={T} stroke-width="3">
+              <circle cx={b.x} cy={b.y - 46} r="15" />
+              <path d={`M${b.x - 30} ${b.y - 4} a30 26 0 0 1 60 0`} />
+            </g>
+          )}
+        </g>
+      ))}
+      <circle cx={RECIPE_MIX[0]} cy={RECIPE_MIX[1]} r="10" fill={M} stroke="none" />
     </g>
   )}
 

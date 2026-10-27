@@ -1,0 +1,142 @@
+---
+dek: "Building AI for a business is mostly deciding, step by step, which jobs go to ordinary code, which go to an AI model and which stay with a person — and the people who are best at that decision are the ones businesses most want to hire."
+takeaways:
+  - "Use plain code for anything you can write a rule for, an AI model only where the input is messy, and a person where a mistake is expensive or the AI is unsure. Most good 'AI systems' are mostly ordinary code."
+  - "Test before you trust. Collect real examples, read lots of the AI's answers, and remember that an AI that is right three times in four gives only about 42% of people three good answers in a row."
+  - "Adding a person is not automatically safer. Put people where they are better than the AI, make their checking easy, and give the AI more freedom only as the evidence comes in."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Flow from '../../components/blog/Flow.astro';
+import Matrix from '../../components/blog/Matrix.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Think about a busy restaurant kitchen. Some jobs are done by machines that never vary: the dishwasher, the timer, the scale. Some need a skilled cook who can taste and adjust. And some need the head chef, who checks every plate before it goes to an important table. Nobody asks the head chef to wash dishes, and nobody lets the dishwasher plate the food. Building AI for a business works the same way. Every step of the work goes to plain code, to an AI model or to a person — and choosing well is most of the job.</p>
+
+People who want to become forward deployed engineers — the engineers who go into a company and make AI actually work there — often ask which AI model or course to learn. That matters less than you might think. Here is my argument, in plain words: **use plain code wherever you can, use AI only where the input is messy enough to need it, and put people exactly where a mistake is expensive or the AI is unsure — then move steps around as you learn what works.**
+
+## Jargon decoder
+
+- **Forward deployed engineer (FDE):** an engineer who works inside a customer's business, builds the system there, and stays until the customer can run it alone.
+- **Deterministic code:** ordinary software that follows written rules and gives the same answer to the same question every time.
+- **AI model:** software that has learned from examples. It is good at messy things like reading letters, but it can give a confident wrong answer.
+- **Human in the loop:** a person checks, approves or takes over part of what the system does.
+- **Evals (evaluations):** a set of real test cases used to check whether the AI is getting better or worse.
+- **Confidence:** how sure the AI is about an answer, checked against how often it is really right.
+- **Straight-through:** cases the system handles from start to finish with no person involved.
+- **Audit sample:** a random handful of the automatic cases that a person checks anyway, to catch mistakes nobody flagged.
+
+## Three ingredients
+
+Each ingredient is cheap where the others are expensive, and each one fails in its own way.
+
+<Exhibit
+  n={1}
+  title="Each ingredient is good at something different"
+  sub="Author's framework, simplified"
+  note="Framework by the author."
+>
+  <Compare
+    cols={['Plain code', 'AI model', 'Person']}
+    rows={[
+      { k: 'Good at', v: ['Rules, sums, checks, saving records', 'Reading messy text, scans and requests', 'Judgement, responsibility, unusual cases'] },
+      { k: 'Cost', v: ['Almost free once built', 'A little per use', 'Someone’s paid time'] },
+      { k: 'Same answer every time?', v: ['Yes', 'Not always', 'Depends on the person and the day'] },
+      { k: 'How it goes wrong', v: ['Breaks loudly on cases nobody planned for', 'Gives a confident, believable wrong answer', 'Gets tired and starts waving things through'] },
+    ]}
+  />
+</Exhibit>
+
+This is why most real "AI agents" are, in the words of one well-known guide written by an engineer who studied many of them, "mostly deterministic code, with LLM steps sprinkled in at just the right points." That is not a let-down. It is good design: let the cheap, reliable ingredient do as much as it can.
+
+## The master recipe
+
+For every step in the work, ask four questions in order. Can you write a rule for it? Then it is code. Is the input messy, like handwriting or an angry email? Then an AI reads it, and code checks what the AI says. What does a mistake cost? And how sure is the AI? Those last two decide how much a person needs to be involved.
+
+<Exhibit
+  n={2}
+  title="The cost of a mistake and how sure the AI is decide how much a person gets involved"
+  sub="Author's framework: four lanes"
+  note="Framework by the author."
+>
+  <Matrix
+    x="How sure the AI is"
+    y="Cost of a mistake"
+    quads={[
+      { title: 'A person decides', text: 'Costly mistakes, unsure AI. The AI can help, but a person makes the call.' },
+      { title: 'A person approves', text: 'Costly mistakes, confident AI. The AI suggests; a person says yes before anything happens.', hl: true },
+      { title: 'Check later', text: 'Cheap mistakes, unsure AI. Put it in a queue for someone to look at.' },
+      { title: 'Automatic', text: 'Cheap mistakes, confident AI. Let it run — and spot-check a few.', hl: true },
+    ]}
+  />
+</Exhibit>
+
+## The recipes, in plain words
+
+**1. Watch the work first.** Sit with the people who do the job and write down every step: how often it happens, how long it takes and what a mistake costs. The real process is never the one in the manual.
+
+**2. Rules first, AI second.** Build the simple, rule-based version first and measure it. Google's own advice on machine learning starts with "Don't be afraid to launch a product without machine learning." Add AI only where rules stop working.
+
+**3. Test before you trust.** Gather 20–50 real examples, including the ugly ones, and read at least 100 of the AI's answers. Pick one expert to decide what "good" looks like. And check consistency, because customers notice when an answer is good one day and wrong the next.
+
+<Exhibit
+  n={3}
+  title="Right three times in four still means most people get a bad answer somewhere"
+  sub="Chance that every one of several tries succeeds, if each try works 75% of the time"
+  source="Anthropic (Jan 2026); author's calculation for five tries"
+  sourceUrl="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents"
+  table={[['Tries in a row', 'Chance all succeed'], ['1', '75%'], ['3', '42%'], ['5', '24%']]}
+>
+  <Bars unit="%" max={100} data={[
+    { label: 'One try', value: 75, display: '75%' },
+    { label: 'Three in a row', value: 42, display: '42%', hl: true },
+    { label: 'Five in a row', value: 24, display: '24%' },
+  ]} />
+</Exhibit>
+
+**4. Put the AI inside a box of code.** The AI reads and suggests; code decides what happens next, checks the answer and saves the records. If you unplug the AI, the system should stop safely, not make a mess.
+
+**5. Sort the tools by danger.** Reading a record is low risk. Changing a field is medium. Sending money, deleting things or making promises to customers is high, and should always wait for a person to approve.
+
+**6. Let confidence decide, and spot-check.** Confident answers go through automatically; unsure ones go to a person. And a small random share of the automatic ones gets checked anyway, because the most damaging mistakes are the confident ones.
+
+**7. Make the human check worth doing.** A big study of 106 experiments found that people and AI working together often did *worse* than the better of the two alone, especially when choosing between options. So put people where they are actually better than the AI, show them why the AI suggested something, and make fixing it quick.
+
+**8. Get ready for real life.** Record everything, cap costs, and build an off switch. Whatever the system tells customers counts as the company speaking: a Canadian tribunal held Air Canada responsible for what its chatbot said.
+
+**9. Give the AI more freedom slowly.** Start with the AI only suggesting. Let it do more on its own as the checks keep coming back clean, and leave the customer a guide to the settings so they can keep adjusting after you leave.
+
+<Note kind="field">
+In the production-readiness audits I have done of other teams' AI systems, the serious problems were not in the AI. They were in the code around it: a security hole that could have let someone tamper with the database, a password-like secret stored in plain text, and search results ranked in the wrong order.
+</Note>
+
+## One example
+
+Here is how the recipes fit together for a common job: handling insurance documents that arrive by email.
+
+<Exhibit
+  n={4}
+  title="Most steps are ordinary code; the AI reads, and people check what matters"
+  sub="Author's illustration: a document workflow with each step labelled"
+  note="Illustration by the author."
+>
+  <Flow steps={[
+    { title: 'Code: receive', text: 'Save the email and files, spot duplicates, give the case a number.' },
+    { title: 'AI: read', text: 'Work out what the document is and pull out the details, with a confidence score for each.', hl: true },
+    { title: 'Code: check', text: 'Do the sums add up? Is the policy number real? Are the dates sensible?' },
+    { title: 'Code: sort', text: 'Confident and correct goes through; unsure or failed goes to a person; a few are spot-checked.' },
+    { title: 'Person: review', text: 'Fix anything wrong, with the original page shown next to each detail.', hl: true },
+    { title: 'Person + code: act', text: 'Payments need a person’s approval; code makes the change and records who approved it.' },
+  ]} />
+</Exhibit>
+
+Three of the six steps are plain code. The AI does the one genuinely messy job: reading documents laid out a hundred different ways. People sit where judgement and responsibility matter. That is why a system like this is cheap to run, easy to check and safe to switch off.
+
+## If you remember one thing
+
+AI is one ingredient, not the whole meal. The skill that businesses pay for is knowing, for every step, whether code can do it, whether AI is really needed, and where a person's judgement is worth what it costs — and then changing the recipe as the results come in.
+
+<Note kind="insight">
+The best FDEs are not the people who know the most about AI models. They are the people who know exactly which steps should never touch one — and can prove it with numbers.
+</Note>
