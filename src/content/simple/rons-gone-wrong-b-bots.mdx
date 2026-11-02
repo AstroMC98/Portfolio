@@ -1,0 +1,108 @@
+---
+dek: "A 2021 cartoon imagined a robot best friend for every child. Today the robot's brain already lives in our phones and its body is starting to show up as small, cheap toy robots, but the hardest part, being a good friend, is still missing."
+takeaways:
+  - "The talking and remembering part of a robot friend already exists: phones can now run AI that chats with you without the internet."
+  - "Robot bodies are arriving small and cheap. A $399 walking robot duck got more than 20,000 orders in one day, but it runs for about an hour and can only lift about 100 grams."
+  - "The real gap is friendship. A good robot friend would keep your secrets, keep working if its company closes, and help you spend more time with real people, not less."
+---
+import Exhibit from '../../components/blog/Exhibit.astro';
+import Bars from '../../components/blog/Bars.astro';
+import Compare from '../../components/blog/Compare.astro';
+import Note from '../../components/blog/Note.astro';
+
+<p class="lede">Imagine a robot that comes in a box, says "I'm your best friend!", follows you to school, and knows everything you like. That is the B-Bot from the 2021 cartoon <em>Ron's Gone Wrong</em>. A lonely boy called Barney gets a broken one called Ron, and the broken one turns out to be the only real friend in the film. Five years later, how close are we to building one?</p>
+
+Here is my answer, in plain words: **the robot's brain is mostly here already, inside our phones. Its body is just starting to arrive, as small toy robots. The hardest part, being a good friend, is the part nobody has built yet, and it is the part the film was really about.**
+
+## Jargon decoder
+
+- **B-Bot:** the robot best friend in the film, sold by a big tech company called Bubble.
+- **On-device AI:** AI that runs on your phone itself, so it works without the internet and your words do not have to leave the phone.
+- **The cloud:** big computers owned by a company, far away. If the company switches them off, anything that depends on them stops working.
+- **Simulation:** a video-game version of the world where a robot can practise walking and falling millions of times before it tries for real.
+- **Teleoperation:** a person somewhere else secretly steering the robot, like a remote-control car.
+- **Companion chatbot:** an AI designed to be your friend or keep you company, not just answer questions.
+
+## The film, and a real-life Mark
+
+In the film, Bubble's boss is a young man named Marc who believes his robots will help lonely kids make friends. His robots work by reading everything about a child (their likes, dislikes and posts) and matching them with other kids. Later we learn the company also uses that information to make money.
+
+The name is a coincidence, but the idea is not. In 2025 Mark Zuckerberg, who runs Facebook and Instagram, said the average American has fewer than three friends but would like about 15, and that AI could help. That is almost exactly the B-Bot's sales pitch.
+
+## Brain, body and friendship
+
+A B-Bot needs three things: a **brain** (talking and remembering), a **body** (moving and doing things) and **friendship** (actually being good for you). Here is my rough guess at how far along each part is.
+
+<Exhibit
+  n={1}
+  title="Most of the brain exists, a little of the body, almost none of the friendship"
+  sub="Author's rough guess, % of the way to a film-style B-Bot"
+  note="A judgement call, not a measurement."
+  table={[['Part', 'Guess'], ['Brain: talking', 'about 85%'], ['Brain: knowing you', 'about 70%'], ['Body: moving', 'about 35%'], ['Body: handling things', 'about 15%'], ['Being a good friend', 'about 10%']]}
+>
+  <Bars unit="%" data={[
+    { label: 'Brain: talking', value: 85, display: '~85%' },
+    { label: 'Brain: knowing you', value: 70, display: '~70%' },
+    { label: 'Body: moving', value: 35, display: '~35%' },
+    { label: 'Body: handling things', value: 15, display: '~15%' },
+    { label: 'Being a good friend', value: 10, display: '~10%', hl: true },
+  ]} />
+</Exhibit>
+
+## The brain is already in your pocket
+
+New iPhones and Android phones can run a small AI model right on the phone. It can chat, sum up messages and remember things without the internet. Your phone also already knows your photos, your music and who you text most. So a robot friend would not need to collect new information about you. It would just need permission to use what your phone already has. That is handy, and it is also the part to be careful about.
+
+## The body is arriving, small first
+
+On 21 October 2026 Jensen Huang, the boss of NVIDIA, the giant AI chip company, played on stage with four little walking robot ducks called Microducks. They stomp, sit, flop over for a "nap" and do somersaults. The next day more than 20,000 people had ordered one.
+
+<Exhibit
+  n={2}
+  title="A cute start, but a long way from a B-Bot"
+  sub="What the $399 Microduck can and cannot do"
+  note="Based on the maker's announced specifications, which may change before it ships."
+>
+  <Compare
+    cols={['Microduck today', 'What a B-Bot needs']}
+    rows={[
+      { k: 'Moving', v: ['Walks, falls, gets back up', 'Follow a child all day, anywhere'] },
+      { k: 'Battery', v: ['About one hour', 'A whole school day'] },
+      { k: 'Hands', v: ['Picks up about 100 g with its beak', 'Carry, open, help'] },
+      { k: 'Talking', v: ['Makes cute sounds; too small a computer to chat', 'Borrow a brain from a phone'] },
+    ]}
+  />
+</Exhibit>
+
+The duck learned to walk in a simulation first, a bit like practising in a video game. That is one of the fastest ways robots are getting better.
+
+## What is still missing
+
+- **Hands.** Picking up a sock is easy for a toddler and very hard for a robot. Even a $20,000 home robot called NEO still sometimes needs a human steering it from far away.
+- **Batteries.** Walking and thinking use up power fast.
+- **Price.** Good robot bodies need lots of tiny, precise motors.
+- **Staying alive.** A $799 robot friend for children called Moxie stopped talking in January 2025 when its company closed and switched off its computers. Children had to say goodbye.
+
+## Can a robot be a good friend?
+
+In 2025 researchers at MIT and OpenAI followed almost 1,000 adults for four weeks. People who chose to chat with an AI a lot tended to feel lonelier and to spend less time with real people. We do not know yet which causes which, but it is a warning.
+
+A good robot friend would:
+
+1. Always say it is a robot.
+2. Keep your secrets on your own device.
+3. Help you spend time with real friends and family.
+4. Tell a grown-up if you seem upset.
+5. Keep working even if its company closes.
+
+<Note kind="insight">
+Lawmakers are paying attention. From January 2027, California will not allow toys with friend-style chatbots to be sold for children under 16, until 2031. A B-Bot, as the film's company sold it, would not be allowed in shops there.
+</Note>
+
+## The film's ending knew the answer
+
+*Spoiler.* At the end, Barney does not keep a robot at all. He goes back to school and gets closer to his real friends. Ron was a good friend because he learned who Barney really was and then helped him not need a robot.
+
+<Note kind="insight">
+Building the robot is the easy part, and it is coming. The hard part is building a friend that keeps your secrets, keeps working, and is happy when you need it less.
+</Note>

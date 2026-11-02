@@ -82,6 +82,10 @@ const recipeBowls = [
   { x: 935, y: 352, kind: 'ai' },
   { x: 810, y: 490, kind: 'human' },
 ];
+// bbot (Ron's Gone Wrong): a phone (the mind, here now), a small walking duck-bot (the body, arriving)
+// and a B-Bot capsule (the friend, not yet), joined by a dashed trail. Kept left of x≈1015 for the share-card crop.
+const BBOT_TRAIL = 'M248 214 C 300 110, 470 150, 540 300 M600 300 C 640 150, 720 110, 790 140';
+const bbotGlitch = range(9).map(() => ({ x: 948 + rnd() * 46, y: 196 + rnd() * 70, s: 5 + rnd() * 7 }));
 // generative: a seeded network, so every slug gets a different picture (the default for new posts)
 const gNodes = range(22).map(() => ({ x: 130 + rnd() * 940, y: 110 + rnd() * 420 }));
 const near = (i: number) => gNodes.map((n, j) => ({ j, d: (n.x - gNodes[i].x) ** 2 + (n.y - gNodes[i].y) ** 2 })).filter((o) => o.j !== i).sort((a, b) => a.d - b.d);
@@ -376,6 +380,37 @@ while (gPath.length < 6) {
         </g>
       ))}
       <circle cx={RECIPE_MIX[0]} cy={RECIPE_MIX[1]} r="10" fill={M} stroke="none" />
+    </g>
+  )}
+
+  {motif === 'bbot' && (
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M80 520 H 1120" stroke={D} stroke-width="3" />
+      <path d={BBOT_TRAIL} stroke={M} stroke-width="3" stroke-dasharray="2 12" />
+      {/* The mind: a phone with a conversation and a spark */}
+      <rect x="172" y="232" width="150" height="270" rx="22" stroke={T} stroke-width="3" fill="#0d1311" />
+      <path d="M228 250 H 266" stroke={D} stroke-width="5" />
+      <rect x="192" y="284" width="92" height="34" rx="10" stroke={D} stroke-width="3" />
+      <rect x="210" y="332" width="92" height="34" rx="10" stroke={M} stroke-width="3" />
+      <path d="M247 396 Q 251 424 276 428 Q 251 432 247 460 Q 243 432 218 428 Q 243 424 247 396 Z" fill={M} stroke="none" />
+      {/* The body: a small walking duck-bot */}
+      <ellipse cx="560" cy="430" rx="54" ry="40" stroke={T} stroke-width="3" fill="#0d1311" />
+      <circle cx="598" cy="362" r="25" stroke={T} stroke-width="3" fill="#0d1311" />
+      <path d="M620 356 l26 8 l-26 8" stroke={T} stroke-width="3" />
+      <circle cx="604" cy="356" r="5" fill={M} stroke="none" />
+      <path d="M582 384 L 576 396" stroke={T} stroke-width="3" />
+      <path d="M544 468 L 538 518 H 524 M576 468 L 584 518 H 600" stroke={T} stroke-width="3" />
+      {/* The friend: a B-Bot capsule with a screen face and a little glitch */}
+      <ellipse cx="866" cy="512" rx="96" ry="9" stroke={D} stroke-width="2" />
+      <rect x="760" y="150" width="212" height="352" rx="106" stroke={T} stroke-width="3" fill="#0d1311" />
+      <rect x="792" y="212" width="148" height="112" rx="42" stroke={D} stroke-width="3" fill="#121b17" />
+      <path d="M826 276 q 14 -20 28 0 M878 276 q 14 -20 28 0" stroke={M} stroke-width="6" />
+      <path d="M846 300 q 20 12 40 0" stroke={M} stroke-width="4" />
+      {bbotGlitch.map((g) => <rect x={g.x} y={g.y} width={g.s} height={g.s} fill={M} stroke="none" opacity="0.7" />)}
+      <path d="M800 380 H 932 M812 408 H 920" stroke={D} stroke-width="4" />
+      <text x="247" y="566" text-anchor="middle" fill="#55665e" font-family="IBM Plex Mono" font-size="18" letter-spacing="3">MIND</text>
+      <text x="566" y="566" text-anchor="middle" fill="#55665e" font-family="IBM Plex Mono" font-size="18" letter-spacing="3">BODY</text>
+      <text x="866" y="566" text-anchor="middle" fill={M} font-family="IBM Plex Mono" font-size="18" letter-spacing="3">FRIEND?</text>
     </g>
   )}
 
